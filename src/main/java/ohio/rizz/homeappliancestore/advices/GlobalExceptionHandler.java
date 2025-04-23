@@ -1,4 +1,4 @@
-package ohio.rizz.homeappliancestore;
+package ohio.rizz.homeappliancestore.advices;
 
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import org.springframework.ui.Model;

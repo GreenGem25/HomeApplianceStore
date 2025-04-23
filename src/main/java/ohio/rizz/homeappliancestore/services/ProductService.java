@@ -2,7 +2,7 @@ package ohio.rizz.homeappliancestore.services;
 
 import ohio.rizz.homeappliancestore.comparators.ProductComparator;
 import ohio.rizz.homeappliancestore.entities.Product;
-import ohio.rizz.homeappliancestore.repos.ProductRepository;
+import ohio.rizz.homeappliancestore.repositories.ProductRepository;
 
 import org.springframework.stereotype.Service;
 

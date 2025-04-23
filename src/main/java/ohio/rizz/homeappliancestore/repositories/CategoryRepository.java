@@ -1,4 +1,4 @@
-package ohio.rizz.homeappliancestore.repos;
+package ohio.rizz.homeappliancestore.repositories;
 
 import ohio.rizz.homeappliancestore.entities.Category;
 import org.springframework.data.jpa.repository.JpaRepository;
