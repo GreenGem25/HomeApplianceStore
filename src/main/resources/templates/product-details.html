@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Информация о товаре</title>
+</head>
+<body>
+<h1 th:text="${product.name}"></h1>
+<div th:if="${product.imagePath != null}">
+    <img th:src="@{${product.imagePath}}" alt="Изображение товара" width="300">
+</div>
+<p>Цена: <span th:text="${product.price}"></span> руб.</p>
+<p>В наличии: <span th:text="${product.stockQuantity}"></span> шт.</p>
+<p>Гарантия: <span th:text="${product.warrantyPeriod}"></span> мес.</p>
+<p>Описание: <span th:text="${product.description}"></span></p>
+<a th:href="@{/products}">Вернуться к списку товаров</a>
+</body>
+</html>
