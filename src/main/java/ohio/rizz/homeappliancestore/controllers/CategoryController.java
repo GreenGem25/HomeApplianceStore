@@ -16,7 +16,7 @@ public class CategoryController {
     @GetMapping("/categories")
     public String listCategories(Model model) {
         model.addAttribute("activePage", "Список категорий");
-        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("categories", categoryService.getRootCategories());
         return "categories";
     }
 }

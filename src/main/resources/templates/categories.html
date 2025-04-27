@@ -27,18 +27,25 @@
             color: white;
             background: #0d6efd;
         }
-        .category-card {
-            transition: transform 0.2s;
-            border-radius: 10px;
-            overflow: hidden;
+        .category-icon {
+            transition: transform 0.2s ease;
+            transform: rotate(0deg);
+            display: inline-block; /* Это важно для transform */
         }
-        .category-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+
+        [aria-expanded="true"] > div > .category-icon,
+        [aria-expanded="true"] .category-icon {
+            transform: rotate(90deg);
         }
-        .empty-category {
-            background-color: #f8f9fa;
-            border: 2px dashed #dee2e6;
+        .child-category {
+            background: #f2f2f2;
+        }
+        .description-text {
+            color: gray;
+        }
+        .flex-row {
+            display: flex;
+            justify-content: space-between;
         }
     </style>
 </head>
@@ -78,54 +85,58 @@
                 </div>
             </div>
 
-            <!-- Карточки категорий -->
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                <div class="col" th:each="category : ${categories}">
-                    <div class="card h-100 category-card"
-                         th:classappend="${category.products.empty} ? 'empty-category'">
-
-                        <div class="card-body">
-                            <h5 class="card-title" th:text="${category.name}"></h5>
-                            <p class="card-text text-muted"
-                               th:text="${category.description} ?: 'Нет описания'"></p>
-                            <div class="d-flex justify-content-between align-items-center">
-                                    <span class="badge bg-primary rounded-pill"
-                                          th:text="${category.products.size()} + ' товаров'"></span>
-                                <span th:if="${category.parentCategory != null}"
-                                      class="badge bg-secondary">
-                                        Родитель: <span th:text="${category.parentCategory.name}"></span>
-                                    </span>
-                            </div>
+            <!-- Иерархический список категорий -->
+            <div class="list-group">
+                <div th:each="category : ${categories}" th:if="${category.parentCategory == null}">
+                    <div class="list-group-item category-toggle d-flex justify-content-between align-items-center"
+                         data-bs-toggle="collapse"
+                         th:attr="data-bs-target='#childCategories-'+${category.id}"
+                         aria-expanded="false">
+                        <div>
+                            <i class="bi bi-chevron-right category-icon me-2"></i>
+                            <span th:text="${category.name}"></span>
                         </div>
+                        <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary ms-2">
+                            <i class="bi bi-eye"> Показать товары</i>
+                        </a>
+                    </div>
 
-                        <div class="card-footer bg-white">
-                            <div class="d-flex justify-content-between">
-                                <a th:href="@{/categories/{id}/edit(id=${category.id})}"
-                                   class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-pencil"></i> Изменить
-                                </a>
-                                <a th:href="@{/categories/{id}(id=${category.id})}"
-                                   class="btn btn-sm btn-outline-success">
-                                    <i class="bi bi-eye"></i> Просмотр
-                                </a>
+                    <!-- Подкатегории -->
+                    <div th:id="'childCategories-'+${category.id}" class="child-categories collapse">
+                        <div th:each="child : ${category.childCategories}">
+                            <div class="list-group-item child-category d-flex align-items-center flex-row">
+                                <div>
+                                    <i class="bi bi-tags category-icon me-2"></i>
+                                    <span th:text="${child.name}"></span>
+                                </div>
+                                <div class="description-text">
+                                    <span th:text="${child.description}"></span>
+                                </div>
+                                <div>
+                                    <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-danger ms-2">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                    <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-success ms-2">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary ms-2">
+                                        <i class="bi bi-eye"> Показать товары</i>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Пустая категория (пример) -->
-            <div class="col" th:if="${categories.empty}">
-                <div class="card h-100 empty-category">
-                    <div class="card-body text-center py-5">
-                        <i class="bi bi-folder-x" style="font-size: 3rem; color: #6c757d;"></i>
-                        <h5 class="card-title mt-3">Нет категорий</h5>
-                        <p class="card-text">Добавьте первую категорию</p>
-                        <a th:href="@{/categories/add}" class="btn btn-primary">
-                            <i class="bi bi-plus-circle"></i> Создать категорию
-                        </a>
-                    </div>
-                </div>
+            <!-- Сообщение, если нет категорий -->
+            <div th:if="${categories.empty}" class="text-center py-5">
+                <i class="bi bi-folder-x" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="card-title mt-3">Нет категорий</h5>
+                <p class="card-text">Добавьте первую категорию</p>
+                <a th:href="@{/categories/add}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Создать категорию
+                </a>
             </div>
         </main>
     </div>
@@ -142,6 +153,21 @@
             .forEach(function (tooltipTriggerEl) {
                 new bootstrap.Tooltip(tooltipTriggerEl);
             });
+    });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const collapses = document.querySelectorAll('.collapse');
+        collapses.forEach(collapse => {
+            collapse.addEventListener('show.bs.collapse', function() {
+                const toggle = this.previousElementSibling;
+                toggle.setAttribute('aria-expanded', 'true');
+            });
+            collapse.addEventListener('hide.bs.collapse', function() {
+                const toggle = this.previousElementSibling;
+                toggle.setAttribute('aria-expanded', 'false');
+            });
+        });
     });
 </script>
 </body>

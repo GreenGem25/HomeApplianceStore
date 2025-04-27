@@ -31,7 +31,7 @@ public class Product {
     private String manufacturer;
     @Column(name = "warranty_period")
     private int warrantyPeriod;
-
+    @Column(name = "image_path")
     private String imagePath;
 
     @CreationTimestamp
