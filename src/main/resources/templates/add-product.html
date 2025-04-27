@@ -40,6 +40,15 @@
     </div>
 
     <div class="mb-3">
+      <label for="supplier" class="form-label">Поставщик</label>
+      <select class="form-select" id="supplier" name="supplierId" required>
+        <option th:each="supplier : ${suppliers}"
+                th:value="${supplier.id}"
+                th:text="${supplier.name}"></option>
+      </select>
+    </div>
+
+    <div class="mb-3">
       <label for="warrantyPeriod" class="form-label">Гарантия (месяцы)</label>
       <input type="number" class="form-control" id="warrantyPeriod" name="warrantyPeriod">
     </div>

@@ -1,11 +1,14 @@
 package ohio.rizz.homeappliancestore.controllers;
 
 import ohio.rizz.homeappliancestore.entities.Product;
+import ohio.rizz.homeappliancestore.entities.Supplier;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
+import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.ProductRepository;
 import ohio.rizz.homeappliancestore.services.CategoryService;
 import ohio.rizz.homeappliancestore.services.ProductService;
 
+import ohio.rizz.homeappliancestore.services.SupplierService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -26,10 +29,12 @@ import java.util.stream.Collectors;
 public class ProductController {
     private final ProductService productService;
     private final CategoryService categoryService;
+    private final SupplierService supplierService;
 
-    ProductController(ProductService productService, CategoryService categoryService) {
+    ProductController(ProductService productService, CategoryService categoryService, SupplierService supplierService) {
         this.productService = productService;
         this.categoryService = categoryService;
+        this.supplierService = supplierService;
     }
 
     @GetMapping("/products")
@@ -63,7 +68,8 @@ public class ProductController {
     @GetMapping("/products/add")
     public String showAddProductForm(Model model) {
         model.addAttribute("product", new Product());
-        model.addAttribute("categories", categoryService.getAllCategories()); // Если нужно выбирать категорию
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("suppliers", supplierService.getAllSuppliers());
         return "add-product";
     }
 
@@ -71,7 +77,12 @@ public class ProductController {
     public String addProduct(
             @ModelAttribute Product product,
             @RequestParam("imageFile") MultipartFile imageFile,
+            @RequestParam Long supplierId,
             RedirectAttributes redirectAttributes) {
+
+        Supplier supplier = supplierService.getSupplierById(supplierId)
+                .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден"));
+        product.setSupplier(supplier);
 
         try {
             // Обработка изображения

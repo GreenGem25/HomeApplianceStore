@@ -14,18 +14,18 @@ public class Supplier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "supplier_id")
-    private Long supplierId;
+    private Long id;
 
     @Column(name = "name", nullable = false)
-    private String supplierName;
+    private String name;
     @Column(name = "contact_name")
-    private String supplierContactName;
+    private String contactName;
     @Column(name = "phone")
-    private String supplierPhone;
+    private String phone;
     @Column(name = "email")
-    private String supplierEmail;
+    private String email;
     @Column(name = "address")
-    private String supplierAddress;
+    private String address;
 
     @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Product> products;
