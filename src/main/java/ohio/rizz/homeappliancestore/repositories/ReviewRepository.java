@@ -1,0 +1,7 @@
+package ohio.rizz.homeappliancestore.repositories;
+
+import ohio.rizz.homeappliancestore.entities.Review;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ReviewRepository extends JpaRepository<Review, Long> {
+}

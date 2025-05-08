@@ -1,5 +1,7 @@
 package ohio.rizz.homeappliancestore.controllers;
 
+import jakarta.validation.Valid;
+import ohio.rizz.homeappliancestore.dto.ProductDto;
 import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.entities.Supplier;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
@@ -11,6 +13,7 @@ import ohio.rizz.homeappliancestore.services.ProductService;
 import ohio.rizz.homeappliancestore.services.SupplierService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -112,5 +115,68 @@ public class ProductController {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при загрузке изображения");
             return "redirect:/products/add";
         }
+    }
+
+    @GetMapping("/products/{id}/edit")
+    public String showEditForm(@PathVariable Long id, Model model) {
+        Product product = productService.getProductById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Продукт не найден"));
+
+        // Создаем DTO для формы редактирования
+        ProductDto productDto = new ProductDto();
+        productDto.setId(product.getId());
+        productDto.setName(product.getName());
+        productDto.setDescription(product.getDescription());
+        productDto.setPrice(product.getPrice());
+        productDto.setStockQuantity(product.getStockQuantity());
+        productDto.setManufacturer(product.getManufacturer());
+        productDto.setWarrantyPeriod(product.getWarrantyPeriod());
+        productDto.setCategoryId(product.getCategory() != null ? product.getCategory().getId() : null);
+        productDto.setSupplierId(product.getSupplier() != null ? product.getSupplier().getId() : null);
+
+        model.addAttribute("productEditDto", productDto);
+        model.addAttribute("categories", categoryService.getAllCategories());
+        model.addAttribute("suppliers", supplierService.getAllSuppliers());
+        return "edit-product";
+    }
+
+    @PostMapping("/products/{id}/edit")
+    public String updateProduct(
+            @PathVariable Long id,
+            @Valid @ModelAttribute("productEditDto") ProductDto productDto,
+            BindingResult bindingResult,
+            @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
+            Model model,
+            RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("categories", categoryService.getAllCategories());
+            model.addAttribute("suppliers", supplierService.getAllSuppliers());
+            return "edit-product";
+        }
+
+        try {
+            Product product = productService.updateProduct(id, productDto, imageFile);
+            redirectAttributes.addFlashAttribute("successMessage", "Товар успешно обновлен!");
+            return "redirect:/products/" + product.getId();
+        } catch (IOException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении изображения");
+            return "redirect:/products/" + id + "/edit";
+        }
+    }
+
+    @PostMapping("/products/{id}/delete")
+    public String deleteProduct(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+
+        try {
+            productService.deleteProduct(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Товар успешно удален");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при удалении товара: " + e.getMessage());
+        }
+
+        return "redirect:/products";
     }
 }

@@ -1,7 +1,7 @@
 package ohio.rizz.homeappliancestore.services;
 
 import jakarta.persistence.EntityNotFoundException;
-import ohio.rizz.homeappliancestore.DTOs.CategoryDto;
+import ohio.rizz.homeappliancestore.dto.CategoryDto;
 import ohio.rizz.homeappliancestore.entities.Category;
 import ohio.rizz.homeappliancestore.repositories.CategoryRepository;
 import org.springframework.stereotype.Service;

@@ -1,4 +1,4 @@
-package ohio.rizz.homeappliancestore.DTOs;
+package ohio.rizz.homeappliancestore.dto;
 
 import lombok.Getter;
 import lombok.Setter;
