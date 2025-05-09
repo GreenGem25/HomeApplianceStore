@@ -48,6 +48,22 @@
             display: flex;
             justify-content: space-between;
         }
+        .input-group {
+            transition: all 0.3s;
+        }
+        .input-group:focus-within {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+        .input-group input {
+            border-right: none;
+        }
+        .input-group button {
+            border-left: none;
+            background-color: white;
+        }
+        .input-group button:hover {
+            background-color: rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -83,27 +99,51 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">
+            <div class="d-flex flex-wrap justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <!-- Заголовок слева -->
+                <h1 class="h2 mb-0">
                     <i class="bi bi-box-seam"></i> Список товаров
                 </h1>
-                <!-- Форма сортировки -->
-                <div class="sort-container">
-                    <form th:action="@{/products}" method="get" class="row g-3">
-                        <div>
-                            <select name="sortBy" class="form-select" onchange="this.form.submit()">
+
+                <!-- Группа элементов управления справа -->
+                <div class="d-flex flex-wrap align-items-center gap-3">
+                    <!-- Форма поиска -->
+                    <form th:action="@{/products}" method="get" class="flex-grow-1" style="min-width: 450px;">
+                        <div class="input-group">
+                            <input type="text"
+                                   name="search"
+                                   class="form-control"
+                                   placeholder="Поиск товаров..."
+                                   th:value="${param.search}">
+                            <button type="submit" class="btn btn-outline-secondary" style="border-color: rgba(0,0,0,0.1);">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <a th:if="${param.search}"
+                               th:href="@{/products}"
+                               class="btn btn-outline-danger">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Форма сортировки -->
+                    <div>
+                        <form th:action="@{/products}" method="get">
+                            <select name="sortBy" class="form-select w-100" onchange="this.form.submit()">
                                 <option value="name_asc" th:selected="${sortBy == 'name_asc'}">По названию (А-Я)</option>
                                 <option value="name_desc" th:selected="${sortBy == 'name_desc'}">По названию (Я-А)</option>
                                 <option value="price_asc" th:selected="${sortBy == 'price_asc'}">По цене (сначала дешевые)</option>
                                 <option value="price_desc" th:selected="${sortBy == 'price_desc'}">По цене (сначала дорогие)</option>
                             </select>
-                        </div>
-                    </form>
-                </div>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/products/add}" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Добавить товар
-                    </a>
+                        </form>
+                    </div>
+
+                    <!-- Кнопка добавления -->
+                    <div class="flex-grow-1 flex-md-grow-0">
+                        <a th:href="@{/products/add}" class="btn btn-success w-100">
+                            <i class="bi bi-plus-circle"></i> Добавить товар
+                        </a>
+                    </div>
                 </div>
             </div>
 
@@ -138,6 +178,15 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div th:if="${products != null && products.empty}" class="text-center py-5">
+                <i class="bi bi-search" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="card-title mt-3">Товары не найдены</h5>
+                <p class="card-text">Попробуйте изменить параметры поиска</p>
+                <a th:href="@{/products}" class="btn btn-primary">
+                    <i class="bi bi-arrow-left"></i> Показать все товары
+                </a>
             </div>
 
             <!-- Страницы -->

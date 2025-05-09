@@ -69,26 +69,6 @@ public class ProductService {
         return productRepository.findByCategory_Id(categoryId);
     }
 
-    public List<Product> getProductsByStore(Long storeId) {
-        return productRepository.findByStore_Id(storeId);
-    }
-
-    public List<Product> findByproductName(String name) {
-        return productRepository.findByName(name);
-    }
-
-    public List<Product> findByproductNameContaining(String keyword) {
-        return productRepository.findByNameContaining(keyword);
-    }
-
-    public List<Product> findByproductNameIgnoreCase(String name) {
-        return productRepository.findByNameIgnoreCase(name);
-    }
-
-    public List<Product> findByproductManufacturer(String manufacturer) {
-        return productRepository.findByManufacturer(manufacturer);
-    }
-
     public void save(Product product) {
         productRepository.save(product);
     }
@@ -165,5 +145,9 @@ public class ProductService {
         }
 
         productRepository.delete(product);
+    }
+
+    public List<Product> searchProducts(String query) {
+        return productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query);
     }
 }

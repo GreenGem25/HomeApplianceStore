@@ -43,16 +43,24 @@ public class ProductController {
     @GetMapping("/products")
     public String listProducts(
             @RequestParam(defaultValue = "name_asc") String sortBy,
+            @RequestParam(required = false) String search,
             Model model) {
 
-        List<Product> products = switch (sortBy) {
-            case "name_asc" -> productService.getAllProductsNameAsc();
-            case "name_desc" -> productService.getAllProductsNameDesc();
-            case "price_asc" -> productService.getAllProductsPriceAsc();
-            case "price_desc" -> productService.getAllProductsPriceDesc();
-            default ->
-                    productService.getAllProducts();
-        };
+        List<Product> products;
+
+        if (search != null && !search.isEmpty()) {
+            // Поиск по названию и описанию
+            products = productService.searchProducts(search);
+        } else {
+            // Обычная сортировка
+            products = switch (sortBy) {
+                case "name_asc" -> productService.getAllProductsNameAsc();
+                case "name_desc" -> productService.getAllProductsNameDesc();
+                case "price_asc" -> productService.getAllProductsPriceAsc();
+                case "price_desc" -> productService.getAllProductsPriceDesc();
+                default -> productService.getAllProducts();
+            };
+        }
 
         model.addAttribute("activePage", "Список товаров");
         model.addAttribute("products", products);
