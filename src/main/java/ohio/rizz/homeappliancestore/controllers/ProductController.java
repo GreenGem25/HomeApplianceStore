@@ -99,7 +99,7 @@ public class ProductController {
             // Обработка изображения
             if (!imageFile.isEmpty()) {
                 String uploadDir = "uploads/products/";
-                String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+                String fileName = System.currentTimeMillis() + "_" + product.getId() + ".jpg";
 
                 // Создаем директорию, если не существует
                 Path uploadPath = Paths.get(uploadDir);
