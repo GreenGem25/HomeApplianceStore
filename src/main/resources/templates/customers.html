@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Клиенты</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <style>
+        .sidebar {
+            width: 250px;
+            min-height: 100vh;
+            background: #212529;
+            transition: all 0.3s;
+        }
+        .nav-link {
+            color: #adb5bd;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background: #0d6efd;
+        }
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+        }
+        .customer-card {
+            transition: transform 0.2s;
+            border-radius: 10px;
+        }
+        .customer-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .customer-avatar {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- Боковое меню -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
+            <div class="position-sticky pt-3">
+                <div class="text-center mb-4">
+                    <h4 class="text-white">Магазин техники</h4>
+                </div>
+                <ul class="nav flex-column px-3">
+                    <li class="nav-item" th:each="item : ${menuItems}">
+                        <a th:href="@{${item.url}}"
+                           class="nav-link d-flex align-items-center"
+                           th:classappend="${item.isActive} ? 'active'">
+                            <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
+                            <span th:text="${item.name}"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Основной контент -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-people"></i> Список клиентов
+                </h1>
+
+                <div class="d-flex gap-3">
+                    <!-- Форма поиска -->
+                    <form th:action="@{/products}" method="get" class="flex-grow-1" style="min-width: 450px;">
+                        <div class="input-group">
+                            <input type="text"
+                                   name="search"
+                                   class="form-control"
+                                   placeholder="Поиск клиентов..."
+                                   th:value="${param.search}">
+                            <button type="submit" class="btn btn-outline-secondary" style="border-color: rgba(0,0,0,0.1);">
+                                <i class="bi bi-search"></i>
+                            </button>
+                            <a th:if="${param.search}"
+                               th:href="@{/products}"
+                               class="btn btn-outline-danger">
+                                <i class="bi bi-x"></i>
+                            </a>
+                        </div>
+                    </form>
+
+                    <!-- Кнопка добавления -->
+                    <a th:href="@{/customers/add}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Добавить клиента
+                    </a>
+                </div>
+            </div>
+
+            <!-- Список клиентов -->
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                <div class="col" th:each="customer : ${customers}">
+                    <div class="card customer-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <img th:src="${customer.imagePath != null} ? ${customer.imagePath} : '/images/default-avatar.png'"
+                                     class="customer-avatar me-3"
+                                     alt="Фото клиента"
+                                     onerror="this.src='/images/default-avatar.png'">
+                                <div>
+                                    <h5 class="card-title mb-0" th:text="${customer.lastName + ' ' + customer.firstName}"></h5>
+                                    <small class="text-muted" th:text="${customer.email}"></small>
+                                </div>
+                            </div>
+                            <div class="card-text">
+                                <p th:if="${customer.phone}">
+                                    <i class="bi bi-telephone"></i>
+                                    <span th:text="${customer.phone}"></span>
+                                </p>
+                                <p th:if="${customer.address}" class="text-truncate">
+                                    <i class="bi bi-geo-alt"></i>
+                                    <span th:text="${customer.address}"></span>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="card-footer bg-white">
+                            <div class="d-flex justify-content-between">
+                                <small class="text-muted" th:text="${#dates.format(customer.createdAt, 'dd.MM.yyyy')}"></small>
+                                <a th:href="@{/customers/{id}(id=${customer.id})}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Подробнее
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Сообщение, если нет клиентов -->
+            <div th:if="${customers.empty}" class="text-center py-5">
+                <i class="bi bi-people" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="card-title mt-3">Клиенты не найдены</h5>
+                <p class="card-text" th:text="${param.search} ? 'Попробуйте изменить параметры поиска' : 'Добавьте первого клиента'"></p>
+                <a th:href="@{/customers/add}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Добавить клиента
+                </a>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    // Анимация бокового меню
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        navLinks.forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(5px)';
+            });
+
+            link.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+        });
+    });
+</script>
+
+</body>
+</html>

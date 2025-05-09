@@ -19,7 +19,7 @@ public class MenuAdvice {
                 new MenuItem("Товары", "/products", "bi-box-seam", currentPath.startsWith("/products")),
                 new MenuItem("Категории", "/categories", "bi-tags", currentPath.startsWith("/categories")),
                 new MenuItem("Заказы (WIP)", "/orders", "bi-cart", currentPath.startsWith("/orders")),
-                new MenuItem("Клиенты (WIP)", "/customers", "bi-people", currentPath.startsWith("/customers"))
+                new MenuItem("Клиенты", "/customers", "bi-people", currentPath.startsWith("/customers"))
         );
     }
 }

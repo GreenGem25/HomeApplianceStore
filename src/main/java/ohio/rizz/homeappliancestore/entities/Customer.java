@@ -29,6 +29,8 @@ public class Customer {
     private String phone;
     @Column(name = "address")
     private String address;
+    @Column(name = "image_path")
+    private String imagePath;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
