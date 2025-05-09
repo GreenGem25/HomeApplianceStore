@@ -98,7 +98,7 @@ public class ProductService {
         // Обновление изображения (если загружено новое)
         if (imageFile != null && !imageFile.isEmpty()) {
             String uploadDir = "uploads/products/";
-            String fileName = System.currentTimeMillis() + "_" + imageFile.getOriginalFilename();
+            String fileName = System.currentTimeMillis() + "_" + product.getId() + ".jpg";
             Path uploadPath = Paths.get(uploadDir);
 
             if (!Files.exists(uploadPath)) {
