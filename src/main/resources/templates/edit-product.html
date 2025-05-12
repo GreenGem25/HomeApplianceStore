@@ -30,6 +30,9 @@
             width: 24px;
             text-align: center;
         }
+        .product-image {
+            max-height: 150px;
+        }
     </style>
 </head>
 <body>
@@ -157,7 +160,10 @@
                         <div class="mb-3">
                             <label class="form-label">Текущее изображение</label>
                             <div>
-
+                                <img th:src="${productEditDto.imagePath != null} ? ${productEditDto.imagePath} : '/images/no-image.png'"
+                                     class="product-image mb-2"
+                                     alt="Фото товара"
+                                     onerror="this.src='/images/no-image.png'">
                             </div>
                             <label for="imageFile" class="form-label mt-3">Новое изображение</label>
                             <input type="file" class="form-control" id="imageFile" name="imageFile" accept="image/*">

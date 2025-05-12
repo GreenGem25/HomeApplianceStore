@@ -16,7 +16,7 @@ public class ProductDto {
     @Size(min = 3, max = 100, message = "Название должно быть от 3 до 100 символов")
     private String name;
 
-    @Size(max = 500, message = "Описание не должно превышать 500 символов")
+    @Size(max = 1000, message = "Описание не должно превышать 1000 символов")
     private String description;
 
     @NotNull(message = "Цена обязательна")
@@ -39,5 +39,6 @@ public class ProductDto {
     @NotNull(message = "Категория обязательна")
     private Long categoryId;
 
+    private String imagePath;
     private MultipartFile imageFile;
 }

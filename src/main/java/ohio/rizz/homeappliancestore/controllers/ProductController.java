@@ -141,6 +141,7 @@ public class ProductController {
         productDto.setWarrantyPeriod(product.getWarrantyPeriod());
         productDto.setCategoryId(product.getCategory() != null ? product.getCategory().getId() : null);
         productDto.setSupplierId(product.getSupplier() != null ? product.getSupplier().getId() : null);
+        productDto.setImagePath(product.getImagePath());
 
         model.addAttribute("productEditDto", productDto);
         model.addAttribute("categories", categoryService.getAllCategories());
@@ -164,9 +165,9 @@ public class ProductController {
         }
 
         try {
-            Product product = productService.updateProduct(id, productDto, imageFile);
+            productService.updateProduct(id, productDto, imageFile);
             redirectAttributes.addFlashAttribute("successMessage", "Товар успешно обновлен!");
-            return "redirect:/products/" + product.getId();
+            return "redirect:/products/" + id;
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении изображения");
             return "redirect:/products/" + id + "/edit";
