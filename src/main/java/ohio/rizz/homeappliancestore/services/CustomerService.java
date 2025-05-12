@@ -64,7 +64,7 @@ public class CustomerService {
         } else if (imageFile != null && !imageFile.isEmpty()) {
             // Загрузка нового изображения
             String uploadDir = "uploads/avatars/";
-            String fileName = System.currentTimeMillis() + "_" + customerDTO.getId() + ".jpg";
+            String fileName = System.currentTimeMillis() + ".jpg";
 
             Path uploadPath = Paths.get(uploadDir);
             if (!Files.exists(uploadPath)) {

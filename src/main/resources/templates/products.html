@@ -158,15 +158,12 @@
                              onerror="this.src='/images/no-image.png'">
                         <div class="card-body">
                             <h5 class="card-title" th:text="${product.name}"></h5>
-                            <p class="card-text text-muted" th:text="${product.description} ?: 'Нет описания'"></p>
+                            <p class="card-text text-muted" th:text="${#strings.abbreviate(product.description ?: 'Нет описания', 128)}"></p>
                         </div>
                         <div class="card-footer bg-white">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span class="h5 mb-0" th:text="${'₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA')}"></span>
                                 <div class="flex-row">
-                                    <a href="#" class="btn btn-sm btn-outline-danger ms-2">
-                                        <i class="bi bi-trash"></i>
-                                    </a>
                                     <a th:href="@{/products/{id}/edit(id=${product.id})}" class="btn btn-sm btn-outline-success ms-2">
                                         <i class="bi bi-pencil"></i>
                                     </a>

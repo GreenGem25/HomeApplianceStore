@@ -99,7 +99,7 @@ public class ProductController {
             // Обработка изображения
             if (!imageFile.isEmpty()) {
                 String uploadDir = "uploads/products/";
-                String fileName = System.currentTimeMillis() + "_" + product.getId() + ".jpg";
+                String fileName = System.currentTimeMillis() + ".jpg";
 
                 // Создаем директорию, если не существует
                 Path uploadPath = Paths.get(uploadDir);
@@ -118,7 +118,7 @@ public class ProductController {
 
             productService.save(product);
             redirectAttributes.addFlashAttribute("successMessage", "Товар успешно добавлен!");
-            return "redirect:/products";
+            return "redirect:/products/" + product.getId();
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при загрузке изображения");
             return "redirect:/products/add";
