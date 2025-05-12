@@ -11,7 +11,6 @@ import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.CategoryRepository;
 import ohio.rizz.homeappliancestore.repositories.ProductRepository;
 
-import ohio.rizz.homeappliancestore.repositories.ReviewRepository;
 import ohio.rizz.homeappliancestore.repositories.SupplierRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -30,13 +29,11 @@ public class ProductService {
     final private ProductRepository productRepository;
     final private CategoryRepository categoryRepository;
     final private SupplierRepository supplierRepository;
-    final private ReviewRepository reviewRepository;
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository, ReviewRepository reviewRepository) {
+    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.supplierRepository = supplierRepository;
-        this.reviewRepository = reviewRepository;
     }
 
     public List<Product> getAllProducts() {
@@ -129,11 +126,6 @@ public class ProductService {
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Товар не найден"));
-
-        // Удаляем связанные отзывы (если есть каскадное удаление)
-        if (product.getReviews() != null) {
-            reviewRepository.deleteAll(product.getReviews());
-        }
 
         // Удаляем изображение (если оно есть)
         if (product.getImagePath() != null) {
