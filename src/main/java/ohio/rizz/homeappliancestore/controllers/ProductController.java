@@ -42,6 +42,7 @@ public class ProductController {
 
     @GetMapping("/products")
     public String listProducts(
+            @RequestParam(required = false) String category,
             @RequestParam(defaultValue = "name_asc") String sortBy,
             @RequestParam(required = false) String search,
             Model model) {
@@ -51,6 +52,10 @@ public class ProductController {
         if (search != null && !search.isEmpty()) {
             // Поиск по названию и описанию
             products = productService.searchProducts(search);
+        } else if (category != null && !category.isEmpty()) {
+            // Фильтрация по категории
+            Long categoryId = Long.parseLong(category);
+            products = productService.getProductsByCategoryWithChildren(categoryId);
         } else {
             // Обычная сортировка
             products = switch (sortBy) {

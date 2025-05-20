@@ -15,11 +15,11 @@ public class MenuAdvice {
         String currentPath = request.getRequestURI();
 
         return List.of(
-                new MenuItem("Главная (WIP)", "/", "bi-house", currentPath.equals("/")),
                 new MenuItem("Товары", "/products", "bi-box-seam", currentPath.startsWith("/products")),
                 new MenuItem("Категории", "/categories", "bi-tags", currentPath.startsWith("/categories")),
                 new MenuItem("Заказы (WIP)", "/orders", "bi-cart", currentPath.startsWith("/orders")),
-                new MenuItem("Клиенты", "/customers", "bi-people", currentPath.startsWith("/customers"))
+                new MenuItem("Клиенты", "/customers", "bi-people", currentPath.startsWith("/customers")),
+                new MenuItem("Поставщики (WIP)", "/suppliers", "bi-truck", currentPath.startsWith("/suppliers"))
         );
     }
 }

@@ -29,11 +29,16 @@ public class ProductService {
     final private ProductRepository productRepository;
     final private CategoryRepository categoryRepository;
     final private SupplierRepository supplierRepository;
+    final private CategoryService categoryService;
 
-    public ProductService(ProductRepository productRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository) {
+    public ProductService(ProductRepository productRepository,
+                          CategoryRepository categoryRepository,
+                          SupplierRepository supplierRepository,
+                          CategoryService categoryService) {
         this.productRepository = productRepository;
         this.categoryRepository = categoryRepository;
         this.supplierRepository = supplierRepository;
+        this.categoryService = categoryService;
     }
 
     public List<Product> getAllProducts() {
@@ -141,5 +146,10 @@ public class ProductService {
 
     public List<Product> searchProducts(String query) {
         return productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query);
+    }
+
+    public List<Product> getProductsByCategoryWithChildren(Long categoryId) {
+        List<Long> categoryIds = categoryService.getAllChildCategoryIds(categoryId);
+        return productRepository.findByCategoryIds(categoryIds);
     }
 }

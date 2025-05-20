@@ -147,6 +147,17 @@
                 </div>
             </div>
 
+            <div th:if="${currentCategory}" class="alert alert-info mb-3">
+                <i class="bi bi-filter"></i>
+                Показаны товары из категории:
+                <strong th:text="${currentCategory.name}"></strong>
+                и всех подкатегорий
+
+                <a th:href="@{/products}" class="btn btn-sm btn-outline-danger ms-3">
+                    <i class="bi bi-x"></i> Сбросить фильтр
+                </a>
+            </div>
+
             <!-- Карточки товаров -->
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 <div class="col" th:each="product : ${products}">

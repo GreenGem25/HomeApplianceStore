@@ -16,14 +16,14 @@
         <span th:text="${category.name}"></span>
       </div>
       <div class="category-actions">
-        <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-eye"> Показать товары</i>
+        <a th:href="@{/products?category={id}(id=${category.id})}" class="btn btn-sm btn-outline-dark">
+          <i class="bi bi-search"> Найти товары</i>
         </a>
         <a th:href="@{/categories/{id}/edit(id=${category.id})}" class="btn btn-sm btn-outline-success">
           <i class="bi bi-pencil"></i>
         </a>
-        <a th:href="@{/categories/{id}/delete(id=${category.id})}" class="btn btn-sm btn-outline-danger">
-          <i class="bi bi-trash"></i>
+        <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-eye"> Подробнее</i>
         </a>
       </div>
     </div>

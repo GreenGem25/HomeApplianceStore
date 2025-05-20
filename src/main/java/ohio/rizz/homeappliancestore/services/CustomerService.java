@@ -93,6 +93,7 @@ public class CustomerService {
         return customer == null || customer.getId().equals(id);
     }
 
+    @Transactional
     public void deleteCustomer(Long id) {
         customerRepository.deleteById(id);
     }
