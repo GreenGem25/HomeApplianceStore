@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="category-node(category, level)">
+  <!-- Категория -->
+  <div class="list-group-item category-item level-${level}">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="category-toggle"
+           th:if="${!category.childCategories.empty}"
+           data-bs-toggle="collapse"
+           th:attr="data-bs-target='#children-of-'+${category.id}">
+        <i class="bi bi-chevron-right category-icon me-2"></i>
+        <span th:text="${category.name}"></span>
+      </div>
+      <div th:unless="${!category.childCategories.empty}" class="ms-3">
+        <span th:text="${category.name}"></span>
+      </div>
+      <div class="category-actions">
+        <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary">
+          <i class="bi bi-eye"> Показать товары</i>
+        </a>
+        <a th:href="@{/categories/{id}/edit(id=${category.id})}" class="btn btn-sm btn-outline-success">
+          <i class="bi bi-pencil"></i>
+        </a>
+        <a th:href="@{/categories/{id}/delete(id=${category.id})}" class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-trash"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Дочерние категории -->
+  <div th:if="${!category.childCategories.empty}">
+    <div th:id="'children-of-'+${category.id}" class="collapse">
+      <div th:each="child : ${category.childCategories}">
+        <div th:replace="~{fragments/category-node :: category-node(category=${child}, level=${level + 1})}"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

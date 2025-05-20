@@ -1,7 +1,7 @@
 package ohio.rizz.homeappliancestore.services;
 
 import jakarta.transaction.Transactional;
-import ohio.rizz.homeappliancestore.dto.CustomerDTO;
+import ohio.rizz.homeappliancestore.dto.CustomerDto;
 import ohio.rizz.homeappliancestore.entities.Customer;
 import ohio.rizz.homeappliancestore.repositories.CustomerRepository;
 import org.springframework.stereotype.Service;
@@ -38,7 +38,7 @@ public class CustomerService {
     }
 
     @Transactional
-    public void updateCustomer(Long id, CustomerDTO customerDTO, MultipartFile imageFile, boolean removeImage) throws IOException {
+    public void updateCustomer(Long id, CustomerDto customerDTO, MultipartFile imageFile, boolean removeImage) throws IOException {
         Customer existingCustomer = customerRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Клиент не найден"));
 

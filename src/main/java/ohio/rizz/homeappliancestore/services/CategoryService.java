@@ -7,6 +7,7 @@ import ohio.rizz.homeappliancestore.repositories.CategoryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -36,5 +37,34 @@ public class CategoryService {
         }
 
         return categoryRepository.save(category);
+    }
+
+    public Category save(Category category) {
+        return categoryRepository.save(category);
+    }
+
+    public List<Category> getAllCategoriesWithChildren() {
+        // Получаем все корневые категории
+        List<Category> rootCategories = categoryRepository.findByParentCategoryIsNull();
+
+        // Для каждой корневой категории загружаем дочерние
+        rootCategories.forEach(category -> {
+            category.setChildCategories(categoryRepository.findByParentCategory_id(category.getId()));
+        });
+
+        return rootCategories;
+    }
+
+    public List<Category> getCategoryTree() {
+        List<Category> rootCategories = categoryRepository.findByParentCategoryIsNull();
+        return rootCategories.stream()
+                .peek(this::loadChildrenRecursively)
+                .collect(Collectors.toList());
+    }
+
+    private void loadChildrenRecursively(Category category) {
+        List<Category> children = categoryRepository.findByParentCategory_id(category.getId());
+        category.setChildCategories(children);
+        children.forEach(this::loadChildrenRecursively);
     }
 }

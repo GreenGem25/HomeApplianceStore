@@ -9,7 +9,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
-public class CustomerDTO {
+public class CustomerDto {
     private Long id;
 
     @NotBlank(message = "Имя обязательно")

@@ -1,6 +1,6 @@
 package ohio.rizz.homeappliancestore.controllers;
 
-import ohio.rizz.homeappliancestore.dto.CustomerDTO;
+import ohio.rizz.homeappliancestore.dto.CustomerDto;
 import ohio.rizz.homeappliancestore.entities.Customer;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import org.springframework.stereotype.Controller;
@@ -16,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
-import java.util.Optional;
 
 @Controller
 @RequestMapping("/customers")
@@ -86,7 +85,7 @@ public class CustomerController {
         Customer customer = customerService.getCustomerById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Клиент не найден"));
 
-        CustomerDTO customerDTO = new CustomerDTO();
+        CustomerDto customerDTO = new CustomerDto();
         customerDTO.setId(customer.getId());
         customerDTO.setFirstName(customer.getFirstName());
         customerDTO.setLastName(customer.getLastName());
@@ -102,7 +101,7 @@ public class CustomerController {
     @PostMapping("/{id}/edit")
     public String updateCustomer(
             @PathVariable Long id,
-            @ModelAttribute CustomerDTO customerDTO,
+            @ModelAttribute CustomerDto customerDTO,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             @RequestParam(value = "removeImage", required = false, defaultValue = "false") boolean removeImage,
             RedirectAttributes redirectAttributes) {

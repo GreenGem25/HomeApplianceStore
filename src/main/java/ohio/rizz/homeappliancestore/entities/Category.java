@@ -37,5 +37,3 @@ public class Category {
         child.setParentCategory(this);
     }
 }
-
-// id 1 = Электроника
