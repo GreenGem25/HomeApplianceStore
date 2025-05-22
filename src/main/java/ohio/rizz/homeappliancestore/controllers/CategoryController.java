@@ -97,7 +97,7 @@ public class CategoryController {
         try {
             categoryService.updateCategory(id, categoryDto);
             redirectAttributes.addFlashAttribute("successMessage", "Категория успешно обновлена!");
-            return "redirect:/categories/" + id;
+            return "redirect:/categories";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении: " + e.getMessage());
             return "redirect:/categories/" + id + "/edit";

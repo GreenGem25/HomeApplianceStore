@@ -5,7 +5,9 @@ import jakarta.transaction.Transactional;
 import ohio.rizz.homeappliancestore.dto.CategoryDto;
 import ohio.rizz.homeappliancestore.entities.Category;
 import ohio.rizz.homeappliancestore.entities.Customer;
+import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.CategoryRepository;
+import ohio.rizz.homeappliancestore.repositories.ProductRepository;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
@@ -17,9 +19,11 @@ import java.util.stream.Collectors;
 @Service
 public class CategoryService {
     final private CategoryRepository categoryRepository;
+    final private ProductRepository productRepository;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, ProductRepository productRepository) {
         this.categoryRepository = categoryRepository;
+        this.productRepository = productRepository;
     }
 
     public List<Category> getRootCategories() {
@@ -41,7 +45,7 @@ public class CategoryService {
 
         if (dto.getParentCategoryId() != null) {
             Category parent = categoryRepository.findById(dto.getParentCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Parent category not found"));
+                    .orElseThrow(() -> new CategoryNotFoundException("Родительская категория не найдена!"));
             category.setParentCategory(parent);
         }
 
@@ -102,7 +106,7 @@ public class CategoryService {
         List<Long> categoryIdList = getAllChildCategoryIds(parentCategoryId);
         for (Long id : categoryIdList) {
             count += categoryRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("Категория не найдена")).getProducts().size();
+                    .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена")).getProducts().size();
         }
         return count;
     }
@@ -110,13 +114,13 @@ public class CategoryService {
     @Transactional
     public void updateCategory(Long id, CategoryDto dto) {
         Category existingCategory = categoryRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Категория не найдена"));
+                .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
 
         existingCategory.setName(dto.getName());
         existingCategory.setDescription(dto.getDescription());
         if (dto.getParentCategoryId() != null) {
             existingCategory.setParentCategory(categoryRepository.findById(dto.getParentCategoryId())
-                    .orElseThrow(() -> new EntityNotFoundException("Категория не найдена")));
+                    .orElseThrow(() -> new CategoryNotFoundException("Родительская категория не найдена")));
         }
 
         categoryRepository.save(existingCategory);
@@ -124,6 +128,12 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategory(Long id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
+        productRepository.findByCategory_Id(category.getId()).forEach(product -> {
+            product.setCategory(null);
+            productRepository.save(product);
+        });
         categoryRepository.deleteById(id);
     }
 }

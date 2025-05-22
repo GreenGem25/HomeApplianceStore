@@ -19,7 +19,7 @@ public class MenuAdvice {
                 new MenuItem("Категории", "/categories", "bi-tags", currentPath.startsWith("/categories")),
                 new MenuItem("Заказы (WIP)", "/orders", "bi-cart", currentPath.startsWith("/orders")),
                 new MenuItem("Клиенты", "/customers", "bi-people", currentPath.startsWith("/customers")),
-                new MenuItem("Поставщики (WIP)", "/suppliers", "bi-truck", currentPath.startsWith("/suppliers"))
+                new MenuItem("Поставщики", "/suppliers", "bi-truck", currentPath.startsWith("/suppliers"))
         );
     }
 }

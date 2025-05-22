@@ -7,7 +7,9 @@ import ohio.rizz.homeappliancestore.dto.ProductDto;
 import ohio.rizz.homeappliancestore.entities.Category;
 import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.entities.Supplier;
+import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
+import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.CategoryRepository;
 import ohio.rizz.homeappliancestore.repositories.ProductRepository;
 
@@ -89,12 +91,12 @@ public class ProductService {
 
         // Обновление категории
         Category category = categoryRepository.findById(productEditDto.getCategoryId())
-                .orElseThrow(() -> new EntityNotFoundException("Категория не найдена"));
+                .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
         product.setCategory(category);
 
         // Обновление поставщика
         Supplier supplier = supplierRepository.findById(productEditDto.getSupplierId())
-                .orElseThrow(() -> new EntityNotFoundException("Поставщик не найден"));
+                .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден"));
         product.setSupplier(supplier);
 
         // Обновление изображения (если загружено новое)
@@ -151,5 +153,9 @@ public class ProductService {
     public List<Product> getProductsByCategoryWithChildren(Long categoryId) {
         List<Long> categoryIds = categoryService.getAllChildCategoryIds(categoryId);
         return productRepository.findByCategoryIds(categoryIds);
+    }
+
+    public List<Product> getProductsBySupplier(Long supplierId) {
+        return productRepository.findBySupplier_Id(supplierId);
     }
 }

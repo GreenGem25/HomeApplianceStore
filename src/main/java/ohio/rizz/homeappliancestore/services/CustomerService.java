@@ -3,6 +3,7 @@ package ohio.rizz.homeappliancestore.services;
 import jakarta.transaction.Transactional;
 import ohio.rizz.homeappliancestore.dto.CustomerDto;
 import ohio.rizz.homeappliancestore.entities.Customer;
+import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.CustomerRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,7 +41,7 @@ public class CustomerService {
     @Transactional
     public void updateCustomer(Long id, CustomerDto customerDTO, MultipartFile imageFile, boolean removeImage) throws IOException {
         Customer existingCustomer = customerRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Клиент не найден"));
+                .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
 
         // Проверка уникальности email
         if (!isEmailUnique(id, customerDTO.getEmail())) {

@@ -29,7 +29,7 @@ public class Category {
     @OneToMany(mappedBy = "parentCategory", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Category> childCategories = new ArrayList<>();
 
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "category")
     private List<Product> products;
 
     public void addChildCategory(Category child) {

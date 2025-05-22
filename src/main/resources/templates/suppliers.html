@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Клиенты</title>
+    <title>Поставщики</title>
 
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -31,19 +31,24 @@
             width: 24px;
             text-align: center;
         }
-        .customer-card {
+        .supplier-card {
             transition: transform 0.2s;
             border-radius: 10px;
         }
-        .customer-card:hover {
+        .supplier-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
-        .customer-avatar {
+        .supplier-icon {
             width: 60px;
             height: 60px;
-            object-fit: cover;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f8f9fa;
             border-radius: 50%;
+            font-size: 1.5rem;
+            color: #6c757d;
         }
     </style>
 </head>
@@ -73,23 +78,23 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">
-                    <i class="bi bi-people"></i> Список клиентов
+                    <i class="bi bi-truck"></i> Список поставщиков
                 </h1>
 
                 <div class="d-flex gap-3">
                     <!-- Форма поиска -->
-                    <form th:action="@{/customers}" method="get" class="flex-grow-1" style="min-width: 450px;">
+                    <form th:action="@{/suppliers}" method="get" class="flex-grow-1" style="min-width: 450px;">
                         <div class="input-group">
                             <input type="text"
                                    name="search"
                                    class="form-control"
-                                   placeholder="Поиск клиентов..."
+                                   placeholder="Поиск поставщиков..."
                                    th:value="${param.search}">
                             <button type="submit" class="btn btn-outline-secondary" style="border-color: rgba(0,0,0,0.1);">
                                 <i class="bi bi-search"></i>
                             </button>
                             <a th:if="${param.search}"
-                               th:href="@{/customers}"
+                               th:href="@{/suppliers}"
                                class="btn btn-outline-danger">
                                 <i class="bi bi-x"></i>
                             </a>
@@ -97,8 +102,8 @@
                     </form>
 
                     <!-- Кнопка добавления -->
-                    <a th:href="@{/customers/add}" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Добавить клиента
+                    <a th:href="@{/suppliers/add}" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Добавить поставщика
                     </a>
                 </div>
             </div>
@@ -112,56 +117,56 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
-            <!-- Список клиентов -->
+            <!-- Список поставщиков -->
             <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
-                <div class="col" th:each="customer : ${customers}">
-                    <div class="card customer-card h-100">
+                <div class="col" th:each="supplier : ${suppliers}">
+                    <div class="card supplier-card h-100">
                         <div class="card-body">
                             <div class="d-flex align-items-center mb-3">
-                                <img th:src="${customer.imagePath}"
-                                     class="customer-avatar me-3"
-                                     alt="Фото клиента"
-                                     onerror="this.src='/images/no-avatar.png'">
+                                <div class="supplier-icon me-3">
+                                    <i class="bi bi-truck"></i>
+                                </div>
                                 <div>
-                                    <h5 class="card-title mb-0" th:text="${customer.lastName + ' ' + customer.firstName}"></h5>
-                                    <small class="text-muted" th:text="${customer.email}"></small>
+                                    <h5 class="card-title mb-0" th:text="${supplier.name}"></h5>
+                                    <small class="text-muted" th:if="${supplier.contactName}" th:text="${supplier.contactName}"></small>
                                 </div>
                             </div>
                             <div class="card-text">
-                                <p th:if="${customer.phone}">
+                                <p th:if="${supplier.phone}">
                                     <i class="bi bi-telephone"></i>
-                                    <span th:text="${customer.phone}"></span>
+                                    <span th:text="${supplier.phone}"></span>
                                 </p>
-                                <p th:if="${customer.address}" class="text-truncate">
+                                <p th:if="${supplier.email}">
+                                    <i class="bi bi-envelope"></i>
+                                    <span th:text="${supplier.email}"></span>
+                                </p>
+                                <p th:if="${supplier.address}" class="text-truncate">
                                     <i class="bi bi-geo-alt"></i>
-                                    <span th:text="${customer.address}"></span>
+                                    <span th:text="${supplier.address}"></span>
                                 </p>
                             </div>
                         </div>
                         <div class="card-footer bg-white">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span class="text-muted" th:text="${#temporals.format(customer.createdAt, 'dd.MM.yyyy')}"></span>
-                                <div class="flex-row">
-                                    <a th:href="@{/customers/{id}/edit(id=${customer.id})}" class="btn btn-sm btn-outline-success ms-2">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a th:href="@{/customers/{id}(id=${customer.id})}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i> Подробнее
-                                    </a>
-                                </div>
+                            <div class="d-flex justify-content-end">
+                                <a th:href="@{/suppliers/{id}/edit(id=${supplier.id})}" class="btn btn-sm btn-outline-success me-2">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a th:href="@{/suppliers/{id}(id=${supplier.id})}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> Подробнее
+                                </a>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Сообщение, если нет клиентов -->
-            <div th:if="${customers.empty}" class="text-center py-5">
-                <i class="bi bi-people" style="font-size: 3rem; color: #6c757d;"></i>
-                <h5 class="card-title mt-3">Клиенты не найдены</h5>
-                <p class="card-text" th:text="${param.search} ? 'Попробуйте изменить параметры поиска' : 'Добавьте первого клиента'"></p>
-                <a th:href="@{/customers/add}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Добавить клиента
+            <!-- Сообщение, если нет поставщиков -->
+            <div th:if="${suppliers.empty}" class="text-center py-5">
+                <i class="bi bi-building" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="card-title mt-3">Поставщики не найдены</h5>
+                <p class="card-text" th:text="${param.search} ? 'Попробуйте изменить параметры поиска' : 'Добавьте первого поставщика'"></p>
+                <a th:href="@{/suppliers/add}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Добавить поставщика
                 </a>
             </div>
         </main>

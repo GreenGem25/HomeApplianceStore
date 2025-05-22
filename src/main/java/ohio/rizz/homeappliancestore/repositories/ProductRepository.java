@@ -9,6 +9,7 @@ import java.util.List;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
     List<Product> findByCategory_Id(Long categoryId);
+    List<Product> findBySupplier_Id(Long supplierId);
 
     @Query("SELECT p FROM Product p WHERE " +
             "LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
@@ -19,4 +20,5 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p WHERE p.category.id IN :categoryIds")
     List<Product> findByCategoryIds(@Param("categoryIds") List<Long> categoryIds);
+
 }

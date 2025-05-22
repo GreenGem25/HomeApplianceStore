@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import ohio.rizz.homeappliancestore.dto.ProductDto;
 import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.entities.Supplier;
+import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.ProductRepository;
@@ -24,9 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 public class ProductController {
@@ -43,6 +42,7 @@ public class ProductController {
     @GetMapping("/products")
     public String listProducts(
             @RequestParam(required = false) String category,
+            @RequestParam(required = false) String supplier,
             @RequestParam(defaultValue = "name_asc") String sortBy,
             @RequestParam(required = false) String search,
             Model model) {
@@ -56,6 +56,14 @@ public class ProductController {
             // Фильтрация по категории
             Long categoryId = Long.parseLong(category);
             products = productService.getProductsByCategoryWithChildren(categoryId);
+            model.addAttribute("currentCategory", categoryService.getCategoryById(categoryId)
+                            .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена!")));
+        } else if (supplier != null && !supplier.isEmpty()) {
+            // Фильтрация по поставщику
+            Long supplierId = Long.parseLong(supplier);
+            products = productService.getProductsBySupplier(supplierId);
+            model.addAttribute("currentSupplier", supplierService.getSupplierById(supplierId)
+                    .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден!")));
         } else {
             // Обычная сортировка
             products = switch (sortBy) {
@@ -172,7 +180,7 @@ public class ProductController {
         try {
             productService.updateProduct(id, productDto, imageFile);
             redirectAttributes.addFlashAttribute("successMessage", "Товар успешно обновлен!");
-            return "redirect:/products/" + id;
+            return "redirect:/products";
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении изображения");
             return "redirect:/products/" + id + "/edit";

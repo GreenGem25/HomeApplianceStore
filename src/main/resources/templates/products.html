@@ -89,15 +89,6 @@
             </div>
         </div>
 
-        <!-- Основной контент -->
-        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-            <span th:text="${successMessage}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-            <span th:text="${errorMessage}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex flex-wrap justify-content-between align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <!-- Заголовок слева -->
@@ -147,12 +138,30 @@
                 </div>
             </div>
 
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
             <div th:if="${currentCategory}" class="alert alert-info mb-3">
                 <i class="bi bi-filter"></i>
                 Показаны товары из категории:
                 <strong th:text="${currentCategory.name}"></strong>
                 и всех подкатегорий
 
+                <a th:href="@{/products}" class="btn btn-sm btn-outline-danger ms-3">
+                    <i class="bi bi-x"></i> Сбросить фильтр
+                </a>
+            </div>
+
+            <div th:if="${currentSupplier}" class="alert alert-info mb-3">
+                <i class="bi bi-filter"></i>
+                Показаны товары от поставщика:
+                <strong th:text="${currentSupplier.name}"></strong>
                 <a th:href="@{/products}" class="btn btn-sm btn-outline-danger ms-3">
                     <i class="bi bi-x"></i> Сбросить фильтр
                 </a>

@@ -2,6 +2,9 @@ package ohio.rizz.homeappliancestore.controllers;
 
 import ohio.rizz.homeappliancestore.dto.CustomerDto;
 import ohio.rizz.homeappliancestore.entities.Customer;
+import ohio.rizz.homeappliancestore.entities.Product;
+import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
+import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -36,6 +39,14 @@ public class CustomerController {
         }
         model.addAttribute("customers", customers);
         return "customers";
+    }
+
+    @GetMapping("/customers/{id}")
+    public String getCustomerById(@PathVariable Long id, Model model) {
+        Customer customer = customerService.getCustomerById(id)
+                .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден!"));
+        model.addAttribute("customer", customer);
+        return "customer-details";
     }
 
     @GetMapping("/add")
@@ -83,7 +94,7 @@ public class CustomerController {
     @GetMapping("/{id}/edit")
     public String showEditCustomerForm(@PathVariable Long id, Model model) {
         Customer customer = customerService.getCustomerById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Клиент не найден"));
+                .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
 
         CustomerDto customerDTO = new CustomerDto();
         customerDTO.setId(customer.getId());
@@ -109,15 +120,14 @@ public class CustomerController {
         try {
             customerService.updateCustomer(id, customerDTO, imageFile, removeImage);
             redirectAttributes.addFlashAttribute("successMessage", "Данные клиента успешно обновлены!");
+            return "redirect:/customers";
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-            return "redirect:/customers/" + id;
+            return "redirect:/customers/" + id + "/edit";
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обработке изображения");
             return "redirect:/customers/" + id + "/edit";
         }
-
-        return "redirect:/customers";
     }
 
 }
