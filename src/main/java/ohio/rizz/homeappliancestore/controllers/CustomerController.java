@@ -41,7 +41,7 @@ public class CustomerController {
         return "customers";
     }
 
-    @GetMapping("/customers/{id}")
+    @GetMapping("/{id}")
     public String getCustomerById(@PathVariable Long id, Model model) {
         Customer customer = customerService.getCustomerById(id)
                 .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден!"));

@@ -32,6 +32,12 @@ public class Customer {
     @Column(name = "image_path")
     private String imagePath;
 
+    @Column(name = "discount")
+    private Integer discount;
+
+    @Column(name = "money_spent")
+    private Double moneySpent;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
