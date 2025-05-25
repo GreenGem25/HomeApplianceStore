@@ -88,8 +88,8 @@
         <h1 class="h2">
           <i class="bi bi-cart"></i> Заказ #<span th:text="${order.id}"></span>
           <span class="badge status-badge ms-2"
-                th:classappend="${order.status == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-completed'"
-                th:text="${order.status == 'IN_PROGRESS'} ? 'В сборке' : 'Выполнен'"></span>
+                th:classappend="${order.status.name().equals('IN_PROGRESS')} ? 'status-in-progress' : 'status-completed'"
+                th:text="${order.status.getDisplayName()}"></span>
         </h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <a th:href="@{/orders}" class="btn btn-sm btn-outline-secondary">
@@ -122,8 +122,8 @@
               <div class="mb-3">
                 <span class="fw-bold">Статус:</span>
                 <span class="badge"
-                      th:classappend="${order.status == 'IN_PROGRESS'} ? 'bg-warning text-dark' : 'bg-success'"
-                      th:text="${order.status == 'IN_PROGRESS'} ? 'В сборке' : 'Выполнен'"></span>
+                      th:classappend="${order.status.name()} ? 'bg-warning text-dark' : 'bg-success'"
+                      th:text="${order.status.getDisplayName()}"></span>
               </div>
               <div class="mb-3">
                 <span class="fw-bold">Адрес доставки:</span>
@@ -248,7 +248,7 @@
               <p>Вы уверены, что хотите удалить заказ #<span th:text="${order.id}"></span>?</p>
               <div class="alert alert-warning mt-3">
                 <i class="bi bi-exclamation-triangle"></i>
-                <span th:if="${order.status == 'IN_PROGRESS'}">
+                <span th:if="${order.status.name().equals('IN_PROGRESS')}">
                                     Все товары (<span th:text="${order.orderItems.size()}"></span>) будут возвращены на склад!
                                 </span>
                 Это действие нельзя отменить!

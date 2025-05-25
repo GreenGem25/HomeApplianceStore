@@ -107,8 +107,8 @@
               <h5 class="mb-1">
                 Заказ #<span th:text="${order.id}"></span>
                 <span class="badge status-badge"
-                      th:classappend="${order.status == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-completed'"
-                      th:text="${order.status == 'IN_PROGRESS'} ? 'В сборке' : 'Выполнен'"></span>
+                      th:classappend="${order.status.name().equals('IN_PROGRESS')} ? 'status-in-progress' : 'status-completed'"
+                      th:text="${order.status.getDisplayName()}"></span>
               </h5>
               <p class="mb-1">
                 <i class="bi bi-person"></i>
