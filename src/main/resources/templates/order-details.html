@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="'Заказ #' + ${order.id} + ' | Магазин техники'"></title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    .sidebar {
+      width: 250px;
+      min-height: 100vh;
+      background: #212529;
+      transition: all 0.3s;
+    }
+    .nav-link {
+      color: #adb5bd;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: white;
+      background: #0d6efd;
+    }
+    .nav-link i {
+      width: 24px;
+      text-align: center;
+    }
+    .order-details-card {
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+      font-size: 1rem;
+      padding: 0.5em 0.8em;
+    }
+    .status-in-progress {
+      background-color: #ffc107;
+      color: #000;
+    }
+    .status-completed {
+      background-color: #198754;
+      color: #fff;
+    }
+    .product-image {
+      max-height: 80px;
+      object-fit: contain;
+    }
+    .order-summary {
+      background-color: #f8f9fa;
+      border-radius: 5px;
+      padding: 1.5rem;
+    }
+    .back-link {
+      transition: all 0.2s;
+    }
+    .back-link:hover {
+      transform: translateX(-3px);
+    }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row">
+    <!-- Боковое меню -->
+    <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
+      <div class="position-sticky pt-3">
+        <div class="text-center mb-4">
+          <h4 class="text-white">Магазин техники</h4>
+        </div>
+        <ul class="nav flex-column px-3">
+          <li class="nav-item" th:each="item : ${menuItems}">
+            <a th:href="@{${item.url}}"
+               class="nav-link d-flex align-items-center"
+               th:classappend="${item.isActive} ? 'active'">
+              <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
+              <span th:text="${item.name}"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Основной контент -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+          <i class="bi bi-cart"></i> Заказ #<span th:text="${order.id}"></span>
+          <span class="badge status-badge ms-2"
+                th:classappend="${order.status == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-completed'"
+                th:text="${order.status == 'IN_PROGRESS'} ? 'В сборке' : 'Выполнен'"></span>
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <a th:href="@{/orders}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад
+          </a>
+        </div>
+      </div>
+
+      <!-- Уведомления -->
+      <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <!-- Карточка заказа -->
+      <div class="card order-details-card mb-4">
+        <div class="card-body">
+          <div class="row mb-4">
+            <!-- Информация о заказе -->
+            <div class="col-md-6">
+              <h3 class="border-bottom pb-2">Информация о заказе</h3>
+              <div class="mb-3">
+                <span class="fw-bold">Дата заказа:</span>
+                <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
+              </div>
+              <div class="mb-3">
+                <span class="fw-bold">Статус:</span>
+                <span class="badge"
+                      th:classappend="${order.status == 'IN_PROGRESS'} ? 'bg-warning text-dark' : 'bg-success'"
+                      th:text="${order.status == 'IN_PROGRESS'} ? 'В сборке' : 'Выполнен'"></span>
+              </div>
+              <div class="mb-3">
+                <span class="fw-bold">Адрес доставки:</span>
+                <span th:text="${order.shippingAddress}"></span>
+              </div>
+            </div>
+
+            <!-- Информация о клиенте -->
+            <div class="col-md-6">
+              <h3 class="border-bottom pb-2">Информация о клиенте</h3>
+              <div class="mb-3">
+                <span class="fw-bold">Клиент:</span>
+                <a th:href="@{/customers/{id}(id=${order.customerId})}"
+                   th:text="${order.customerName}"></a>
+              </div>
+              <div class="mb-3" th:if="${order.status == 'COMPLETED'}">
+                <span class="fw-bold">Итоговая сумма:</span>
+                <span class="text-success fw-bold"
+                      th:text="${'₽' + #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Товары в заказе -->
+          <h3 class="border-bottom pb-2">Товары в заказе</h3>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+              <tr>
+                <th>Товар</th>
+                <th>Цена</th>
+                <th>Количество</th>
+                <th>Сумма</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr th:each="item : ${order.orderItems}">
+                <td>
+                  <div class="d-flex align-items-center">
+                    <img th:src="${item.productImagePath ?: '/images/no-image.png'}"
+                         class="product-image me-3"
+                         alt="Изображение товара"
+                         onerror="this.src='/images/no-image.png'">
+                    <div>
+                      <a th:href="@{/products/{id}(id=${item.productId})}"
+                         th:text="${item.productName}"></a>
+                      <div class="text-muted small" th:text="${item.productManufacturer}"></div>
+                    </div>
+                  </div>
+                </td>
+                <td th:text="${'₽' + #numbers.formatDecimal(item.price, 1, 2, 'COMMA')}"></td>
+                <td th:text="${item.quantity}"></td>
+                <td th:text="${'₽' + #numbers.formatDecimal(item.price * item.quantity, 1, 2, 'COMMA')}"></td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Итоговая информация -->
+          <div class="row justify-content-end mt-4">
+            <div class="col-md-5">
+              <div class="order-summary">
+                <div class="d-flex justify-content-between mb-2">
+                  <span class="fw-bold">Общая стоимость:</span>
+                  <span th:text="${'₽' + #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></span>
+                </div>
+                <div th:if="${order.customerDiscount > 0}" class="d-flex justify-content-between mb-2">
+                  <span class="fw-bold">Скидка (<span th:text="${order.customerDiscount}"></span>%):</span>
+                  <span class="text-danger"
+                        th:text="${'-₽' + #numbers.formatDecimal(order.totalPrice * order.customerDiscount / 100, 1, 2, 'COMMA')}"></span>
+                </div>
+                <div class="d-flex justify-content-between border-top pt-2">
+                  <span class="fw-bold">Итого к оплате:</span>
+                  <span class="fw-bold"
+                        th:text="${'₽' + #numbers.formatDecimal(order.totalPrice * (1 - order.customerDiscount / 100), 1, 2, 'COMMA')}"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Кнопки действий -->
+          <div class="d-flex justify-content-between mt-4">
+            <a th:href="@{/orders}" class="btn btn-outline-secondary back-link">
+              <i class="bi bi-arrow-left"></i> К списку заказов
+            </a>
+            <div>
+              <a th:if="${canEdit}"
+                 th:href="@{/orders/{id}/edit(id=${order.id})}"
+                 class="btn btn-primary me-2">
+                <i class="bi bi-pencil"></i> Редактировать
+              </a>
+
+              <form th:if="${canEdit}"
+                    th:action="@{/orders/{id}/complete(id=${order.id})}"
+                    method="post"
+                    class="d-inline-block me-2">
+                <button type="submit" class="btn btn-success">
+                  <i class="bi bi-check-circle"></i> Завершить заказ
+                </button>
+              </form>
+
+              <button type="button"
+                      class="btn btn-danger"
+                      data-bs-toggle="modal"
+                      data-bs-target="#deleteModal">
+                <i class="bi bi-trash"></i> Удалить
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Модальное окно подтверждения удаления -->
+      <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>Вы уверены, что хотите удалить заказ #<span th:text="${order.id}"></span>?</p>
+              <div class="alert alert-warning mt-3">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span th:if="${order.status == 'IN_PROGRESS'}">
+                                    Все товары (<span th:text="${order.orderItems.size()}"></span>) будут возвращены на склад!
+                                </span>
+                Это действие нельзя отменить!
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+              <form th:action="@{/orders/{id}/delete(id=${order.id})}" method="post">
+                <button type="submit" class="btn btn-danger">
+                  <i class="bi bi-trash"></i> Удалить
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Анимация бокового меню
+  document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+      link.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateX(5px)';
+      });
+      link.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+      });
+    });
+  });
+</script>
+</body>
+</html>

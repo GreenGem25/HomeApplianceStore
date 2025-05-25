@@ -30,7 +30,7 @@ public class Category {
     private List<Category> childCategories = new ArrayList<>();
 
     @OneToMany(mappedBy = "category")
-    private List<Product> products;
+    private List<Product> products = new ArrayList<>();
 
     public void addChildCategory(Category child) {
         childCategories.add(child);

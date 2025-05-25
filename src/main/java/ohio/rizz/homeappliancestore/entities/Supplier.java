@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -28,6 +29,6 @@ public class Supplier {
     private String address;
 
     @OneToMany(mappedBy = "supplier")
-    private List<Product> products;
+    private List<Product> products = new ArrayList<>();
 
 }

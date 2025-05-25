@@ -3,6 +3,7 @@ package ohio.rizz.homeappliancestore.dto;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
+import ohio.rizz.homeappliancestore.entities.Product;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -41,4 +42,5 @@ public class ProductDto {
 
     private String imagePath;
     private MultipartFile imageFile;
+
 }

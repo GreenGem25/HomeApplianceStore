@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Создать заказ</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    .sidebar {
+      width: 250px;
+      min-height: 100vh;
+      background: #212529;
+      transition: all 0.3s;
+    }
+    .nav-link {
+      color: #adb5bd;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: white;
+      background: #0d6efd;
+    }
+    .nav-link i {
+      width: 24px;
+      text-align: center;
+    }
+    .product-item {
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row">
+    <!-- Боковое меню -->
+    <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
+      <div class="position-sticky pt-3">
+        <div class="text-center mb-4">
+          <h4 class="text-white">Магазин техники</h4>
+        </div>
+        <ul class="nav flex-column px-3">
+          <li class="nav-item" th:each="item : ${menuItems}">
+            <a th:href="@{${item.url}}"
+               class="nav-link d-flex align-items-center"
+               th:classappend="${item.isActive} ? 'active'">
+              <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
+              <span th:text="${item.name}"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Основной контент -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+          <i class="bi bi-cart-plus"></i> Создать новый заказ
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <a th:href="@{/orders}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Назад
+          </a>
+        </div>
+      </div>
+
+      <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <form th:action="@{/orders/add}" method="post" id="orderForm">
+        <div class="card mb-4">
+          <div class="card-body">
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label for="customerId" class="form-label">Клиент *</label>
+                <select class="form-select" id="customerId" name="customerId" required>
+                  <option value="">-- Выберите клиента --</option>
+                  <option th:each="customer : ${customers}"
+                          th:value="${customer.id}"
+                          th:text="${customer.firstName + ' ' + customer.lastName}"></option>
+                </select>
+              </div>
+              <div class="col-md-6">
+                <label for="shippingAddress" class="form-label">Адрес доставки *</label>
+                <input type="text" class="form-control" id="shippingAddress" name="shippingAddress" required>
+              </div>
+            </div>
+
+            <h5 class="border-bottom pb-2 mt-4">Товары в заказе</h5>
+            <div id="itemsContainer">
+              <!-- Товары будут добавляться динамически -->
+              <div class="product-item">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label class="form-label">Товар *</label>
+                    <select class="form-select product-select" name="items[0].productId" required>
+                      <option value="">-- Выберите товар --</option>
+                      <option th:each="product : ${products}"
+                              th:value="${product.id}"
+                              th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
+                              th:data-price="${product.price}"
+                              th:data-stock="${product.stockQuantity}"></option>
+                    </select>
+                  </div>
+                  <div class="col-md-4">
+                    <label class="form-label">Количество *</label>
+                    <input type="number" class="form-control quantity-input"
+                           name="items[0].quantity" min="1" value="1" required>
+                    <small class="text-muted stock-info"></small>
+                  </div>
+                  <div class="col-md-2 d-flex align-items-end">
+                    <button type="button" class="btn btn-danger remove-item-btn">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button type="button" id="addItemBtn" class="btn btn-outline-primary mt-3">
+              <i class="bi bi-plus-circle"></i> Добавить товар
+            </button>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary me-2">
+            <i class="bi bi-save"></i> Сохранить заказ
+          </button>
+          <a th:href="@{/orders}" class="btn btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Отмена
+          </a>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    let itemCount = 1;
+
+    // Добавление нового товара
+    document.getElementById('addItemBtn').addEventListener('click', function() {
+      const container = document.getElementById('itemsContainer');
+      const newItem = document.createElement('div');
+      newItem.className = 'product-item';
+      newItem.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Товар *</label>
+                        <select class="form-select product-select" name="items[${itemCount}].productId" required>
+                            <option value="">-- Выберите товар --</option>
+                            <option th:each="product : ${products}"
+                                    th:value="${product.id}"
+                                    th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
+                                    th:data-price="${product.price}"
+                                    th:data-stock="${product.stockQuantity}"></option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Количество *</label>
+                        <input type="number" class="form-control quantity-input"
+                               name="items[${itemCount}].quantity" min="1" value="1" required>
+                        <small class="text-muted stock-info"></small>
+                    </div>
+                    <div class="col-md-2 d-flex align-items-end">
+                        <button type="button" class="btn btn-danger remove-item-btn">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+      container.appendChild(newItem);
+      itemCount++;
+
+      // Добавляем обработчики для нового элемента
+      addProductSelectHandlers(newItem);
+    });
+
+    // Удаление товара
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('remove-item-btn') ||
+              e.target.parentElement.classList.contains('remove-item-btn')) {
+        const item = e.target.closest('.product-item');
+        if (document.querySelectorAll('.product-item').length > 1) {
+          item.remove();
+          // Переиндексация оставшихся элементов
+          reindexItems();
+        } else {
+          alert('Заказ должен содержать хотя бы один товар');
+        }
+      }
+    });
+
+    // Обработчики для выбора товара и количества
+    function addProductSelectHandlers(item) {
+      const select = item.querySelector('.product-select');
+      const quantityInput = item.querySelector('.quantity-input');
+      const stockInfo = item.querySelector('.stock-info');
+
+      select.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        const stock = selectedOption ? parseInt(selectedOption.dataset.stock) : 0;
+        stockInfo.textContent = `Доступно: ${stock}`;
+        quantityInput.max = stock;
+      });
+
+      quantityInput.addEventListener('change', function() {
+        const max = parseInt(this.max);
+        if (this.value > max) {
+          this.value = max;
+          alert(`Максимальное количество: ${max}`);
+        }
+      });
+    }
+
+    // Добавляем обработчики для первоначального элемента
+    document.querySelectorAll('.product-item').forEach(item => {
+      addProductSelectHandlers(item);
+    });
+
+    // Переиндексация элементов после удаления
+    function reindexItems() {
+      let index = 0;
+      document.querySelectorAll('.product-item').forEach(item => {
+        const select = item.querySelector('.product-select');
+        const quantity = item.querySelector('.quantity-input');
+
+        select.name = `items[${index}].productId`;
+        quantity.name = `items[${index}].quantity`;
+        index++;
+      });
+      itemCount = index;
+    }
+
+    // Валидация формы перед отправкой
+    document.getElementById('orderForm').addEventListener('submit', function(e) {
+      let isValid = true;
+      const customerId = document.getElementById('customerId').value;
+      const shippingAddress = document.getElementById('shippingAddress').value;
+
+      if (!customerId) {
+        alert('Выберите клиента');
+        isValid = false;
+      }
+
+      if (!shippingAddress) {
+        alert('Укажите адрес доставки');
+        isValid = false;
+      }
+
+      const items = document.querySelectorAll('.product-item');
+      if (items.length === 0) {
+        alert('Добавьте хотя бы один товар');
+        isValid = false;
+      }
+
+      items.forEach(item => {
+        const select = item.querySelector('.product-select');
+        const quantity = item.querySelector('.quantity-input');
+
+        if (!select.value) {
+          alert('Выберите товар для всех позиций');
+          isValid = false;
+        }
+
+        if (!quantity.value || parseInt(quantity.value) < 1) {
+          alert('Укажите корректное количество для всех товаров');
+          isValid = false;
+        }
+      });
+
+      if (!isValid) {
+        e.preventDefault();
+      }
+    });
+  });
+</script>
+</body>
+</html>

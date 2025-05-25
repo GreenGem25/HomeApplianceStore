@@ -3,6 +3,7 @@ package ohio.rizz.homeappliancestore.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import ohio.rizz.homeappliancestore.exceptions.OutOfStockException;
 
 import java.math.BigDecimal;
 
@@ -18,15 +19,24 @@ public class OrderItem {
 
     @Column(name = "quantity", nullable = false)
     private int orderQuantity;
+
     @Column(name = "price", nullable = false)
     private BigDecimal orderPrice;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = true)
     private Product product;
+
+    @PrePersist
+    @PreUpdate
+    public void validateStock() {
+        if (orderQuantity > product.getStockQuantity()) {
+            throw new OutOfStockException("Недостаточно товара на складе");
+        }
+    }
 
 }

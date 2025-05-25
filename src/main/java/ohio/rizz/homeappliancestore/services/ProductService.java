@@ -158,4 +158,8 @@ public class ProductService {
     public List<Product> getProductsBySupplier(Long supplierId) {
         return productRepository.findBySupplier_Id(supplierId);
     }
+
+    public List<Product> getAllAvailableProducts() {
+        return productRepository.findAllAvailableProducts();
+    }
 }

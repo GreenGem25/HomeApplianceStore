@@ -3,12 +3,14 @@ package ohio.rizz.homeappliancestore.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import ohio.rizz.homeappliancestore.exceptions.OutOfStockException;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,16 +25,22 @@ public class Product {
 
     @Column(name = "name", nullable = false)
     private String name;
+
     @Column(name = "description")
     private String description;
+
     @Column(name = "price", nullable = false)
     private BigDecimal price;
+
     @Column(name = "stock_quantity", nullable = false)
     private int stockQuantity;
+
     @Column(name = "manufacturer")
     private String manufacturer;
+
     @Column(name = "warranty_period")
     private int warrantyPeriod;
+
     @Column(name = "image_path")
     private String imagePath;
 
@@ -56,6 +64,17 @@ public class Product {
     private Supplier supplier;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    private List<OrderItem> orderItems;
+    private List<OrderItem> orderItems = new ArrayList<>();
+
+    public void decreaseStock(int quantity) {
+        if (this.stockQuantity < quantity) {
+            throw new OutOfStockException("Недостаточно товара на складе");
+        }
+        this.stockQuantity -= quantity;
+    }
+
+    public void increaseStock(int quantity) {
+        this.stockQuantity += quantity;
+    }
 
 }

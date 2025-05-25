@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Заказы</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    .sidebar {
+      width: 250px;
+      min-height: 100vh;
+      background: #212529;
+      transition: all 0.3s;
+    }
+    .nav-link {
+      color: #adb5bd;
+      border-radius: 5px;
+      margin-bottom: 5px;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: white;
+      background: #0d6efd;
+    }
+    .nav-link i {
+      width: 24px;
+      text-align: center;
+    }
+    .order-card {
+      transition: all 0.2s;
+    }
+    .order-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    .status-badge {
+      font-size: 0.9rem;
+      padding: 0.35em 0.65em;
+    }
+    .status-in-progress {
+      background-color: #ffc107;
+      color: #000;
+    }
+    .status-completed {
+      background-color: #198754;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+<div class="container-fluid">
+  <div class="row">
+    <!-- Боковое меню -->
+    <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
+      <div class="position-sticky pt-3">
+        <div class="text-center mb-4">
+          <h4 class="text-white">Магазин техники</h4>
+        </div>
+        <ul class="nav flex-column px-3">
+          <li class="nav-item" th:each="item : ${menuItems}">
+            <a th:href="@{${item.url}}"
+               class="nav-link d-flex align-items-center"
+               th:classappend="${item.isActive} ? 'active'">
+              <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
+              <span th:text="${item.name}"></span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Основной контент -->
+    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+          <i class="bi bi-cart"></i> Список заказов
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+          <a th:href="@{/orders/add}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Создать заказ
+          </a>
+        </div>
+      </div>
+
+      <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+      <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+
+      <div th:if="${customer}" class="alert alert-info mb-3">
+        <i class="bi bi-filter"></i>
+        Показаны заказы клиента:
+        <strong th:text="${customer.firstName + ' ' + customer.lastName}"></strong>
+        <a th:href="@{/orders}" class="btn btn-sm btn-outline-danger ms-3">
+          <i class="bi bi-x"></i> Сбросить фильтр
+        </a>
+      </div>
+
+      <!-- Список заказов -->
+      <div class="list-group">
+        <div th:each="order : ${orders}" class="list-group-item list-group-item-action order-card mb-2">
+          <div class="d-flex w-100 justify-content-between">
+            <div>
+              <h5 class="mb-1">
+                Заказ #<span th:text="${order.id}"></span>
+                <span class="badge status-badge"
+                      th:classappend="${order.status == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-completed'"
+                      th:text="${order.status == 'IN_PROGRESS'} ? 'В сборке' : 'Выполнен'"></span>
+              </h5>
+              <p class="mb-1">
+                <i class="bi bi-person"></i>
+                <a th:href="@{/customers/{id}(id=${order.customer.id})}"
+                   th:text="${order.customer.firstName}"></a>
+              </p>
+              <small class="text-muted">
+                <i class="bi bi-calendar"></i>
+                <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
+              </small>
+            </div>
+            <div class="text-end">
+              <h4 th:text="${'₽' + #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></h4>
+              <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-eye"></i> Подробнее
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Сообщение, если нет заказов -->
+      <div th:if="${orders.empty}" class="text-center py-5">
+        <i class="bi bi-cart" style="font-size: 3rem; color: #6c757d;"></i>
+        <h5 class="card-title mt-3">Заказы не найдены</h5>
+        <p class="card-text" th:text="${customer != null} ? 'У этого клиента пока нет заказов' : 'Создайте первый заказ'"></p>
+        <a th:href="@{/orders/add}" class="btn btn-primary">
+          <i class="bi bi-plus-circle"></i> Создать заказ
+        </a>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
