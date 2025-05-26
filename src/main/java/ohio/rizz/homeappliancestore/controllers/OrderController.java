@@ -133,7 +133,7 @@ public class OrderController {
             Long customerId = orderService.getOrderCustomerId(id);
             orderService.deleteOrder(id);
             redirectAttributes.addFlashAttribute("successMessage", "Заказ успешно удален");
-            return "redirect:/customers/" + customerId;
+            return "redirect:/orders";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при удалении заказа: " + e.getMessage());
             return "redirect:/orders/" + id;

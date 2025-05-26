@@ -117,6 +117,7 @@ public class OrderService {
 
         // Меняем статус заказа
         order.setStatus(Order.OrderStatus.COMPLETED);
+        order.setTotalPrice(order.calculateFinalPrice());
 
         // Обновляем информацию о клиенте (добавляем сумму заказа к потраченным средствам)
         Customer customer = order.getCustomer();
@@ -124,6 +125,8 @@ public class OrderService {
             customer.setMoneySpent(0.0);
         }
         customer.setMoneySpent(customer.getMoneySpent() + order.calculateFinalPrice().doubleValue());
+         // Рассчитываем скидку на следующий заказ
+        customer.setDiscount(customer.calculateDiscount());
         customerService.save(customer);
 
         return orderRepository.save(order);

@@ -4,6 +4,7 @@ package ohio.rizz.homeappliancestore.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -45,5 +46,22 @@ public class Customer {
 
     @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Order> orders = new ArrayList<>();
+
+    public int calculateDiscount() {
+
+        // Максимальная скидка 80%
+        if (discount >= 80) {
+            return 80;
+        }
+
+        // Нужно потратить для получения +5% скидки:
+        // 5000 10000 20000 40000 80000
+        // за один заказ нельзя получить больше 5% скидки.
+        if (moneySpent >= 5000 * Math.pow(2, (orders.size() - 1))) {
+            return discount + 5;
+        }
+
+        return discount;
+    }
 
 }

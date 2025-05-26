@@ -190,15 +190,15 @@
                   <span class="fw-bold">Общая стоимость:</span>
                   <span th:text="${'₽' + #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></span>
                 </div>
-                <div th:if="${order.customerDiscount > 0}" class="d-flex justify-content-between mb-2">
+                <div th:if="${order.getStatus().name().equals('IN_PROGRESS') && order.customerDiscount > 0}" class="d-flex justify-content-between mb-2">
                   <span class="fw-bold">Скидка (<span th:text="${order.customerDiscount}"></span>%):</span>
                   <span class="text-danger"
                         th:text="${'-₽' + #numbers.formatDecimal(order.totalPrice * order.customerDiscount / 100, 1, 2, 'COMMA')}"></span>
                 </div>
-                <div class="d-flex justify-content-between border-top pt-2">
+                <div th:if="${order.getStatus().name().equals('IN_PROGRESS')}" class="d-flex justify-content-between border-top pt-2">
                   <span class="fw-bold">Итого к оплате:</span>
                   <span class="fw-bold"
-                        th:text="${'₽' + #numbers.formatDecimal(order.totalPrice * (1 - order.customerDiscount / 100), 1, 2, 'COMMA')}"></span>
+                        th:text="${'₽' + #numbers.formatDecimal(order.totalPrice - order.totalPrice * order.customerDiscount / 100, 1, 2, 'COMMA')}"></span>
                 </div>
               </div>
             </div>
