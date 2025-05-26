@@ -175,7 +175,7 @@
                             <i class="bi bi-arrow-left"></i> К списку клиентов
                         </a>
                         <div>
-                            <a th:href="@{/orders?customer={id}(id=${customer.id})}" class="btn btn-info me-2">
+                            <a th:href="@{/orders?customerId={id}(id=${customer.id})}" class="btn btn-info me-2">
                                 <i class="bi bi-search"></i> Заказы клиента
                             </a>
                             <a th:href="@{/customers/{id}/edit(id=${customer.id})}" class="btn btn-primary me-2">

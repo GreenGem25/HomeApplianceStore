@@ -1,6 +1,5 @@
 package ohio.rizz.homeappliancestore.repositories;
 
-import ohio.rizz.homeappliancestore.entities.Customer;
 import ohio.rizz.homeappliancestore.entities.Supplier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

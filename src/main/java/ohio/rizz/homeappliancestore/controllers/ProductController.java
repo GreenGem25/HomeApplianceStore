@@ -7,7 +7,6 @@ import ohio.rizz.homeappliancestore.entities.Supplier;
 import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
-import ohio.rizz.homeappliancestore.repositories.ProductRepository;
 import ohio.rizz.homeappliancestore.services.CategoryService;
 import ohio.rizz.homeappliancestore.services.ProductService;
 

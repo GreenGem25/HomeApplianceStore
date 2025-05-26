@@ -55,11 +55,6 @@ public class Product {
 
     @ManyToOne
     @OnDelete(action = OnDeleteAction.SET_NULL)
-    @JoinColumn(name = "store_id", nullable = true)
-    private Store store;
-
-    @ManyToOne
-    @OnDelete(action = OnDeleteAction.SET_NULL)
     @JoinColumn(name = "supplier_id", nullable = true)
     private Supplier supplier;
 

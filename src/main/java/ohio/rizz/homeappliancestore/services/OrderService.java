@@ -10,9 +10,7 @@ import ohio.rizz.homeappliancestore.repositories.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderService {
@@ -97,7 +95,9 @@ public class OrderService {
 
         // Добавляем новые товары в заказ
         for (var itemRequest : orderDto.getItems()) {
-            addOrderItem(order, itemRequest.getProductId(), itemRequest.getQuantity());
+            if (itemRequest.getProductId() != null) {
+                addOrderItem(order, itemRequest.getProductId(), itemRequest.getQuantity());
+            }
         }
 
         // Пересчитываем общую стоимость

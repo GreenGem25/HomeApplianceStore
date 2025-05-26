@@ -104,8 +104,7 @@
                       <option th:each="product : ${products}"
                               th:value="${product.id}"
                               th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
-                              th:data-price="${product.price}"
-                              th:data-stock="${product.stockQuantity}"></option>
+                              th:attr="data-price=${product.price},data-stock=${product.stockQuantity}"></option>
                     </select>
                   </div>
                   <div class="col-md-4">
@@ -147,37 +146,43 @@
   document.addEventListener('DOMContentLoaded', function() {
     let itemCount = 1;
 
+    // Получаем данные о товарах из скрытого элемента
+    const productsData = JSON.parse(document.getElementById('productsData').textContent);
+
     // Добавление нового товара
     document.getElementById('addItemBtn').addEventListener('click', function() {
       const container = document.getElementById('itemsContainer');
       const newItem = document.createElement('div');
       newItem.className = 'product-item';
+
+      const optionsHtml = productsData.map(product =>
+              `<option value="${product.id}" data-price="${product.price}" data-stock="${product.stock}">
+          ${product.name} (₽${product.price.toFixed(2)})
+        </option>`
+      ).join('');
+
       newItem.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label">Товар *</label>
-                        <select class="form-select product-select" name="items[${itemCount}].productId" required>
-                            <option value="">-- Выберите товар --</option>
-                            <option th:each="product : ${products}"
-                                    th:value="${product.id}"
-                                    th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
-                                    th:data-price="${product.price}"
-                                    th:data-stock="${product.stockQuantity}"></option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Количество *</label>
-                        <input type="number" class="form-control quantity-input"
-                               name="items[${itemCount}].quantity" min="1" value="1" required>
-                        <small class="text-muted stock-info"></small>
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger remove-item-btn">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            `;
+        <div class="row">
+          <div class="col-md-6">
+            <label class="form-label">Товар *</label>
+            <select class="form-select product-select" name="items[${itemCount}].productId" required>
+              <option value="">-- Выберите товар --</option>
+              ${optionsHtml}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Количество *</label>
+            <input type="number" class="form-control quantity-input"
+                   name="items[${itemCount}].quantity" min="1" value="1" required>
+            <small class="text-muted stock-info"></small>
+          </div>
+          <div class="col-md-2 d-flex align-items-end">
+            <button type="button" class="btn btn-danger remove-item-btn">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        </div>
+      `;
       container.appendChild(newItem);
       itemCount++;
 
@@ -208,16 +213,20 @@
 
       select.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
-        const stock = selectedOption ? parseInt(selectedOption.dataset.stock) : 0;
-        stockInfo.textContent = `Доступно: ${stock}`;
-        quantityInput.max = stock;
+        if (selectedOption && selectedOption.value) {
+          const stock = parseInt(selectedOption.dataset.stock);
+          stockInfo.textContent = `Доступно: ${stock}`;
+          quantityInput.max = stock;
+        } else {
+          stockInfo.textContent = '';
+          quantityInput.removeAttribute('max');
+        }
       });
 
       quantityInput.addEventListener('change', function() {
-        const max = parseInt(this.max);
-        if (this.value > max) {
-          this.value = max;
-          alert(`Максимальное количество: ${max}`);
+        if (this.max && this.value > this.max) {
+          this.value = this.max;
+          alert(`Максимальное количество: ${this.max}`);
         }
       });
     }
@@ -283,6 +292,20 @@
       }
     });
   });
+</script>
+
+<!-- Скрытый элемент с данными о товарах -->
+<script type="application/json" id="productsData">
+  [
+    <th:block th:each="product, iterStat : ${products}">
+    {
+      "id": <th:block th:text="${product.id}"/>,
+      "name": "<th:block th:text="${product.name}"/>",
+    "price": <th:block th:text="${product.price}"/>,
+    "stock": <th:block th:text="${product.stockQuantity}"/>
+    }<th:block th:unless="${iterStat.last}">,</th:block>
+    </th:block>
+  ]
 </script>
 </body>
 </html>

@@ -2,10 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title th:text="'Редактирование заказа #' + ${orderId} + ' | Магазин техники'"></title>
-    <!-- Bootstrap 5 CSS -->
+    <title>Редактировать заказ</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         .sidebar {
@@ -30,27 +28,14 @@
         .product-item {
             border: 1px solid #dee2e6;
             border-radius: 5px;
-            padding: 15px;
-            margin-bottom: 15px;
-            background-color: #f8f9fa;
-        }
-        .product-image {
-            max-height: 80px;
-            object-fit: contain;
+            padding: 10px;
+            margin-bottom: 10px;
         }
         .order-summary {
             background-color: #f8f9fa;
             border-radius: 5px;
-            padding: 1.5rem;
-        }
-        .stock-info {
-            font-size: 0.85rem;
-        }
-        .remove-item-btn {
-            transition: all 0.2s;
-        }
-        .remove-item-btn:hover {
-            transform: scale(1.1);
+            padding: 15px;
+            margin-bottom: 20px;
         }
     </style>
 </head>
@@ -80,37 +65,48 @@
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
             <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
                 <h1 class="h2">
-                    <i class="bi bi-pencil"></i> Редактирование заказа #<span th:text="${orderId}"></span>
-                    <span class="badge bg-warning text-dark ms-2">В сборке</span>
+                    <i class="bi bi-pencil-square"></i> Редактировать заказ #<span th:text="${order.id}"></span>
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/orders/{id}(id=${orderId})}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Отмена
+                    <a th:href="@{'/orders/' + ${order.id}}" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-arrow-left"></i> Назад к заказу
                     </a>
                 </div>
             </div>
 
-            <!-- Уведомления -->
             <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
                 <span th:text="${errorMessage}"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
-            <form th:action="@{/orders/{id}/edit(id=${orderId})}" method="post" id="orderForm">
+            <div class="order-summary">
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Статус:</strong> <span th:text="${order.status.displayName}"></span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Клиент:</strong> <span th:text="${order.customerName}"></span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Дата заказа:</strong> <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span></p>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <p><strong>Скидка клиента:</strong> <span th:text="${order.customerDiscount} + '%'"></span></p>
+                    </div>
+                    <div class="col-md-4">
+                        <p><strong>Итоговая сумма:</strong> <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span></p>
+                    </div>
+                </div>
+            </div>
+
+            <form th:action="@{'/orders/' + ${order.id} + '/edit'}" method="post" id="orderForm">
+                <input type="hidden" name="customerId" th:value="${order.customerId}">
                 <div class="card mb-4">
                     <div class="card-body">
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="customerId" class="form-label">Клиент *</label>
-                                <select class="form-select" id="customerId" name="customerId" required>
-                                    <option value="">-- Выберите клиента --</option>
-                                    <option th:each="customer : ${customers}"
-                                            th:value="${customer.id}"
-                                            th:text="${customer.firstName + ' ' + customer.lastName}"
-                                            th:selected="${customer.id == order.customerId}"></option>
-                                </select>
-                            </div>
-                            <div class="col-md-6">
+                            <div class="col-md-12">
                                 <label for="shippingAddress" class="form-label">Адрес доставки *</label>
                                 <input type="text" class="form-control" id="shippingAddress"
                                        name="shippingAddress" th:value="${order.shippingAddress}" required>
@@ -120,42 +116,32 @@
                         <h5 class="border-bottom pb-2 mt-4">Товары в заказе</h5>
                         <div id="itemsContainer">
                             <!-- Товары будут добавляться динамически -->
-                            <div th:each="item, stat : ${order.items}" class="product-item">
+                            <div class="product-item" th:each="item, iterStat : ${order.orderItems}">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label class="form-label">Товар *</label>
-                                        <select class="form-select product-select"
-                                                th:name="items[__${stat.index}__].productId" required>
+                                        <select class="form-select product-select" th:name="items[__${iterStat.index}__].productId" required>
                                             <option value="">-- Выберите товар --</option>
                                             <option th:each="product : ${products}"
                                                     th:value="${product.id}"
                                                     th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
-                                                    th:data-price="${product.price}"
-                                                    th:data-stock="${product.stockQuantity}"
+                                                    th:attr="data-price=${product.price},data-stock=${product.stockQuantity}"
                                                     th:selected="${product.id == item.productId}"></option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Количество *</label>
-                                        <input type="number" class="form-control quantity-input"
-                                               th:name="items[__${stat.index}__].quantity"
-                                               min="1" th:value="${item.quantity}" required>
+                                        <div class="d-flex align-items-center"> <!-- Обертка для выравнивания -->
+                                            <input type="number" class="form-control quantity-input me-2"
+                                                   th:name="items[__${iterStat.index}__].quantity"
+                                                   th:value="${item.quantity}" min="1" required>
+                                            <button type="button" class="btn btn-danger remove-item-btn">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
                                         <small class="text-muted stock-info">
-                                            Доступно: <span th:text="${products.?[id == item.productId][0].stockQuantity}"></span>
+                                            Доступно: <span th:text="${item.productStockQuantity}"></span>
                                         </small>
-                                    </div>
-                                    <div class="col-md-2 d-flex align-items-end">
-                                        <button type="button" class="btn btn-danger remove-item-btn">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="row mt-2" th:if="${products.?[id == item.productId][0].imagePath}">
-                                    <div class="col-12">
-                                        <img th:src="${products.?[id == item.productId][0].imagePath}"
-                                             class="product-image"
-                                             alt="Изображение товара"
-                                             onerror="this.src='/images/no-image.png'">
                                     </div>
                                 </div>
                             </div>
@@ -167,32 +153,11 @@
                     </div>
                 </div>
 
-                <!-- Итоговая информация -->
-                <div class="row justify-content-end mb-4">
-                    <div class="col-md-5">
-                        <div class="order-summary">
-                            <h5 class="border-bottom pb-2">Итоговая информация</h5>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span class="fw-bold">Общая стоимость:</span>
-                                <span id="totalPrice">₽0.00</span>
-                            </div>
-                            <div id="discountRow" class="d-flex justify-content-between mb-2" style="display: none!">
-                                <span class="fw-bold">Скидка (<span id="discountPercent">0</span>%):</span>
-                                <span class="text-danger" id="discountAmount">-₽0.00</span>
-                            </div>
-                            <div class="d-flex justify-content-between border-top pt-2">
-                                <span class="fw-bold">Итого к оплате:</span>
-                                <span class="fw-bold" id="finalPrice">₽0.00</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="d-flex justify-content-end">
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="bi bi-save"></i> Сохранить изменения
                     </button>
-                    <a th:href="@{/orders/{id}(id=${orderId})}" class="btn btn-outline-secondary">
+                    <a th:href="@{'/orders/' + ${order.id}}" class="btn btn-outline-secondary">
                         <i class="bi bi-x-circle"></i> Отмена
                     </a>
                 </div>
@@ -201,89 +166,46 @@
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        let itemCount = ${order.items.size()};
-        let customerDiscount = 0;
-
-        // Получаем скидку выбранного клиента
-        function updateCustomerDiscount() {
-            const customerId = document.getElementById('customerId').value;
-            if (customerId) {
-                // Здесь должна быть логика получения скидки клиента
-                // Для примера используем фиксированное значение
-                customerDiscount = customerId === '1' ? 10 : 0; // Пример
-                updateOrderSummary();
-            }
-        }
-
-        // Обновление итоговой информации
-        function updateOrderSummary() {
-            let total = 0;
-
-            document.querySelectorAll('.product-item').forEach(item => {
-                const select = item.querySelector('.product-select');
-                const quantityInput = item.querySelector('.quantity-input');
-
-                if (select.value && quantityInput.value) {
-                    const price = parseFloat(select.options[select.selectedIndex].dataset.price);
-                    const quantity = parseInt(quantityInput.value);
-                    total += price * quantity;
-                }
-            });
-
-            document.getElementById('totalPrice').textContent = '₽' + total.toFixed(2);
-
-            if (customerDiscount > 0) {
-                document.getElementById('discountRow').style.display = 'flex';
-                document.getElementById('discountPercent').textContent = customerDiscount;
-                const discountAmount = total * customerDiscount / 100;
-                document.getElementById('discountAmount').textContent = '-₽' + discountAmount.toFixed(2);
-                document.getElementById('finalPrice').textContent = '₽' + (total - discountAmount).toFixed(2);
-            } else {
-                document.getElementById('discountRow').style.display = 'none';
-                document.getElementById('finalPrice').textContent = '₽' + total.toFixed(2);
-            }
-        }
+        let itemCount = [[${order.orderItems.size()}]];
+        const productsData = JSON.parse(document.getElementById('productsData').textContent);
 
         // Добавление нового товара
         document.getElementById('addItemBtn').addEventListener('click', function() {
             const container = document.getElementById('itemsContainer');
             const newItem = document.createElement('div');
             newItem.className = 'product-item';
+
+            const optionsHtml = productsData.map(product =>
+                `<option value="${product.id}" data-price="${product.price}" data-stock="${product.stock}">
+          ${product.name} (₽${product.price.toFixed(2)})
+        </option>`
+            ).join('');
+
             newItem.innerHTML = `
-                <div class="row">
-                    <div class="col-md-6">
-                        <label class="form-label">Товар *</label>
-                        <select class="form-select product-select" name="items[${itemCount}].productId" required>
-                            <option value="">-- Выберите товар --</option>
-                            <option th:each="product : ${products}"
-                                    th:value="${product.id}"
-                                    th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
-                                    th:data-price="${product.price}"
-                                    th:data-stock="${product.stockQuantity}"></option>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Количество *</label>
-                        <input type="number" class="form-control quantity-input"
-                               name="items[${itemCount}].quantity" min="1" value="1" required>
-                        <small class="text-muted stock-info">Доступно: 0</small>
-                    </div>
-                    <div class="col-md-2 d-flex align-items-end">
-                        <button type="button" class="btn btn-danger remove-item-btn">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </div>
-                </div>
-                <div class="row mt-2">
-                    <div class="col-12">
-                        <img src="/images/no-image.png" class="product-image" alt="Изображение товара">
-                    </div>
-                </div>
-            `;
+        <div class="row">
+          <div class="col-md-6">
+            <label class="form-label">Товар *</label>
+            <select class="form-select product-select" name="items[${itemCount}].productId" required>
+              <option value="">-- Выберите товар --</option>
+              ${optionsHtml}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">Количество *</label>
+            <div class="d-flex align-items-center">
+                <input type="number" class="form-control quantity-input me-2"
+                       name="items[${itemCount}].quantity" min="1" value="1" required>
+                <button type="button" class="btn btn-danger remove-item-btn">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </div>
+            <small class="text-muted stock-info">Доступно: 0</small>
+          </div>
+        </div>
+      `;
             container.appendChild(newItem);
             itemCount++;
 
@@ -300,7 +222,6 @@
                     item.remove();
                     // Переиндексация оставшихся элементов
                     reindexItems();
-                    updateOrderSummary();
                 } else {
                     alert('Заказ должен содержать хотя бы один товар');
                 }
@@ -312,44 +233,31 @@
             const select = item.querySelector('.product-select');
             const quantityInput = item.querySelector('.quantity-input');
             const stockInfo = item.querySelector('.stock-info');
-            const productImage = item.querySelector('.product-image');
 
             select.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption) {
+                if (selectedOption && selectedOption.value) {
                     const stock = parseInt(selectedOption.dataset.stock);
-                    const price = parseFloat(selectedOption.dataset.price);
-                    const productId = selectedOption.value;
-
                     stockInfo.textContent = `Доступно: ${stock}`;
                     quantityInput.max = stock;
-
-                    // Обновляем изображение товара
-                    fetchProductImage(productId).then(imagePath => {
-                        productImage.src = imagePath || '/images/no-image.png';
-                    });
                 } else {
                     stockInfo.textContent = 'Доступно: 0';
-                    productImage.src = '/images/no-image.png';
+                    quantityInput.removeAttribute('max');
                 }
-                updateOrderSummary();
             });
 
             quantityInput.addEventListener('change', function() {
-                const max = parseInt(this.max);
-                if (this.value > max) {
-                    this.value = max;
-                    alert(`Максимальное количество: ${max}`);
+                if (this.max && this.value > this.max) {
+                    this.value = this.max;
+                    alert(`Максимальное количество: ${this.max}`);
                 }
-                updateOrderSummary();
             });
         }
 
-        // Функция для получения изображения товара (заглушка)
-        async function fetchProductImage(productId) {
-            // В реальном приложении здесь должен быть запрос к серверу
-            return '/images/no-image.png';
-        }
+        // Добавляем обработчики для первоначальных элементов
+        document.querySelectorAll('.product-item').forEach(item => {
+            addProductSelectHandlers(item);
+        });
 
         // Переиндексация элементов после удаления
         function reindexItems() {
@@ -368,13 +276,7 @@
         // Валидация формы перед отправкой
         document.getElementById('orderForm').addEventListener('submit', function(e) {
             let isValid = true;
-            const customerId = document.getElementById('customerId').value;
             const shippingAddress = document.getElementById('shippingAddress').value;
-
-            if (!customerId) {
-                alert('Выберите клиента');
-                isValid = false;
-            }
 
             if (!shippingAddress) {
                 alert('Укажите адрес доставки');
@@ -406,19 +308,21 @@
                 e.preventDefault();
             }
         });
-
-        // Инициализация обработчиков для существующих элементов
-        document.querySelectorAll('.product-item').forEach(item => {
-            addProductSelectHandlers(item);
-        });
-
-        // Отслеживание изменения клиента для обновления скидки
-        document.getElementById('customerId').addEventListener('change', updateCustomerDiscount);
-
-        // Первоначальное обновление итогов
-        updateCustomerDiscount();
-        updateOrderSummary();
     });
+</script>
+
+<!-- Скрытый элемент с данными о товарах -->
+<script type="application/json" id="productsData">
+    [
+        <th:block th:each="product, iterStat : ${products}">
+        {
+            "id": <th:block th:text="${product.id}"/>,
+            "name": "<th:block th:text="${product.name}"/>",
+        "price": <th:block th:text="${product.price}"/>,
+        "stock": <th:block th:text="${product.stockQuantity}"/>
+        }<th:block th:unless="${iterStat.last}">,</th:block>
+        </th:block>
+    ]
 </script>
 </body>
 </html>

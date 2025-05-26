@@ -3,8 +3,6 @@ package ohio.rizz.homeappliancestore.controllers;
 import ohio.rizz.homeappliancestore.dto.*;
 import ohio.rizz.homeappliancestore.entities.*;
 import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
-import ohio.rizz.homeappliancestore.exceptions.OrderNotFoundException;
-import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import ohio.rizz.homeappliancestore.services.OrderService;
 import ohio.rizz.homeappliancestore.services.ProductService;
@@ -36,11 +34,13 @@ public class OrderController {
         List<Order> orders;
 
         if (customerId != null) {
+            System.out.println("Showing orders for customer " + customerId);
             orders = orderService.getOrdersByCustomer(customerId);
             Customer customer = customerService.getCustomerById(customerId)
                     .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
             model.addAttribute("customer", customer);
         } else {
+            System.out.println("Showing all orders");
             orders = orderService.getAllOrders();
         }
 
@@ -88,22 +88,11 @@ public class OrderController {
             throw new IllegalStateException("Невозможно редактировать завершенный заказ");
         }
 
-        CreateOrderDto orderDto = new CreateOrderDto();
-        orderDto.setCustomerId(order.getCustomer().getId());
-        orderDto.setShippingAddress(order.getShippingAddress());
-        orderDto.setItems(order.getOrderItems().stream()
-                .map(item -> {
-                    OrderItemRequest itemRequest = new OrderItemRequest();
-                    itemRequest.setProductId(item.getProduct().getId());
-                    itemRequest.setQuantity(item.getOrderQuantity());
-                    return itemRequest;
-                })
-                .collect(Collectors.toList()));
+        // Преобразуем заказ в DTO для формы редактирования
+        OrderDto orderDto = convertToDto(order);
 
         model.addAttribute("order", orderDto);
-        model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("products", productService.getAllAvailableProducts());
-        model.addAttribute("orderId", id);
         return "edit-order";
     }
 
@@ -178,6 +167,7 @@ public class OrderController {
         dto.setProductName(item.getProduct().getName());
         dto.setProductManufacturer(item.getProduct().getManufacturer());
         dto.setProductImagePath(item.getProduct().getImagePath());
+        dto.setProductStockQuantity(item.getProduct().getStockQuantity());
         return dto;
     }
 }

@@ -2,9 +2,7 @@ package ohio.rizz.homeappliancestore.controllers;
 
 import ohio.rizz.homeappliancestore.dto.CustomerDto;
 import ohio.rizz.homeappliancestore.entities.Customer;
-import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
-import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;

@@ -15,4 +15,5 @@ public class OrderItemDto {
     private String productName;
     private String productManufacturer;
     private String productImagePath;
+    private int productStockQuantity;
 }

@@ -1,15 +1,12 @@
 package ohio.rizz.homeappliancestore.services;
 
 import ohio.rizz.homeappliancestore.dto.SupplierDto;
-import ohio.rizz.homeappliancestore.entities.Customer;
-import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.entities.Supplier;
 import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.ProductRepository;
 import ohio.rizz.homeappliancestore.repositories.SupplierRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 import java.util.Optional;

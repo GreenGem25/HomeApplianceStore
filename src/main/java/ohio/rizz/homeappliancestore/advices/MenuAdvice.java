@@ -17,7 +17,7 @@ public class MenuAdvice {
         return List.of(
                 new MenuItem("Товары", "/products", "bi-box-seam", currentPath.startsWith("/products")),
                 new MenuItem("Категории", "/categories", "bi-tags", currentPath.startsWith("/categories")),
-                new MenuItem("Заказы (WIP)", "/orders", "bi-cart", currentPath.startsWith("/orders")),
+                new MenuItem("Заказы", "/orders", "bi-cart", currentPath.startsWith("/orders")),
                 new MenuItem("Клиенты", "/customers", "bi-people", currentPath.startsWith("/customers")),
                 new MenuItem("Поставщики", "/suppliers", "bi-truck", currentPath.startsWith("/suppliers"))
         );

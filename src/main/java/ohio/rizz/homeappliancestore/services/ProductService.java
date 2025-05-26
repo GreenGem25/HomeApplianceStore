@@ -1,6 +1,5 @@
 package ohio.rizz.homeappliancestore.services;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import ohio.rizz.homeappliancestore.comparators.ProductComparator;
 import ohio.rizz.homeappliancestore.dto.ProductDto;

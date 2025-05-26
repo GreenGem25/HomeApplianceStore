@@ -1,10 +1,8 @@
 package ohio.rizz.homeappliancestore.services;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import ohio.rizz.homeappliancestore.dto.CategoryDto;
 import ohio.rizz.homeappliancestore.entities.Category;
-import ohio.rizz.homeappliancestore.entities.Customer;
 import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.CategoryRepository;
 import ohio.rizz.homeappliancestore.repositories.ProductRepository;

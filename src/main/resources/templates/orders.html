@@ -122,6 +122,9 @@
             </div>
             <div class="text-end">
               <h4 th:text="${'₽' + #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></h4>
+              <a th:if="${order.status.name().equals('IN_PROGRESS')}" th:href="@{/orders/{id}/edit(id=${order.id})}" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-pencil"></i>
+              </a>
               <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary">
                 <i class="bi bi-eye"></i> Подробнее
               </a>
