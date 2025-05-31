@@ -136,7 +136,7 @@
                             <i class="bi bi-arrow-left"></i> К списку категорий
                         </a>
                         <div>
-                            <a th:href="@{/products?category={id}(id=${category.id})}" class="btn btn-info me-2">
+                            <a th:href="@{/products?categoryId={id}(id=${category.id})}" class="btn btn-info me-2">
                                 <i class="bi bi-search"></i> Товары этой категории
                             </a>
                             <a th:href="@{/categories/{id}/edit(id=${category.id})}" class="btn btn-primary me-2">

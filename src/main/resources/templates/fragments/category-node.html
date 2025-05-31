@@ -16,7 +16,7 @@
         <span th:text="${category.name}"></span>
       </div>
       <div class="category-actions">
-        <a th:href="@{/products?category={id}(id=${category.id})}" class="btn btn-sm btn-outline-dark">
+        <a th:href="@{/products?categoryId={id}(id=${category.id})}" class="btn btn-sm btn-outline-dark">
           <i class="bi bi-search"> Найти товары</i>
         </a>
         <a th:href="@{/categories/{id}/edit(id=${category.id})}" class="btn btn-sm btn-outline-success">

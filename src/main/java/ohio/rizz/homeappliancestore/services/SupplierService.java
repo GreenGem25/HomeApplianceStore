@@ -64,8 +64,13 @@ public class SupplierService {
         supplierRepository.delete(supplier);
     }
 
+    public List<Supplier> searchSuppliers(String query) {
+        return supplierRepository.findByNameContainingIgnoreCaseOrContactNameContainingIgnoreCase(query, query);
+    }
+
     public boolean isEmailUnique(Long id, String email) {
         Supplier supplier = supplierRepository.findByEmail(email);
         return supplier == null || supplier.getId().equals(id);
     }
+
 }

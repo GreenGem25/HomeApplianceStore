@@ -8,7 +8,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
-    List<Customer> findByFirstNameContainingOrLastNameContainingOrEmailContaining(
+    List<Customer> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(
             String firstName, String lastName, String email);
     @Query("SELECT c FROM Customer c WHERE c.email = :email")
     Customer findByEmail(@Param("email") String email);

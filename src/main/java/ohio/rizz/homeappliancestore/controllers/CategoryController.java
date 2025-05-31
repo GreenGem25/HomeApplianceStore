@@ -61,7 +61,7 @@ public class CategoryController {
     }
 
     @GetMapping("/categories/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
+    public String showEditCategoryForm(@PathVariable Long id, Model model) {
         Category category = categoryService.getCategoryById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категория не найдена"));
 

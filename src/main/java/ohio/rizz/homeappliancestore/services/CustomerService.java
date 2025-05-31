@@ -100,7 +100,7 @@ public class CustomerService {
     }
 
     public List<Customer> searchCustomers(String query) {
-        return customerRepository.findByFirstNameContainingOrLastNameContainingOrEmailContaining(query, query, query);
+        return customerRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCaseOrEmailContainingIgnoreCase(query, query, query);
     }
 
 }
