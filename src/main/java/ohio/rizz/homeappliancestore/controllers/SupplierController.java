@@ -78,7 +78,6 @@ public class SupplierController {
     public String updateSupplier(
             @PathVariable Long id,
             SupplierDto supplierDto,
-            Model model,
             RedirectAttributes redirectAttributes) {
         try {
             supplierService.updateSupplier(id, supplierDto);
