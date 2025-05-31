@@ -40,8 +40,8 @@ public class ProductController {
 
     @GetMapping("/products")
     public String listProducts(
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) String supplier,
+            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) Long supplierId,
             @RequestParam(defaultValue = "name_asc") String sortBy,
             @RequestParam(required = false) String search,
             Model model) {
@@ -51,15 +51,13 @@ public class ProductController {
         if (search != null && !search.isEmpty()) {
             // Поиск по названию и описанию
             products = productService.searchProducts(search);
-        } else if (category != null && !category.isEmpty()) {
+        } else if (categoryId != null) {
             // Фильтрация по категории
-            Long categoryId = Long.parseLong(category);
             products = productService.getProductsByCategoryWithChildren(categoryId);
             model.addAttribute("currentCategory", categoryService.getCategoryById(categoryId)
                             .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена!")));
-        } else if (supplier != null && !supplier.isEmpty()) {
+        } else if (supplierId != null) {
             // Фильтрация по поставщику
-            Long supplierId = Long.parseLong(supplier);
             products = productService.getProductsBySupplier(supplierId);
             model.addAttribute("currentSupplier", supplierService.getSupplierById(supplierId)
                     .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден!")));
@@ -81,7 +79,7 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    public String getProductById(@PathVariable Long id, Model model) {
+    public String getProductDetails(@PathVariable Long id, Model model) {
         Product product = productService.getProductById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Продукт не найден!"));
         model.addAttribute("product", product);
@@ -90,7 +88,7 @@ public class ProductController {
 
     @GetMapping("/products/add")
     public String showAddProductForm(Model model) {
-        model.addAttribute("product", new Product());
+        model.addAttribute("product", new ProductDto());
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("suppliers", supplierService.getAllSuppliers());
         return "add-product";
@@ -138,7 +136,7 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}/edit")
-    public String showEditForm(@PathVariable Long id, Model model) {
+    public String showEditProductForm(@PathVariable Long id, Model model) {
         Product product = productService.getProductById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Продукт не найден"));
 

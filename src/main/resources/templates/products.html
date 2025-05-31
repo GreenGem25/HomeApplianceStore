@@ -206,21 +206,6 @@
                 </a>
             </div>
 
-            <!-- Страницы -->
-            <nav class="mt-4" th:if="${totalPages > 1}">
-                <ul class="pagination justify-content-center">
-                    <li class="page-item" th:classappend="${currentPage == 1} ? 'disabled'">
-                        <a class="page-link" th:href="@{/products(page=1)}">Первая</a>
-                    </li>
-                    <li class="page-item" th:each="page : ${#numbers.sequence(1, totalPages)}"
-                        th:classappend="${currentPage == page} ? 'active'">
-                        <a class="page-link" th:href="@{/products(page=${page})}" th:text="${page}"></a>
-                    </li>
-                    <li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled'">
-                        <a class="page-link" th:href="@{/products(page=${totalPages})}">Последняя</a>
-                    </li>
-                </ul>
-            </nav>
         </main>
     </div>
 </div>

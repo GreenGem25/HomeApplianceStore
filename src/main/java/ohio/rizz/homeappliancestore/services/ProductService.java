@@ -4,9 +4,11 @@ import jakarta.transaction.Transactional;
 import ohio.rizz.homeappliancestore.comparators.ProductComparator;
 import ohio.rizz.homeappliancestore.dto.ProductDto;
 import ohio.rizz.homeappliancestore.entities.Category;
+import ohio.rizz.homeappliancestore.entities.Customer;
 import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.entities.Supplier;
 import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
+import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
 import ohio.rizz.homeappliancestore.repositories.CategoryRepository;
@@ -28,17 +30,14 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService {
     final private ProductRepository productRepository;
-    final private CategoryRepository categoryRepository;
-    final private SupplierRepository supplierRepository;
+    final private SupplierRepository supplierService;
     final private CategoryService categoryService;
 
     public ProductService(ProductRepository productRepository,
-                          CategoryRepository categoryRepository,
-                          SupplierRepository supplierRepository,
+                          SupplierRepository supplierService,
                           CategoryService categoryService) {
         this.productRepository = productRepository;
-        this.categoryRepository = categoryRepository;
-        this.supplierRepository = supplierRepository;
+        this.supplierService = supplierService;
         this.categoryService = categoryService;
     }
 
@@ -89,12 +88,12 @@ public class ProductService {
         product.setWarrantyPeriod(productEditDto.getWarrantyPeriod());
 
         // Обновление категории
-        Category category = categoryRepository.findById(productEditDto.getCategoryId())
+        Category category = categoryService.getCategoryById(productEditDto.getCategoryId())
                 .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
         product.setCategory(category);
 
         // Обновление поставщика
-        Supplier supplier = supplierRepository.findById(productEditDto.getSupplierId())
+        Supplier supplier = supplierService.findById(productEditDto.getSupplierId())
                 .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден"));
         product.setSupplier(supplier);
 
@@ -161,4 +160,5 @@ public class ProductService {
     public List<Product> getAllAvailableProducts() {
         return productRepository.findAllAvailableProducts();
     }
+
 }
