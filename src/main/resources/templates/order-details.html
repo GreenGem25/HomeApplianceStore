@@ -256,7 +256,8 @@
             </div>
             <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-              <form th:action="@{/orders/{id}/delete(id=${order.id})}" method="post">
+              <form th:action="@{/orders/{id}(id=${order.id})}" method="post">
+                <input type="hidden" name="_method" value="delete">
                 <button type="submit" class="btn btn-danger">
                   <i class="bi bi-trash"></i> Удалить
                 </button>

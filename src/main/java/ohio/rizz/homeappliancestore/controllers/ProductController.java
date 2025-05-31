@@ -186,7 +186,7 @@ public class ProductController {
         }
     }
 
-    @PostMapping("/products/{id}/delete")
+    @DeleteMapping("/products/{id}")
     public String deleteProduct(
             @PathVariable Long id,
             RedirectAttributes redirectAttributes) {

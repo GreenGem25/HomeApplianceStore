@@ -125,19 +125,17 @@ public class OrderController {
         }
     }
 
-    @PostMapping("/{id}/delete")
+    @DeleteMapping("/{id}")
     public String deleteOrder(
             @PathVariable Long id,
             RedirectAttributes redirectAttributes) {
         try {
-            Long customerId = orderService.getOrderCustomerId(id);
             orderService.deleteOrder(id);
-            redirectAttributes.addFlashAttribute("successMessage", "Заказ успешно удален");
-            return "redirect:/orders";
+            redirectAttributes.addFlashAttribute("successMessage", "Заказ успешно удалён");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при удалении заказа: " + e.getMessage());
-            return "redirect:/orders/" + id;
         }
+        return "redirect:/orders";
     }
 
     private OrderDto convertToDto(Order order) {

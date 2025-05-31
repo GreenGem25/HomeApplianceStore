@@ -87,7 +87,7 @@ public class SupplierController {
 
     }
 
-    @PostMapping("/suppliers/{id}/delete")
+    @DeleteMapping("/suppliers/{id}")
     public String deleteSupplier(
             @PathVariable Long id,
             RedirectAttributes redirectAttributes) {

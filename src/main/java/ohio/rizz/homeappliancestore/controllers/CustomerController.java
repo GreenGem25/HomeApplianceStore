@@ -128,4 +128,17 @@ public class CustomerController {
         }
     }
 
+    @DeleteMapping("/{id}")
+    public String deleteCustomer(
+            @PathVariable Long id,
+            RedirectAttributes redirectAttributes) {
+        try {
+            customerService.deleteCustomer(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Клиент успешно удалён");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при удалении клиента: " + e.getMessage());
+        }
+        return "redirect:/customers";
+    }
+
 }
