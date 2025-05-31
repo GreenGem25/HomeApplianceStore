@@ -31,7 +31,7 @@ public class SupplierController {
     }
 
     @GetMapping("/suppliers/{id}")
-    public String getSupplierById(@PathVariable Long id, Model model) {
+    public String getSupplierDetails(@PathVariable Long id, Model model) {
         Supplier supplier = supplierService.getSupplierById(id)
                 .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден!"));
         model.addAttribute("supplier", supplier);
