@@ -107,7 +107,7 @@ public class CustomerController {
         return "edit-customer";
     }
 
-    @PostMapping("/{id}/edit")
+    @PutMapping("/{id}")
     public String updateCustomer(
             @PathVariable Long id,
             @ModelAttribute CustomerDto customerDTO,

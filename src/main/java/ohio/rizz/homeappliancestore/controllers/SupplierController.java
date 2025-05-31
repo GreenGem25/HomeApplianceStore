@@ -54,7 +54,7 @@ public class SupplierController {
     }
 
     @GetMapping("/suppliers/{id}/edit")
-    public String editSupplier(@PathVariable Long id, Model model) {
+    public String showEditSupplierForm(@PathVariable Long id, Model model) {
         Supplier supplier = supplierService.getSupplierById(id)
                 .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден"));
 
@@ -70,8 +70,8 @@ public class SupplierController {
         return "edit-supplier";
     }
 
-    @PostMapping("/suppliers/{id}/edit")
-    public String editSupplier(
+    @PutMapping("/suppliers/{id}")
+    public String updateSupplier(
             @PathVariable Long id,
             SupplierDto supplierDto,
             Model model,

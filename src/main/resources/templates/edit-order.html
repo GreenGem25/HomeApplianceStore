@@ -101,7 +101,8 @@
                 </div>
             </div>
 
-            <form th:action="@{'/orders/' + ${order.id} + '/edit'}" method="post" id="orderForm">
+            <form th:action="@{/orders/{id}(id=${order.id})}" method="post" id="orderForm">
+                <input type="hidden" name="_method" value="put">
                 <input type="hidden" name="customerId" th:value="${order.customerId}">
                 <div class="card mb-4">
                     <div class="card-body">

@@ -81,10 +81,11 @@
             <!-- Форма редактирования -->
             <div class="card form-container">
                 <div class="card-body">
-                    <form th:action="@{/categories/{id}/edit(id=${categoryDto.id})}"
+                    <form th:action="@{/categories/{id}(id=${categoryDto.id})}"
                           method="post"
                           th:object="${categoryDto}">
 
+                        <input type="hidden" name="_method" value="put">
                         <!-- ID (скрытое поле) -->
                         <input type="hidden" th:field="*{id}">
 

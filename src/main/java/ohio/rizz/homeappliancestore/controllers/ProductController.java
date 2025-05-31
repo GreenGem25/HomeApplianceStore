@@ -161,7 +161,7 @@ public class ProductController {
         return "edit-product";
     }
 
-    @PostMapping("/products/{id}/edit")
+    @PutMapping("/products/{id}")
     public String updateProduct(
             @PathVariable Long id,
             @Valid @ModelAttribute("productEditDto") ProductDto productDto,

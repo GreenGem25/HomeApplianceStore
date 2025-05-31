@@ -78,7 +78,7 @@ public class CategoryController {
         return "edit-category";
     }
 
-    @PostMapping("/categories/{id}/edit")
+    @PutMapping("/categories/{id}")
     public String updateCategory(
             @PathVariable Long id,
             @Valid @ModelAttribute CategoryDto categoryDto,

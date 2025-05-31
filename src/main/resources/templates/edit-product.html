@@ -71,7 +71,8 @@
                 </div>
             </div>
 
-            <form th:action="@{/products/{id}/edit(id=${productEditDto.id})}" method="post" enctype="multipart/form-data" th:object="${productEditDto}">
+            <form th:action="@{/products/{id}(id=${productEditDto.id})}" method="post" enctype="multipart/form-data" th:object="${productEditDto}">
+                <input type="hidden" name="_method" value="put">
                 <div class="card mb-4">
                     <div class="card-body">
                         <!-- Общие сведения -->

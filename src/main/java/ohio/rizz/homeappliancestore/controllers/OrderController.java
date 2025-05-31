@@ -96,7 +96,7 @@ public class OrderController {
         return "edit-order";
     }
 
-    @PostMapping("/{id}/edit")
+    @PutMapping("/{id}")
     public String updateOrder(
             @PathVariable Long id,
             @ModelAttribute CreateOrderDto orderDto,

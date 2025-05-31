@@ -80,7 +80,8 @@
                 </div>
             </div>
 
-            <form th:action="@{/suppliers/{id}/edit(id=${supplierDto.id})}" method="post">
+            <form th:action="@{/suppliers/{id}(id=${supplierDto.id})}" method="post">
+                <input type="hidden" name="_method" value="put">
                 <div class="card mb-4">
                     <div class="card-body">
                         <!-- Основная информация -->
