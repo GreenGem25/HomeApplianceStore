@@ -11,6 +11,7 @@
 
     <style>
         .sidebar {
+            position: fixed;
             width: 250px;
             min-height: 100vh;
             background: #212529;
@@ -76,21 +77,21 @@
                                 <div class="mb-3">
                                     <label for="firstName" class="form-label">Имя*</label>
                                     <input type="text" class="form-control" id="firstName"
-                                           name="firstName" required th:value="${customer.firstName}">
+                                           name="firstName" required>
                                     <div class="invalid-feedback">Пожалуйста, укажите имя</div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="lastName" class="form-label">Фамилия*</label>
                                     <input type="text" class="form-control" id="lastName"
-                                           name="lastName" required th:value="${customer.lastName}">
+                                           name="lastName" required>
                                     <div class="invalid-feedback">Пожалуйста, укажите фамилию</div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email*</label>
                                     <input type="email" class="form-control" id="email"
-                                           name="email" required th:value="${customer.email}">
+                                           name="email" required>
                                     <div class="invalid-feedback">Пожалуйста, укажите корректный email</div>
                                 </div>
                             </div>
@@ -114,7 +115,7 @@
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Адрес</label>
                                     <textarea class="form-control" id="address"
-                                              name="address" rows="3" th:text="${customer.address}"></textarea>
+                                              name="address" rows="3"></textarea>
                                 </div>
 
                                 <div class="mb-3">

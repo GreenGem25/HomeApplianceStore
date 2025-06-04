@@ -11,6 +11,7 @@
 
     <style>
         .sidebar {
+            position: fixed;
             width: 250px;
             min-height: 100vh;
             background: #212529;
@@ -104,14 +105,14 @@
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Название компании*</label>
                                     <input type="text" class="form-control" id="name"
-                                           name="name" required th:value="${supplier.name}">
+                                           name="name" required>
                                     <div class="invalid-feedback">Пожалуйста, укажите название компании</div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="contactName" class="form-label">Контактное лицо</label>
                                     <input type="text" class="form-control" id="contactName"
-                                           name="contactName" th:value="${supplier.contactName}">
+                                           name="contactName">
                                 </div>
                             </div>
                         </div>
@@ -128,21 +129,21 @@
                                     <label for="phone" class="form-label">Телефон</label>
                                     <input type="tel" class="form-control" id="phone" name="phone"
                                            pattern="[\+]\d{1}\s[\(]\d{3}[\)]\s\d{3}[\-]\d{2}[\-]\d{2}"
-                                           placeholder="+7 (XXX) XXX-XX-XX" th:value="${supplier.phone}">
+                                           placeholder="+7 (XXX) XXX-XX-XX">
                                     <div class="invalid-feedback">Пожалуйста, укажите телефон в формате +7 (XXX) XXX-XX-XX</div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email</label>
                                     <input type="email" class="form-control" id="email"
-                                           name="email" th:value="${supplier.email}">
+                                           name="email">
                                     <div class="invalid-feedback">Пожалуйста, укажите корректный email</div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Адрес</label>
                                     <textarea class="form-control" id="address"
-                                              name="address" rows="3" th:text="${supplier.address}"></textarea>
+                                              name="address" rows="3"></textarea>
                                 </div>
                             </div>
                         </div>
