@@ -18,10 +18,10 @@ public class OrderItem {
     private Long id;
 
     @Column(name = "quantity", nullable = false)
-    private int orderQuantity;
+    private int orderQuantity = 0;
 
     @Column(name = "price", nullable = false)
-    private BigDecimal orderPrice;
+    private BigDecimal orderPrice = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)

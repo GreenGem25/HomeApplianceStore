@@ -22,23 +22,23 @@ public class Customer {
     private Long id;
 
     @Column(name = "first_name", nullable = false)
-    private String firstName;
+    private String firstName = "No first name";
     @Column(name = "last_name", nullable = false)
-    private String lastName;
+    private String lastName = "No last name";
     @Column(name = "email", nullable = false, unique = true)
-    private String email;
+    private String email = "No email";
     @Column(name = "phone")
-    private String phone;
+    private String phone = "No phone";
     @Column(name = "address")
-    private String address;
+    private String address = "No address";
     @Column(name = "image_path")
     private String imagePath;
 
     @Column(name = "discount")
-    private Integer discount;
+    private Integer discount = 0;
 
     @Column(name = "money_spent")
-    private Double moneySpent;
+    private Double moneySpent = 0.0;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

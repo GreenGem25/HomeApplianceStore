@@ -18,9 +18,9 @@ public class Category {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    private String name;
+    private String name = "No name";
     @Column(name = "description")
-    private String description;
+    private String description = "No description";
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_category_id")

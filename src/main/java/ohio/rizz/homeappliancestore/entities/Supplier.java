@@ -18,15 +18,15 @@ public class Supplier {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    private String name;
+    private String name = "No name";
     @Column(name = "contact_name")
-    private String contactName;
+    private String contactName = "No contact name";
     @Column(name = "phone")
-    private String phone;
+    private String phone = "No phone";
     @Column(name = "email")
-    private String email;
+    private String email = "No email";
     @Column(name = "address")
-    private String address;
+    private String address = "No address";
 
     @OneToMany(mappedBy = "supplier")
     private List<Product> products = new ArrayList<>();

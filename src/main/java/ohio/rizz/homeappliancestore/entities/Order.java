@@ -37,14 +37,14 @@ public class Order {
     private Long id;
 
     @Column(name = "total_price", nullable = false)
-    private BigDecimal totalPrice;
+    private BigDecimal totalPrice = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status") // add default value
     private OrderStatus status = OrderStatus.IN_PROGRESS;
 
     @Column(name = "shipping_address")
-    private String shippingAddress;
+    private String shippingAddress = "No shipping address";
 
     @CreationTimestamp
     @Column(name = "order_date", nullable = false, updatable = false)

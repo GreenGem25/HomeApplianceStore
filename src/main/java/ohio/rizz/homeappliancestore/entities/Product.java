@@ -24,22 +24,22 @@ public class Product {
     private Long id;
 
     @Column(name = "name", nullable = false)
-    private String name;
+    private String name = "No name";
 
     @Column(name = "description")
-    private String description;
+    private String description = "No description";
 
     @Column(name = "price", nullable = false)
-    private BigDecimal price;
+    private BigDecimal price = BigDecimal.ZERO;
 
     @Column(name = "stock_quantity", nullable = false)
-    private int stockQuantity;
+    private int stockQuantity = 0;
 
     @Column(name = "manufacturer")
-    private String manufacturer;
+    private String manufacturer = "No Manufacturer";
 
     @Column(name = "warranty_period")
-    private int warrantyPeriod;
+    private int warrantyPeriod = 0;
 
     @Column(name = "image_path")
     private String imagePath;
