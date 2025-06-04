@@ -224,7 +224,10 @@
       });
 
       quantityInput.addEventListener('change', function() {
-        if (this.max && this.value > this.max) {
+        const max = parseFloat(this.max); // Преобразуем в число
+        const value = parseFloat(this.value); // Преобразуем в число
+
+        if (!isNaN(max) && !isNaN(value) && value > max) {
           this.value = this.max;
           alert(`Максимальное количество: ${this.max}`);
         }
