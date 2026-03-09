@@ -6,9 +6,12 @@ import lombok.Setter;
 import ohio.rizz.homeappliancestore.enums.OrderStatus;
 import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.UUID;
 
 @Entity
@@ -40,8 +43,15 @@ public class Order {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
+    @Column(name = "order_number", unique = true, nullable = false, length = 50)
+    private String orderNumber;
+
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> orderItems = new ArrayList<>();
+
+    public Order() {
+        this.orderNumber = generateOrderNumber();
+    }
 
     public BigDecimal calculateFinalPrice() {
         BigDecimal discount = customer.getDiscount() != null ?
@@ -67,5 +77,12 @@ public class Order {
         this.totalPrice = orderItems.stream()
                 .map(item -> item.getOrderPrice().multiply(BigDecimal.valueOf(item.getOrderQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private String generateOrderNumber() {
+        // ORD-20260309-00123
+        String date = LocalDate.now().format(DateTimeFormatter.BASIC_ISO_DATE);
+        String randomPart = String.format("%05d", new Random().nextInt(100000));
+        return "ORD-" + date + "-" + randomPart;
     }
 }

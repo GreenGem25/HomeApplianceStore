@@ -150,6 +150,7 @@ public class OrderController {
         dto.setCustomerId(order.getCustomer().getId());
         dto.setCustomerName(order.getCustomer().getFirstName() + " " + order.getCustomer().getLastName());
         dto.setCustomerDiscount(order.getCustomer().getDiscount());
+        dto.setOrderNumber(order.getOrderNumber());
 
         dto.setOrderItems(order.getOrderItems().stream()
                 .map(this::convertItemToDto)

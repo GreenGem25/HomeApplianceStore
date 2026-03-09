@@ -21,5 +21,6 @@ public class OrderDto {
     private UUID customerId;
     private String customerName;
     private Integer customerDiscount;
+    private String orderNumber;
     private List<OrderItemDto> orderItems;
 }

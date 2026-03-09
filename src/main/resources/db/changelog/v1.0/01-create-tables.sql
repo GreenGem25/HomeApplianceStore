@@ -61,6 +61,7 @@ CREATE TABLE customers (
 --comment: Create orders table
 CREATE TABLE orders (
                         order_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                        order_number VARCHAR(50) UNIQUE,
                         customer_id UUID NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
                         total_price DECIMAL(10,2) NOT NULL DEFAULT 0,
                         status VARCHAR(50) DEFAULT 'IN_PROGRESS',

@@ -106,7 +106,7 @@
           <div class="d-flex w-100 justify-content-between">
             <div>
               <h5 class="mb-1">
-                Заказ #<span th:text="${order.id}"></span>
+                Заказ #<span th:text="${order.orderNumber}"></span>
                 <span class="badge status-badge"
                       th:classappend="${order.status.name().equals('IN_PROGRESS')} ? 'status-in-progress' : 'status-completed'"
                       th:text="${order.status.getDisplayName()}"></span>

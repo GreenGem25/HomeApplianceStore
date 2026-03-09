@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
   <meta charset="UTF-8">
-  <title th:text="'Заказ #' + ${order.id} + ' | Магазин техники'"></title>
+  <title th:text="'Заказ #' + ${order.orderNumber} + ' | Магазин техники'"></title>
   <!-- Bootstrap 5 CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Bootstrap Icons -->
@@ -87,7 +87,7 @@
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">
-          <i class="bi bi-cart"></i> Заказ #<span th:text="${order.id}"></span>
+          <i class="bi bi-cart"></i> Заказ #<span th:text="${order.orderNumber}"></span>
           <span class="badge status-badge ms-2"
                 th:classappend="${order.status.name().equals('IN_PROGRESS')} ? 'status-in-progress' : 'status-completed'"
                 th:text="${order.status.getDisplayName()}"></span>
