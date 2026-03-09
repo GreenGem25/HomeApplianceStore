@@ -25,6 +25,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,11 +64,11 @@ public class ProductService {
         return getAllProductsPriceAsc().reversed();
     }
 
-    public Optional<Product> getProductById(Long id) {
+    public Optional<Product> getProductById(UUID id) {
         return productRepository.findById(id);
     }
 
-    public List<Product> getProductsByCategory(Long categoryId) {
+    public List<Product> getProductsByCategory(UUID categoryId) {
         return productRepository.findByCategory_Id(categoryId);
     }
 
@@ -76,7 +77,7 @@ public class ProductService {
     }
 
     @Transactional
-    public Product updateProduct(Long id, ProductDto productEditDto, MultipartFile imageFile) throws IOException {
+    public Product updateProduct(UUID id, ProductDto productEditDto, MultipartFile imageFile) throws IOException {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Продукт не найден"));
 
@@ -128,7 +129,7 @@ public class ProductService {
     }
 
     @Transactional
-    public void deleteProduct(Long id) {
+    public void deleteProduct(UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Товар не найден"));
 
@@ -148,12 +149,12 @@ public class ProductService {
         return productRepository.findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query);
     }
 
-    public List<Product> getProductsByCategoryWithChildren(Long categoryId) {
-        List<Long> categoryIds = categoryService.getAllChildCategoryIds(categoryId);
+    public List<Product> getProductsByCategoryWithChildren(UUID categoryId) {
+        List<UUID> categoryIds = categoryService.getAllChildCategoryIds(categoryId);
         return productRepository.findByCategoryIds(categoryIds);
     }
 
-    public List<Product> getProductsBySupplier(Long supplierId) {
+    public List<Product> getProductsBySupplier(UUID supplierId) {
         return productRepository.findBySupplier_Id(supplierId);
     }
 

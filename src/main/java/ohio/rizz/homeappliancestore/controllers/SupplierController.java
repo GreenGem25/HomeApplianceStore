@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class SupplierController {
@@ -31,7 +32,7 @@ public class SupplierController {
     }
 
     @GetMapping("/suppliers/{id}")
-    public String getSupplierDetails(@PathVariable Long id, Model model) {
+    public String getSupplierDetails(@PathVariable UUID id, Model model) {
         Supplier supplier = supplierService.getSupplierById(id)
                 .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден!"));
         model.addAttribute("supplier", supplier);
@@ -58,7 +59,7 @@ public class SupplierController {
     }
 
     @GetMapping("/suppliers/{id}/edit")
-    public String showEditSupplierForm(@PathVariable Long id, Model model) {
+    public String showEditSupplierForm(@PathVariable UUID id, Model model) {
         Supplier supplier = supplierService.getSupplierById(id)
                 .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден"));
 
@@ -76,8 +77,8 @@ public class SupplierController {
 
     @PutMapping("/suppliers/{id}")
     public String updateSupplier(
-            @PathVariable Long id,
-            SupplierDto supplierDto,
+            @PathVariable UUID id,
+            @ModelAttribute("supplierDto") SupplierDto supplierDto,
             RedirectAttributes redirectAttributes) {
         try {
             supplierService.updateSupplier(id, supplierDto);
@@ -92,7 +93,7 @@ public class SupplierController {
 
     @DeleteMapping("/suppliers/{id}")
     public String deleteSupplier(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             RedirectAttributes redirectAttributes) {
         try {
             supplierService.deleteSupplier(id);

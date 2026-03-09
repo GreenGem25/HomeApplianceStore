@@ -6,11 +6,12 @@ import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class ProductDto {
-    private Long id;
+    private UUID id;
 
     @NotBlank(message = "Название товара обязательно")
     @Size(min = 3, max = 100, message = "Название должно быть от 3 до 100 символов")
@@ -34,10 +35,10 @@ public class ProductDto {
     private Integer warrantyPeriod;
 
     @NotNull(message = "Поставщик обязателен")
-    private Long supplierId;
+    private UUID supplierId;
 
     @NotNull(message = "Категория обязательна")
-    private Long categoryId;
+    private UUID categoryId;
 
     private String imagePath;
     private MultipartFile imageFile;

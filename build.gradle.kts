@@ -30,6 +30,7 @@ dependencies {
     implementation("org.glassfish:javax.el:3.0.0")
     compileOnly("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
+    implementation("org.liquibase:liquibase-core")
 }
 
 tasks.withType<Test> {

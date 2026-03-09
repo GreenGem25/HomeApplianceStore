@@ -1,15 +1,15 @@
 package ohio.rizz.homeappliancestore.entities;
 
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "customers")
@@ -17,20 +17,25 @@ import java.util.List;
 @Setter
 public class Customer {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "customer_id")
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "customer_id", columnDefinition = "UUID")
+    private UUID id;
 
     @Column(name = "first_name", nullable = false)
     private String firstName = "No first name";
+
     @Column(name = "last_name", nullable = false)
     private String lastName = "No last name";
+
     @Column(name = "email", nullable = false, unique = true)
     private String email = "No email";
+
     @Column(name = "phone")
     private String phone = "No phone";
+
     @Column(name = "address")
     private String address = "No address";
+
     @Column(name = "image_path")
     private String imagePath;
 
@@ -38,7 +43,7 @@ public class Customer {
     private Integer discount = 0;
 
     @Column(name = "money_spent")
-    private Double moneySpent = 0.0;
+    private BigDecimal moneySpent = BigDecimal.ZERO;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -48,20 +53,16 @@ public class Customer {
     private List<Order> orders = new ArrayList<>();
 
     public int calculateDiscount() {
-
-        // Максимальная скидка 80%
-        if (discount >= 80) {
-            return 80;
+        // Максимальная скидка 50%
+        if (discount >= 50) {
+            return 50;
         }
 
-        // Нужно потратить для получения +5% скидки:
-        // 5000 10000 20000 40000 80000
-        // за один заказ нельзя получить больше 5% скидки.
-        if (moneySpent >= 5000 * Math.pow(2, (orders.size() - 1))) {
+        // Нужно потратить для получения +5% скидки
+        if (moneySpent.compareTo(BigDecimal.valueOf(5000 * Math.pow(2, (orders.size() - 1)))) >= 0) {
             return discount + 5;
         }
 
         return discount;
     }
-
 }

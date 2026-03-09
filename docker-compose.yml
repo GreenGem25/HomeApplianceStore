@@ -1,0 +1,120 @@
+# Сети для изоляции контейнеров
+networks:
+  backend:
+    driver: bridge
+
+# Тома для сохранения данных
+volumes:
+  postgres_data:
+    name: home-appliance-store-postgres-data
+  postgres_backup:
+    name: home-appliance-store-postgres-backup
+  pgadmin_data:
+    name: home-appliance-store-pgadmin-data
+
+services:
+  # База данных PostgreSQL
+  postgres:
+    image: postgres:15-alpine  # Легковесная версия
+    container_name: home-appliance-store-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-home_appliance_store}
+      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-admin123}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=ru_RU.UTF-8 --lc-ctype=ru_RU.UTF-8"
+      TZ: Europe/Moscow
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - postgres_backup:/backup
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-admin} -d ${DB_NAME:-service_center}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Основное приложение
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - JAR_FILE=target/*.jar
+    container_name: home-appliance-store-app
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      # Настройки подключения к БД
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${DB_NAME:-home_appliance_store}
+      SPRING_DATASOURCE_USERNAME: ${DB_USER:-admin}
+      SPRING_DATASOURCE_PASSWORD: ${DB_PASSWORD:-admin123}
+
+      # Настройки JPA/Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+
+      # Liquibase
+      SPRING_LIQUIBASE_ENABLED: "true"
+      SPRING_LIQUIBASE_CHANGE_LOG: classpath:db/changelog/db.changelog-master.yaml
+
+      # Профиль приложения
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-docker}
+
+      # Логирование
+      LOGGING_LEVEL_COM_SERVICECENTER: ${LOG_LEVEL:-INFO}
+
+      # Временная зона
+      TZ: Europe/Moscow
+    ports:
+      - "${APP_PORT:-8080}:8080"
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # PgAdmin
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: home-appliance-store-pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_EMAIL:-admin@admin.com}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_PASSWORD:-admin}
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+      PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    ports:
+      - "${PGADMIN_PORT:-5050}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - backend
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"

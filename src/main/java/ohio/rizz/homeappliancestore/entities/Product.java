@@ -7,11 +7,11 @@ import ohio.rizz.homeappliancestore.exceptions.OutOfStockException;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "products")
@@ -19,9 +19,9 @@ import java.util.List;
 @Setter
 public class Product {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "product_id")
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "product_id", columnDefinition = "UUID")
+    private UUID id;
 
     @Column(name = "name", nullable = false)
     private String name = "No name";
@@ -71,5 +71,4 @@ public class Product {
     public void increaseStock(int quantity) {
         this.stockQuantity += quantity;
     }
-
 }

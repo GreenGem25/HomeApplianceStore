@@ -7,10 +7,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class CustomerDto {
-    private Long id;
+    private UUID id;
 
     @NotBlank(message = "Имя обязательно")
     @Size(min = 2, max = 50, message = "Имя должно быть от 2 до 50 символов")

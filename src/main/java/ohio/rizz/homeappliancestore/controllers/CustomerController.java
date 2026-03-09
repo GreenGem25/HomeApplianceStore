@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 @RequestMapping("/customers")
@@ -40,7 +41,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public String getCustomerDetails(@PathVariable Long id, Model model) {
+    public String getCustomerDetails(@PathVariable UUID id, Model model) {
         Customer customer = customerService.getCustomerById(id)
                 .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден!"));
         model.addAttribute("customer", customer);
@@ -90,7 +91,7 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}/edit")
-    public String showEditCustomerForm(@PathVariable Long id, Model model) {
+    public String showEditCustomerForm(@PathVariable UUID id, Model model) {
         Customer customer = customerService.getCustomerById(id)
                 .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
 
@@ -109,7 +110,7 @@ public class CustomerController {
 
     @PutMapping("/{id}")
     public String updateCustomer(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @ModelAttribute CustomerDto customerDTO,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             @RequestParam(value = "removeImage", required = false, defaultValue = "false") boolean removeImage,
@@ -130,7 +131,7 @@ public class CustomerController {
 
     @DeleteMapping("/{id}")
     public String deleteCustomer(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             RedirectAttributes redirectAttributes) {
         try {
             customerService.deleteCustomer(id);

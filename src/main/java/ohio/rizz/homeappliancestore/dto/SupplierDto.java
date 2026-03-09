@@ -6,10 +6,12 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class SupplierDto {
-    private Long id;
+    private UUID id;
 
     @NotBlank(message = "Название поставщика обязательно")
     @Size(min = 3, max = 100, message = "Название должно быть от 3 до 100 символов")

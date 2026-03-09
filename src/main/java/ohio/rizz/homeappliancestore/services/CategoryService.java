@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,7 +33,7 @@ public class CategoryService {
         return categoryRepository.findAll();
     }
 
-    public Optional<Category> getCategoryById(Long id) {
+    public Optional<Category> getCategoryById(UUID id) {
         return categoryRepository.findById(id);
     }
 
@@ -79,15 +80,15 @@ public class CategoryService {
         children.forEach(this::loadChildrenRecursively);
     }
 
-    public List<Category> getAllCategoriesExcept(Long id) {
+    public List<Category> getAllCategoriesExcept(UUID id) {
         return getAllCategories().stream()
                 .filter(category -> !category.getId().equals(id))
                 .collect(Collectors.toList());
     }
 
     @Cacheable(value = "categoryHierarchy", key = "#parentCategoryId")
-    public List<Long> getAllChildCategoryIds(Long parentCategoryId) {
-        List<Long> categoryIds = new ArrayList<>();
+    public List<UUID> getAllChildCategoryIds(UUID parentCategoryId) {
+        List<UUID> categoryIds = new ArrayList<>();
         categoryIds.add(parentCategoryId); // Добавляем саму родительскую категорию
 
         // Рекурсивно получаем все дочерние ID
@@ -99,10 +100,10 @@ public class CategoryService {
         return categoryIds;
     }
 
-    public int getAllChildProductCount(Long parentCategoryId) {
+    public int getAllChildProductCount(UUID parentCategoryId) {
         int count = 0;
-        List<Long> categoryIdList = getAllChildCategoryIds(parentCategoryId);
-        for (Long id : categoryIdList) {
+        List<UUID> categoryIdList = getAllChildCategoryIds(parentCategoryId);
+        for (UUID id : categoryIdList) {
             count += categoryRepository.findById(id)
                     .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена")).getProducts().size();
         }
@@ -110,7 +111,7 @@ public class CategoryService {
     }
 
     @Transactional
-    public void updateCategory(Long id, CategoryDto dto) {
+    public void updateCategory(UUID id, CategoryDto dto) {
         Category existingCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
 
@@ -125,7 +126,7 @@ public class CategoryService {
     }
 
     @Transactional
-    public void deleteCategory(Long id) {
+    public void deleteCategory(UUID id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
         productRepository.findByCategory_Id(category.getId()).forEach(product -> {

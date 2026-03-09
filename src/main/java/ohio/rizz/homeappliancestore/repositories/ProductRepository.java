@@ -6,10 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface ProductRepository extends JpaRepository<Product, Long> {
-    List<Product> findByCategory_Id(Long categoryId);
-    List<Product> findBySupplier_Id(Long supplierId);
+public interface ProductRepository extends JpaRepository<Product, UUID> {
+    List<Product> findByCategory_Id(UUID categoryId);
+    List<Product> findBySupplier_Id(UUID supplierId);
 
     @Query("SELECT p FROM Product p WHERE " +
             "LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
@@ -19,7 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             @Param("query") String descriptionQuery);
 
     @Query("SELECT p FROM Product p WHERE p.category.id IN :categoryIds")
-    List<Product> findByCategoryIds(@Param("categoryIds") List<Long> categoryIds);
+    List<Product> findByCategoryIds(@Param("categoryIds") List<UUID> categoryIds);
 
     @Query("SELECT p FROM Product p WHERE p.stockQuantity > 0")
     List<Product> findAllAvailableProducts();

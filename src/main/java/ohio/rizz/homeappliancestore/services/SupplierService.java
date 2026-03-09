@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class SupplierService {
@@ -25,12 +26,12 @@ public class SupplierService {
         return supplierRepository.findAll();
     }
 
-    public Optional<Supplier> getSupplierById(Long id) {
+    public Optional<Supplier> getSupplierById(UUID id) {
         return supplierRepository.findById(id);
     }
 
     @Transactional
-    public void updateSupplier(Long id, SupplierDto supplierDto) {
+    public void updateSupplier(UUID id, SupplierDto supplierDto) {
         Supplier existingSupplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден"));
 
@@ -54,7 +55,7 @@ public class SupplierService {
     }
 
     @Transactional
-    public void deleteSupplier(Long id) {
+    public void deleteSupplier(UUID id) {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден"));
         productRepository.findBySupplier_Id(supplier.getId()).forEach(product -> {
@@ -68,7 +69,7 @@ public class SupplierService {
         return supplierRepository.findByNameContainingIgnoreCaseOrContactNameContainingIgnoreCase(query, query);
     }
 
-    public boolean isEmailUnique(Long id, String email) {
+    public boolean isEmailUnique(UUID id, String email) {
         Supplier supplier = supplierRepository.findByEmail(email);
         return supplier == null || supplier.getId().equals(id);
     }

@@ -16,6 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerService {
@@ -29,7 +30,7 @@ public class CustomerService {
         return customerRepository.findAll();
     }
 
-    public Optional<Customer> getCustomerById(Long id) {
+    public Optional<Customer> getCustomerById(UUID id) {
         return customerRepository.findById(id);
     }
 
@@ -39,7 +40,7 @@ public class CustomerService {
     }
 
     @Transactional
-    public void updateCustomer(Long id, CustomerDto customerDTO, MultipartFile imageFile, boolean removeImage) throws IOException {
+    public void updateCustomer(UUID id, CustomerDto customerDTO, MultipartFile imageFile, boolean removeImage) throws IOException {
         Customer existingCustomer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
 
@@ -89,13 +90,13 @@ public class CustomerService {
         customerRepository.save(existingCustomer);
     }
 
-    public boolean isEmailUnique(Long id, String email) {
+    public boolean isEmailUnique(UUID id, String email) {
         Customer customer = customerRepository.findByEmail(email);
         return customer == null || customer.getId().equals(id);
     }
 
     @Transactional
-    public void deleteCustomer(Long id) {
+    public void deleteCustomer(UUID id) {
         customerRepository.deleteById(id);
     }
 

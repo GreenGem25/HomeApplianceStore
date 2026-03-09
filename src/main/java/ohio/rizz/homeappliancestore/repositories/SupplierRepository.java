@@ -6,8 +6,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.UUID;
 
-public interface SupplierRepository extends JpaRepository<Supplier, Long> {
+public interface SupplierRepository extends JpaRepository<Supplier, UUID> {
     @Query("SELECT c FROM Supplier c WHERE c.email = :email")
     Supplier findByEmail(@Param("email") String email);
 

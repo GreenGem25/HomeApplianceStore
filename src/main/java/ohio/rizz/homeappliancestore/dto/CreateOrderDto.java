@@ -4,11 +4,12 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
 public class CreateOrderDto {
-    private Long customerId;
+    private UUID customerId;
     private String shippingAddress;
     private List<OrderItemRequest> items;
 }

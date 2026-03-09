@@ -1,0 +1,16 @@
+.git
+.gitignore
+README.md
+.dockerignore
+Dockerfile
+docker-compose.yml
+build/
+target/
+*.log
+*.md
+.idea/
+.vscode/
+*.iml
+HELP.md
+gradle/
+!gradle/wrapper/gradle-wrapper.jar

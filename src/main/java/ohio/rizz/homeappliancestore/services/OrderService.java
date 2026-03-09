@@ -2,6 +2,7 @@ package ohio.rizz.homeappliancestore.services;
 
 import ohio.rizz.homeappliancestore.dto.CreateOrderDto;
 import ohio.rizz.homeappliancestore.entities.*;
+import ohio.rizz.homeappliancestore.enums.OrderStatus;
 import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.OrderNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.OutOfStockException;
@@ -10,7 +11,9 @@ import ohio.rizz.homeappliancestore.repositories.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -30,16 +33,16 @@ public class OrderService {
         return orderRepository.findAll();
     }
 
-    public List<Order> getOrdersByCustomer(Long customerId) {
+    public List<Order> getOrdersByCustomer(UUID customerId) {
         return orderRepository.findByCustomerId(customerId);
     }
 
-    public Order getOrderById(Long id) {
+    public Order getOrderById(UUID id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Заказ не найден"));
     }
 
-    public Long getOrderCustomerId(Long orderId) {
+    public UUID getOrderCustomerId(UUID orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("Заказ не найден")).getCustomer().getId();
     }
@@ -54,7 +57,7 @@ public class OrderService {
         Order order = new Order();
         order.setCustomer(customer);
         order.setShippingAddress(orderDto.getShippingAddress());
-        order.setStatus(Order.OrderStatus.IN_PROGRESS);
+        order.setStatus(OrderStatus.IN_PROGRESS);
 
         // Добавляем товары в заказ
         for (var itemRequest : orderDto.getItems()) {
@@ -66,12 +69,12 @@ public class OrderService {
     }
 
     @Transactional
-    public Order updateOrder(Long orderId, CreateOrderDto orderDto) {
+    public Order updateOrder(UUID orderId, CreateOrderDto orderDto) {
         // Получаем существующий заказ
         Order order = getOrderById(orderId);
 
         // Проверяем, что заказ можно редактировать
-        if (order.getStatus() != Order.OrderStatus.IN_PROGRESS) {
+        if (order.getStatus() != OrderStatus.IN_PROGRESS) {
             throw new IllegalStateException("Невозможно редактировать завершенный заказ");
         }
 
@@ -107,24 +110,24 @@ public class OrderService {
     }
 
     @Transactional
-    public Order completeOrder(Long orderId) {
+    public Order completeOrder(UUID orderId) {
         Order order = getOrderById(orderId);
 
         // Проверяем, что заказ еще не завершен
-        if (order.getStatus() == Order.OrderStatus.COMPLETED) {
+        if (order.getStatus() == OrderStatus.COMPLETED) {
             throw new IllegalStateException("Заказ уже завершен");
         }
 
         // Меняем статус заказа
-        order.setStatus(Order.OrderStatus.COMPLETED);
+        order.setStatus(OrderStatus.COMPLETED);
         order.setTotalPrice(order.calculateFinalPrice());
 
         // Обновляем информацию о клиенте (добавляем сумму заказа к потраченным средствам)
         Customer customer = order.getCustomer();
         if (customer.getMoneySpent() == null) {
-            customer.setMoneySpent(0.0);
+            customer.setMoneySpent(BigDecimal.ZERO);
         }
-        customer.setMoneySpent(customer.getMoneySpent() + order.calculateFinalPrice().doubleValue());
+        customer.setMoneySpent(customer.getMoneySpent().add(order.calculateFinalPrice()));
          // Рассчитываем скидку на следующий заказ
         customer.setDiscount(customer.calculateDiscount());
         customerService.save(customer);
@@ -133,11 +136,11 @@ public class OrderService {
     }
 
     @Transactional
-    public void deleteOrder(Long orderId) {
+    public void deleteOrder(UUID orderId) {
         Order order = getOrderById(orderId);
 
         // Если заказ в процессе сборки - возвращаем товары на склад
-        if (order.getStatus() == Order.OrderStatus.IN_PROGRESS) {
+        if (order.getStatus() == OrderStatus.IN_PROGRESS) {
             for (OrderItem item : order.getOrderItems()) {
                 Product product = item.getProduct();
                 product.increaseStock(item.getOrderQuantity());
@@ -148,7 +151,7 @@ public class OrderService {
         orderRepository.delete(order);
     }
 
-    private void addOrderItem(Order order, Long productId, int quantity) {
+    private void addOrderItem(Order order, UUID productId, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Количество товара должно быть положительным");
         }

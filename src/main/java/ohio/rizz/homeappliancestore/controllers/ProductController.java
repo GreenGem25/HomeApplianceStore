@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.UUID;
 
 @Controller
 public class ProductController {
@@ -40,8 +41,8 @@ public class ProductController {
 
     @GetMapping("/products")
     public String listProducts(
-            @RequestParam(required = false) Long categoryId,
-            @RequestParam(required = false) Long supplierId,
+            @RequestParam(required = false) UUID categoryId,
+            @RequestParam(required = false) UUID supplierId,
             @RequestParam(defaultValue = "name_asc") String sortBy,
             @RequestParam(required = false) String search,
             Model model) {
@@ -79,7 +80,7 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}")
-    public String getProductDetails(@PathVariable Long id, Model model) {
+    public String getProductDetails(@PathVariable UUID id, Model model) {
         Product product = productService.getProductById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Продукт не найден!"));
         model.addAttribute("product", product);
@@ -98,7 +99,7 @@ public class ProductController {
     public String addProduct(
             @ModelAttribute Product product,
             @RequestParam("imageFile") MultipartFile imageFile,
-            @RequestParam Long supplierId,
+            @RequestParam UUID supplierId,
             RedirectAttributes redirectAttributes) {
 
         Supplier supplier = supplierService.getSupplierById(supplierId)
@@ -136,7 +137,7 @@ public class ProductController {
     }
 
     @GetMapping("/products/{id}/edit")
-    public String showEditProductForm(@PathVariable Long id, Model model) {
+    public String showEditProductForm(@PathVariable UUID id, Model model) {
         Product product = productService.getProductById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Продукт не найден"));
 
@@ -161,7 +162,7 @@ public class ProductController {
 
     @PutMapping("/products/{id}")
     public String updateProduct(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @ModelAttribute("productEditDto") ProductDto productDto,
             BindingResult bindingResult,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
@@ -186,7 +187,7 @@ public class ProductController {
 
     @DeleteMapping("/products/{id}")
     public String deleteProduct(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             RedirectAttributes redirectAttributes) {
 
         try {

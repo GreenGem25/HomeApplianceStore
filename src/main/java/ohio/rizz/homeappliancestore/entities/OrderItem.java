@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import ohio.rizz.homeappliancestore.exceptions.OutOfStockException;
-
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Entity
 @Table(name = "order_items")
@@ -13,9 +13,9 @@ import java.math.BigDecimal;
 @Setter
 public class OrderItem {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_item_id")
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "order_item_id", columnDefinition = "UUID")
+    private UUID id;
 
     @Column(name = "quantity", nullable = false)
     private int orderQuantity = 0;
@@ -34,9 +34,8 @@ public class OrderItem {
     @PrePersist
     @PreUpdate
     public void validateStock() {
-        if (orderQuantity > product.getStockQuantity()) {
+        if (product != null && orderQuantity > product.getStockQuantity()) {
             throw new OutOfStockException("Недостаточно товара на складе");
         }
     }
-
 }

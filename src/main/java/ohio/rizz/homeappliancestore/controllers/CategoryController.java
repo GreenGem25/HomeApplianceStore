@@ -11,6 +11,8 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.UUID;
+
 @Controller
 public class CategoryController {
     final private CategoryService categoryService;
@@ -26,7 +28,7 @@ public class CategoryController {
     }
 
     @GetMapping("/categories/{id}")
-    public String getCategoryDetails(@PathVariable Long id, Model model) {
+    public String getCategoryDetails(@PathVariable UUID id, Model model) {
         Category category = categoryService.getCategoryById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категория не найдена"));
 
@@ -61,7 +63,7 @@ public class CategoryController {
     }
 
     @GetMapping("/categories/{id}/edit")
-    public String showEditCategoryForm(@PathVariable Long id, Model model) {
+    public String showEditCategoryForm(@PathVariable UUID id, Model model) {
         Category category = categoryService.getCategoryById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Категория не найдена"));
 
@@ -80,7 +82,7 @@ public class CategoryController {
 
     @PutMapping("/categories/{id}")
     public String updateCategory(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @Valid @ModelAttribute CategoryDto categoryDto,
             BindingResult bindingResult,
             RedirectAttributes redirectAttributes,
@@ -103,7 +105,7 @@ public class CategoryController {
 
     @DeleteMapping("/categories/{id}")
     public String deleteCategory(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             RedirectAttributes redirectAttributes) {
         try {
             categoryService.deleteCategory(id);

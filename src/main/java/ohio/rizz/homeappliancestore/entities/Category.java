@@ -3,9 +3,9 @@ package ohio.rizz.homeappliancestore.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "categories")
@@ -13,12 +13,13 @@ import java.util.List;
 @Setter
 public class Category {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "category_id")
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "category_id", columnDefinition = "UUID")
+    private UUID id;
 
     @Column(name = "name", nullable = false)
     private String name = "No name";
+
     @Column(name = "description")
     private String description = "No description";
 

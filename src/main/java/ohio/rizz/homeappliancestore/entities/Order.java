@@ -3,12 +3,13 @@ package ohio.rizz.homeappliancestore.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import ohio.rizz.homeappliancestore.enums.OrderStatus;
 import org.hibernate.annotations.CreationTimestamp;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "orders")
@@ -16,31 +17,16 @@ import java.util.List;
 @Setter
 public class Order {
 
-    public enum OrderStatus {
-        IN_PROGRESS("В сборке"),
-        COMPLETED("Выполнен");
-
-        private final String displayName;
-
-        OrderStatus(String displayName) {
-            this.displayName = displayName;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-    }
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "order_id")
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(name = "order_id", columnDefinition = "UUID")
+    private UUID id;
 
     @Column(name = "total_price", nullable = false)
     private BigDecimal totalPrice = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status") // add default value
+    @Column(name = "status")
     private OrderStatus status = OrderStatus.IN_PROGRESS;
 
     @Column(name = "shipping_address")
@@ -82,5 +68,4 @@ public class Order {
                 .map(item -> item.getOrderPrice().multiply(BigDecimal.valueOf(item.getOrderQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
-
 }

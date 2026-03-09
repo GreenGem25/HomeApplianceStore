@@ -2,6 +2,7 @@ package ohio.rizz.homeappliancestore.controllers;
 
 import ohio.rizz.homeappliancestore.dto.*;
 import ohio.rizz.homeappliancestore.entities.*;
+import ohio.rizz.homeappliancestore.enums.OrderStatus;
 import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import ohio.rizz.homeappliancestore.services.OrderService;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Controller
@@ -29,7 +31,7 @@ public class OrderController {
 
     @GetMapping
     public String listOrders(
-            @RequestParam(required = false) Long customerId,
+            @RequestParam(required = false) UUID customerId,
             Model model) {
         List<Order> orders;
 
@@ -71,20 +73,20 @@ public class OrderController {
     }
 
     @GetMapping("/{id}")
-    public String getOrderDetails(@PathVariable Long id, Model model) {
+    public String getOrderDetails(@PathVariable UUID id, Model model) {
         Order order = orderService.getOrderById(id);
 
         OrderDto orderDto = convertToDto(order);
         model.addAttribute("order", orderDto);
-        model.addAttribute("canEdit", order.getStatus() == Order.OrderStatus.IN_PROGRESS);
+        model.addAttribute("canEdit", order.getStatus() == OrderStatus.IN_PROGRESS);
         return "order-details";
     }
 
     @GetMapping("/{id}/edit")
-    public String showEditOrderForm(@PathVariable Long id, Model model) {
+    public String showEditOrderForm(@PathVariable UUID id, Model model) {
         Order order = orderService.getOrderById(id);
 
-        if (order.getStatus() != Order.OrderStatus.IN_PROGRESS) {
+        if (order.getStatus() != OrderStatus.IN_PROGRESS) {
             throw new IllegalStateException("Невозможно редактировать завершенный заказ");
         }
 
@@ -98,7 +100,7 @@ public class OrderController {
 
     @PutMapping("/{id}")
     public String updateOrder(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @ModelAttribute CreateOrderDto orderDto,
             RedirectAttributes redirectAttributes) {
         try {
@@ -113,7 +115,7 @@ public class OrderController {
 
     @PostMapping("/{id}/complete")
     public String completeOrder(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             RedirectAttributes redirectAttributes) {
         try {
             Order order = orderService.completeOrder(id);
@@ -127,7 +129,7 @@ public class OrderController {
 
     @DeleteMapping("/{id}")
     public String deleteOrder(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             RedirectAttributes redirectAttributes) {
         try {
             orderService.deleteOrder(id);
