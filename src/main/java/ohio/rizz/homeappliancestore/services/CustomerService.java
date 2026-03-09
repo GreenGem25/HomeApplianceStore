@@ -84,7 +84,7 @@ public class CustomerService {
                         StandardCopyOption.REPLACE_EXISTING);
             }
 
-            customerDTO.setImagePath("/" + uploadDir + fileName);
+            existingCustomer.setImagePath("/" + uploadDir + fileName);
         }
 
         customerRepository.save(existingCustomer);
