@@ -89,8 +89,8 @@
         <h1 class="h2">
           <i class="bi bi-cart"></i> Заказ #<span th:text="${order.orderNumber}"></span>
           <span class="badge status-badge ms-2"
-                th:classappend="${order.status.name().equals('IN_PROGRESS')} ? 'status-in-progress' : 'status-completed'"
-                th:text="${order.status.getDisplayName()}"></span>
+                th:classappend="${order.status.name() == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-completed'"
+                th:text="${order.statusDisplayName}"></span>
         </h1>
         <div class="btn-toolbar mb-2 mb-md-0">
           <a th:href="@{/orders}" class="btn btn-sm btn-outline-secondary">
@@ -123,8 +123,8 @@
               <div class="mb-3">
                 <span class="fw-bold">Статус:</span>
                 <span class="badge"
-                      th:classappend="${order.status.name().equals('IN_PROGRESS')} ? 'bg-warning text-dark' : 'bg-success'"
-                      th:text="${order.status.getDisplayName()}"></span>
+                      th:classappend="${order.status.name() == 'IN_PROGRESS'} ? 'bg-warning text-dark' : 'bg-success'"
+                      th:text="${order.statusDisplayName}"></span>
               </div>
               <div class="mb-3">
                 <span class="fw-bold">Адрес доставки:</span>
@@ -140,15 +140,14 @@
                 <a th:href="@{/customers/{id}(id=${order.customerId})}"
                    th:text="${order.customerName}"></a>
               </div>
-              <div class="mb-3" th:if="${order.status == 'COMPLETED'}">
-                <span class="fw-bold">Итоговая сумма:</span>
-                <span class="text-success fw-bold"
-                      th:text="${'₽' + #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></span>
+              <div class="mb-3">
+                <span class="fw-bold">Скидка клиента:</span>
+                <span th:text="${order.customerDiscount != null ? order.customerDiscount + '%' : '0%'}"></span>
               </div>
             </div>
           </div>
 
-          <!-- Товары в заказе -->
+          <!-- Товары в заказе - ИСПРАВЛЕНО: используем order.items -->
           <h3 class="border-bottom pb-2">Товары в заказе</h3>
           <div class="table-responsive">
             <table class="table">
@@ -161,23 +160,27 @@
               </tr>
               </thead>
               <tbody>
-              <tr th:each="item : ${order.orderItems}">
+              <tr th:each="item : ${order.items}" th:if="${not #lists.isEmpty(order.items)}">
                 <td>
                   <div class="d-flex align-items-center">
-                    <img th:src="${item.productImagePath ?: '/images/no-image.png'}"
+                    <img th:src="${item.productImage ?: '/images/no-image.png'}"
                          class="product-image me-3"
                          alt="Изображение товара"
                          onerror="this.src='/images/no-image.png'">
                     <div>
                       <a th:href="@{/products/{id}(id=${item.productId})}"
                          th:text="${item.productName}"></a>
-                      <div class="text-muted small" th:text="${item.productManufacturer}"></div>
                     </div>
                   </div>
                 </td>
                 <td th:text="${'₽' + #numbers.formatDecimal(item.price, 1, 2, 'COMMA')}"></td>
                 <td th:text="${item.quantity}"></td>
-                <td th:text="${'₽' + #numbers.formatDecimal(item.price * item.quantity, 1, 2, 'COMMA')}"></td>
+                <td th:text="${'₽' + #numbers.formatDecimal(item.totalPrice, 1, 2, 'COMMA')}"></td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(order.items)}">
+                <td colspan="4" class="text-center text-muted py-3">
+                  <i class="bi bi-box"></i> В заказе нет товаров
+                </td>
               </tr>
               </tbody>
             </table>
@@ -191,15 +194,23 @@
                   <span class="fw-bold">Общая стоимость:</span>
                   <span th:text="${'₽' + #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></span>
                 </div>
-                <div th:if="${order.getStatus().name().equals('IN_PROGRESS') && order.customerDiscount > 0}" class="d-flex justify-content-between mb-2">
+                <div th:if="${order.status.name() == 'IN_PROGRESS' && order.customerDiscount != null && order.customerDiscount > 0}"
+                     class="d-flex justify-content-between mb-2">
                   <span class="fw-bold">Скидка (<span th:text="${order.customerDiscount}"></span>%):</span>
                   <span class="text-danger"
                         th:text="${'-₽' + #numbers.formatDecimal(order.totalPrice * order.customerDiscount / 100, 1, 2, 'COMMA')}"></span>
                 </div>
-                <div th:if="${order.getStatus().name().equals('IN_PROGRESS')}" class="d-flex justify-content-between border-top pt-2">
+                <div th:if="${order.status.name() == 'IN_PROGRESS'}"
+                     class="d-flex justify-content-between border-top pt-2">
                   <span class="fw-bold">Итого к оплате:</span>
                   <span class="fw-bold"
-                        th:text="${'₽' + #numbers.formatDecimal(order.totalPrice - order.totalPrice * order.customerDiscount / 100, 1, 2, 'COMMA')}"></span>
+                        th:text="${'₽' + #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA')}"></span>
+                </div>
+                <div th:if="${order.status.name() == 'COMPLETED'}"
+                     class="d-flex justify-content-between border-top pt-2">
+                  <span class="fw-bold">Итого оплачено:</span>
+                  <span class="fw-bold text-success"
+                        th:text="${'₽' + #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA')}"></span>
                 </div>
               </div>
             </div>
@@ -246,12 +257,12 @@
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-              <p>Вы уверены, что хотите удалить заказ #<span th:text="${order.id}"></span>?</p>
+              <p>Вы уверены, что хотите удалить заказ #<span th:text="${order.orderNumber}"></span>?</p>
               <div class="alert alert-warning mt-3">
                 <i class="bi bi-exclamation-triangle"></i>
-                <span th:if="${order.status.name().equals('IN_PROGRESS')}">
-                                    Все товары (<span th:text="${order.orderItems.size()}"></span>) будут возвращены на склад!
-                                </span>
+                <span th:if="${order.status.name() == 'IN_PROGRESS'}">
+                  Все товары (<span th:text="${order.items.size()}"></span>) будут возвращены на склад!
+                </span>
                 Это действие нельзя отменить!
               </div>
             </div>

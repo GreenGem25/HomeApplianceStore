@@ -117,16 +117,24 @@
                                 </div>
                                 <div class="col-md-6">
                                     <h5 class="border-bottom pb-2">Категория</h5>
-                                    <a th:text="${product.category != null} ? ${product.category.name} : 'Не указана'"
-                                        th:href="@{/{s}(s=${product.category != null} ? ('categories/' + ${product.category.id}) : ('products/' + ${product.id}))}"></a>
+                                    <a th:if="${product.categoryId != null}"
+                                       th:href="@{/categories/{id}(id=${product.categoryId})}"
+                                       th:text="${product.categoryName} ?: 'Не указана'"></a>
+                                    <span th:if="${product.categoryId == null}">Не указана</span>
                                 </div>
                             </div>
 
                             <div class="row mb-3">
                                 <div class="col-md-6">
                                     <h5 class="border-bottom pb-2">Поставщик</h5>
-                                    <a th:text="${product.supplier != null} ? ${product.supplier.name} : 'Не указан'"
-                                       th:href="@{/{s}(s=${product.supplier != null} ? ('suppliers/' + ${product.supplier.id}) : ('products/' + ${product.id}))}"></a>
+                                    <a th:if="${product.supplierId != null}"
+                                       th:href="@{/suppliers/{id}(id=${product.supplierId})}"
+                                       th:text="${product.supplierName} ?: 'Не указан'"></a>
+                                    <span th:if="${product.supplierId == null}">Не указан</span>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="border-bottom pb-2">Продано</h5>
+                                    <p th:text="${product.totalSold} + ' шт.'"></p>
                                 </div>
                             </div>
 

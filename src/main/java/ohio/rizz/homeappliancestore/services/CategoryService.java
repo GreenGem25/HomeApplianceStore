@@ -1,9 +1,14 @@
 package ohio.rizz.homeappliancestore.services;
 
 import jakarta.transaction.Transactional;
+import ohio.rizz.homeappliancestore.dto.CategoryCreateDto;
 import ohio.rizz.homeappliancestore.dto.CategoryDto;
+import ohio.rizz.homeappliancestore.dto.CustomerDto;
 import ohio.rizz.homeappliancestore.entities.Category;
+import ohio.rizz.homeappliancestore.entities.Customer;
 import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
+import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
+import ohio.rizz.homeappliancestore.mappers.CategoryMapper;
 import ohio.rizz.homeappliancestore.repositories.CategoryRepository;
 import ohio.rizz.homeappliancestore.repositories.ProductRepository;
 import org.springframework.cache.annotation.Cacheable;
@@ -17,61 +22,74 @@ import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
-    final private CategoryRepository categoryRepository;
-    final private ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
+    private final CategoryMapper categoryMapper;
 
-    public CategoryService(CategoryRepository categoryRepository, ProductRepository productRepository) {
+    public CategoryService(CategoryRepository categoryRepository,
+                           ProductRepository productRepository,
+                           CategoryMapper categoryMapper) {
         this.categoryRepository = categoryRepository;
         this.productRepository = productRepository;
+        this.categoryMapper = categoryMapper;
     }
 
-    public List<Category> getRootCategories() {
-        return categoryRepository.findByParentCategoryIsNull();
+    public List<CategoryDto> getRootCategories() {
+        return categoryMapper.toDto(categoryRepository.findByParentCategoryIsNull());
     }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryDto> getAllCategories() {
+        return categoryMapper.toDto(categoryRepository.findAll());
     }
 
-    public Optional<Category> getCategoryById(UUID id) {
+    public CategoryDto getCategoryById(UUID id) {
+        Category category = getCategoryEntityOrThrow(id);
+        return categoryMapper.toDto(category);
+    }
+
+    public Category getCategoryEntityOrThrow(UUID id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
+    }
+
+    public Optional<Category> findCategoryById(UUID id) {
         return categoryRepository.findById(id);
     }
 
-    public Category createCategory(CategoryDto dto) {
-        Category category = new Category();
-        category.setName(dto.getName());
-        category.setDescription(dto.getDescription());
+    @Transactional
+    public CategoryDto createCategory(CategoryCreateDto createDto) {
+        Category category = categoryMapper.toEntity(createDto);
 
-        if (dto.getParentCategoryId() != null) {
-            Category parent = categoryRepository.findById(dto.getParentCategoryId())
+        if (createDto.getParentCategoryId() != null) {
+            Category parent = categoryRepository.findById(createDto.getParentCategoryId())
                     .orElseThrow(() -> new CategoryNotFoundException("Родительская категория не найдена!"));
             category.setParentCategory(parent);
         }
 
-        return categoryRepository.save(category);
+        Category savedCategory = categoryRepository.save(category);
+        return categoryMapper.toDto(savedCategory);
     }
 
-    public Category save(Category category) {
-        return categoryRepository.save(category);
+    @Transactional
+    public CategoryDto updateCategory(UUID id, CategoryCreateDto createDto) {
+        Category existingCategory = getCategoryEntityOrThrow(id);
+
+        categoryMapper.updateEntity(existingCategory, createDto);
+
+        if (createDto.getParentCategoryId() != null) {
+            Category parent = categoryRepository.findById(createDto.getParentCategoryId())
+                    .orElseThrow(() -> new CategoryNotFoundException("Родительская категория не найдена"));
+            existingCategory.setParentCategory(parent);
+        }
+
+        Category updatedCategory = categoryRepository.save(existingCategory);
+        return categoryMapper.toDto(updatedCategory);
     }
 
-    public List<Category> getAllCategoriesWithChildren() {
-        // Получаем все корневые категории
+    public List<CategoryDto> getAllCategoriesWithChildren() {
         List<Category> rootCategories = categoryRepository.findByParentCategoryIsNull();
-
-        // Для каждой корневой категории загружаем дочерние
-        rootCategories.forEach(category -> {
-            category.setChildCategories(categoryRepository.findByParentCategory_id(category.getId()));
-        });
-
-        return rootCategories;
-    }
-
-    public List<Category> getCategoryTree() {
-        List<Category> rootCategories = categoryRepository.findByParentCategoryIsNull();
-        return rootCategories.stream()
-                .peek(this::loadChildrenRecursively)
-                .collect(Collectors.toList());
+        rootCategories.forEach(this::loadChildrenRecursively);
+        return categoryMapper.toDto(rootCategories);
     }
 
     private void loadChildrenRecursively(Category category) {
@@ -80,18 +98,25 @@ public class CategoryService {
         children.forEach(this::loadChildrenRecursively);
     }
 
-    public List<Category> getAllCategoriesExcept(UUID id) {
-        return getAllCategories().stream()
-                .filter(category -> !category.getId().equals(id))
-                .collect(Collectors.toList());
+    public List<CategoryDto> getCategoryTree() {
+        List<Category> rootCategories = categoryRepository.findByParentCategoryIsNull();
+        rootCategories.forEach(this::loadChildrenRecursively);
+        return categoryMapper.toDto(rootCategories);
+    }
+
+    public List<CategoryDto> getAllCategoriesExcept(UUID id) {
+        return categoryMapper.toDto(
+                categoryRepository.findAll().stream()
+                        .filter(category -> !category.getId().equals(id))
+                        .collect(Collectors.toList())
+        );
     }
 
     @Cacheable(value = "categoryHierarchy", key = "#parentCategoryId")
     public List<UUID> getAllChildCategoryIds(UUID parentCategoryId) {
         List<UUID> categoryIds = new ArrayList<>();
-        categoryIds.add(parentCategoryId); // Добавляем саму родительскую категорию
+        categoryIds.add(parentCategoryId);
 
-        // Рекурсивно получаем все дочерние ID
         List<Category> children = categoryRepository.findByParentCategory_id(parentCategoryId);
         for (Category child : children) {
             categoryIds.addAll(getAllChildCategoryIds(child.getId()));
@@ -101,38 +126,49 @@ public class CategoryService {
     }
 
     public int getAllChildProductCount(UUID parentCategoryId) {
-        int count = 0;
         List<UUID> categoryIdList = getAllChildCategoryIds(parentCategoryId);
-        for (UUID id : categoryIdList) {
-            count += categoryRepository.findById(id)
-                    .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена")).getProducts().size();
-        }
-        return count;
-    }
-
-    @Transactional
-    public void updateCategory(UUID id, CategoryDto dto) {
-        Category existingCategory = categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
-
-        existingCategory.setName(dto.getName());
-        existingCategory.setDescription(dto.getDescription());
-        if (dto.getParentCategoryId() != null) {
-            existingCategory.setParentCategory(categoryRepository.findById(dto.getParentCategoryId())
-                    .orElseThrow(() -> new CategoryNotFoundException("Родительская категория не найдена")));
-        }
-
-        categoryRepository.save(existingCategory);
+        return categoryIdList.stream()
+                .mapToInt(id -> categoryRepository.findById(id)
+                        .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"))
+                        .getProducts()
+                        .size())
+                .sum();
     }
 
     @Transactional
     public void deleteCategory(UUID id) {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
-        productRepository.findByCategory_Id(category.getId()).forEach(product -> {
-            product.setCategory(null);
-            productRepository.save(product);
-        });
+        Category category = getCategoryEntityOrThrow(id);
+
+        productRepository.findByCategory_Id(category.getId())
+                .forEach(product -> {
+                    product.setCategory(null);
+                    productRepository.save(product);
+                });
+
         categoryRepository.deleteById(id);
     }
+
+    public int getTotalProductCount(UUID categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена"));
+
+        return getTotalProductCountRecursive(category);
+    }
+
+    private int getTotalProductCountRecursive(Category category) {
+        int count = category.getProducts().size();
+
+        for (Category child : category.getChildCategories()) {
+            count += getTotalProductCountRecursive(child);
+        }
+
+        return count;
+    }
+
+    public CategoryDto getCategoryWithProductCount(UUID id) {
+        CategoryDto category = getCategoryById(id);
+        category.setProductCount(getTotalProductCount(id));
+        return category;
+    }
+
 }

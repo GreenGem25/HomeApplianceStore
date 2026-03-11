@@ -2,39 +2,79 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <div th:fragment="category-node(category, level)">
-  <!-- Категория -->
-  <div class="list-group-item category-item level-${level}">
-    <div class="d-flex justify-content-between align-items-center">
-      <div class="category-toggle"
-           th:if="${!category.childCategories.empty}"
-           data-bs-toggle="collapse"
-           th:attr="data-bs-target='#children-of-'+${category.id}">
-        <i class="bi bi-chevron-right category-icon me-2"></i>
-        <span th:text="${category.name}"></span>
+  <div class="list-group-item category-item" th:classappend="'level-' + ${level}">
+    <div class="d-flex w-100 justify-content-between align-items-center">
+      <div class="d-flex align-items-center flex-grow-1">
+        <!-- Кнопка сворачивания для категорий с дочерними элементами -->
+        <span th:if="${not #lists.isEmpty(category.childCategories)}"
+              class="me-2 category-toggle"
+              data-bs-toggle="collapse"
+              th:attr="data-bs-target='#collapse-' + ${category.id}">
+                    <i class="bi bi-chevron-right category-icon"></i>
+                </span>
+        <span th:if="${#lists.isEmpty(category.childCategories)}" class="me-2" style="width: 24px;"></span>
+
+        <!-- Иконка категории -->
+        <i class="bi bi-folder me-2 text-warning"></i>
+
+        <!-- Ссылка на категорию -->
+        <a th:href="@{/categories/{id}(id=${category.id})}"
+           class="text-decoration-none flex-grow-1"
+           th:text="${category.name}"></a>
       </div>
-      <div th:unless="${!category.childCategories.empty}" class="ms-3">
-        <span th:text="${category.name}"></span>
-      </div>
+
+      <!-- Кнопки действий -->
       <div class="category-actions">
-        <a th:href="@{/products?categoryId={id}(id=${category.id})}" class="btn btn-sm btn-outline-dark">
-          <i class="bi bi-search"> Найти товары</i>
-        </a>
-        <a th:href="@{/categories/{id}/edit(id=${category.id})}" class="btn btn-sm btn-outline-success">
+        <a th:href="@{/categories/{id}/edit(id=${category.id})}"
+           class="btn btn-sm btn-outline-primary me-1"
+           title="Редактировать">
           <i class="bi bi-pencil"></i>
         </a>
-        <a th:href="@{/categories/{id}(id=${category.id})}" class="btn btn-sm btn-outline-primary">
-          <i class="bi bi-eye"> Подробнее</i>
-        </a>
+        <button type="button"
+                class="btn btn-sm btn-outline-danger"
+                data-bs-toggle="modal"
+                th:attr="data-bs-target='#deleteModal-' + ${category.id}"
+                title="Удалить">
+          <i class="bi bi-trash"></i>
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- Дочерние категории -->
-  <div th:if="${!category.childCategories.empty}">
-    <div th:id="'children-of-'+${category.id}" class="collapse">
-      <div th:each="child : ${category.childCategories}">
-        <div th:replace="~{fragments/category-node :: category-node(category=${child}, level=${level + 1})}"></div>
+  <!-- Модальное окно удаления -->
+  <div class="modal fade" th:id="'deleteModal-' + ${category.id}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Подтверждение удаления</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Вы уверены, что хотите удалить категорию "<span th:text="${category.name}"></span>"?
+          <div class="alert alert-warning mt-3">
+            <i class="bi bi-exclamation-triangle"></i>
+            Это действие нельзя отменить! Товары в этой категории будут откреплены.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+          <form th:action="@{/categories/{id}(id=${category.id})}" method="post">
+            <input type="hidden" name="_method" value="delete">
+            <button type="submit" class="btn btn-danger">
+              <i class="bi bi-trash"></i> Удалить
+            </button>
+          </form>
+        </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Дочерние категории (сворачиваемые) -->
+  <div th:if="${not #lists.isEmpty(category.childCategories)}"
+       class="collapse"
+       th:id="'collapse-' + ${category.id}">
+    <div th:each="child : ${category.childCategories}">
+      <div th:replace="~{fragments/category-node :: category-node(category=${child}, level=${level + 1})}"></div>
     </div>
   </div>
 </div>

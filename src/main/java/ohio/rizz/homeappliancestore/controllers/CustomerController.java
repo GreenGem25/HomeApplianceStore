@@ -1,8 +1,8 @@
 package ohio.rizz.homeappliancestore.controllers;
 
+import lombok.RequiredArgsConstructor;
+import ohio.rizz.homeappliancestore.dto.CustomerCreateDto;
 import ohio.rizz.homeappliancestore.dto.CustomerDto;
-import ohio.rizz.homeappliancestore.entities.Customer;
-import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -11,26 +11,18 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
 @Controller
 @RequestMapping("/customers")
+@RequiredArgsConstructor
 public class CustomerController {
     private final CustomerService customerService;
 
-    public CustomerController(CustomerService customerService) {
-        this.customerService = customerService;
-    }
-
     @GetMapping
     public String listCustomers(@RequestParam(required = false) String search, Model model) {
-        List<Customer> customers;
+        List<CustomerDto> customers;
         if (search != null && !search.isEmpty()) {
             customers = customerService.searchCustomers(search);
         } else {
@@ -42,82 +34,69 @@ public class CustomerController {
 
     @GetMapping("/{id}")
     public String getCustomerDetails(@PathVariable UUID id, Model model) {
-        Customer customer = customerService.getCustomerById(id)
-                .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден!"));
+        CustomerDto customer = customerService.getCustomerById(id);
         model.addAttribute("customer", customer);
         return "customer-details";
     }
 
     @GetMapping("/add")
     public String showAddCustomerForm(Model model) {
-        model.addAttribute("customer", new Customer());
+        model.addAttribute("customer", new CustomerCreateDto());
         return "add-customer";
     }
 
     @PostMapping("/add")
     public String addCustomer(
-            @ModelAttribute Customer customer,
+            @ModelAttribute("customer") CustomerCreateDto createDto,
             @RequestParam("imageFile") MultipartFile imageFile,
             RedirectAttributes redirectAttributes) {
 
         try {
-            // Обработка изображения
+            CustomerDto savedCustomer = customerService.createCustomer(createDto);
+
+            // Если есть изображение, обновляем его
             if (!imageFile.isEmpty()) {
-                String uploadDir = "uploads/avatars/";
-                String fileName = System.currentTimeMillis() + "_" + customer.getId() + ".jpg";
-
-                // Создаем директорию, если не существует
-                Path uploadPath = Paths.get(uploadDir);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                // Сохраняем файл
-                try (InputStream inputStream = imageFile.getInputStream()) {
-                    Files.copy(inputStream, Paths.get(uploadDir + fileName),
-                            StandardCopyOption.REPLACE_EXISTING);
-                }
-
-                customer.setImagePath("/" + uploadDir + fileName);
+                customerService.updateCustomer(savedCustomer.getId(), createDto, imageFile, false);
             }
 
-            customerService.save(customer);
             redirectAttributes.addFlashAttribute("successMessage", "Клиент успешно добавлен!");
             return "redirect:/customers";
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при загрузке изображения");
+            return "redirect:/customers/add";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при добавлении: " + e.getMessage());
             return "redirect:/customers/add";
         }
     }
 
     @GetMapping("/{id}/edit")
     public String showEditCustomerForm(@PathVariable UUID id, Model model) {
-        Customer customer = customerService.getCustomerById(id)
-                .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
+        CustomerDto customer = customerService.getCustomerById(id);
 
-        CustomerDto customerDTO = new CustomerDto();
-        customerDTO.setId(customer.getId());
-        customerDTO.setFirstName(customer.getFirstName());
-        customerDTO.setLastName(customer.getLastName());
-        customerDTO.setEmail(customer.getEmail());
-        customerDTO.setPhone(customer.getPhone());
-        customerDTO.setAddress(customer.getAddress());
-        customerDTO.setImagePath(customer.getImagePath());
+        CustomerCreateDto createDto = new CustomerCreateDto();
+        createDto.setFirstName(customer.getFirstName());
+        createDto.setLastName(customer.getLastName());
+        createDto.setEmail(customer.getEmail());
+        createDto.setPhone(customer.getPhone());
+        createDto.setAddress(customer.getAddress());
 
-        model.addAttribute("customerDto", customerDTO);
+        model.addAttribute("customerDto", createDto);
+        model.addAttribute("customerId", id);
+        model.addAttribute("currentImage", customer.getImagePath());
         return "edit-customer";
     }
 
     @PutMapping("/{id}")
     public String updateCustomer(
             @PathVariable UUID id,
-            @ModelAttribute CustomerDto customerDTO,
+            @ModelAttribute("customerDto") CustomerCreateDto createDto,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             @RequestParam(value = "removeImage", required = false, defaultValue = "false") boolean removeImage,
             RedirectAttributes redirectAttributes) {
 
         try {
-            customerService.updateCustomer(id, customerDTO, imageFile, removeImage);
+            customerService.updateCustomer(id, createDto, imageFile, removeImage);
             redirectAttributes.addFlashAttribute("successMessage", "Данные клиента успешно обновлены!");
             return "redirect:/customers";
         } catch (IllegalArgumentException e) {
@@ -141,5 +120,4 @@ public class CustomerController {
         }
         return "redirect:/customers";
     }
-
 }

@@ -1,15 +1,13 @@
 package ohio.rizz.homeappliancestore.controllers;
 
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import ohio.rizz.homeappliancestore.dto.ProductCreateDto;
 import ohio.rizz.homeappliancestore.dto.ProductDto;
-import ohio.rizz.homeappliancestore.entities.Product;
-import ohio.rizz.homeappliancestore.entities.Supplier;
 import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
-import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
 import ohio.rizz.homeappliancestore.services.CategoryService;
 import ohio.rizz.homeappliancestore.services.ProductService;
-
 import ohio.rizz.homeappliancestore.services.SupplierService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,27 +17,18 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.UUID;
 
 @Controller
+@RequestMapping("/products")
+@RequiredArgsConstructor
 public class ProductController {
     private final ProductService productService;
     private final CategoryService categoryService;
     private final SupplierService supplierService;
 
-    ProductController(ProductService productService, CategoryService categoryService, SupplierService supplierService) {
-        this.productService = productService;
-        this.categoryService = categoryService;
-        this.supplierService = supplierService;
-    }
-
-    @GetMapping("/products")
+    @GetMapping
     public String listProducts(
             @RequestParam(required = false) UUID categoryId,
             @RequestParam(required = false) UUID supplierId,
@@ -47,23 +36,17 @@ public class ProductController {
             @RequestParam(required = false) String search,
             Model model) {
 
-        List<Product> products;
+        List<ProductDto> products;
 
         if (search != null && !search.isEmpty()) {
-            // Поиск по названию и описанию
             products = productService.searchProducts(search);
         } else if (categoryId != null) {
-            // Фильтрация по категории
             products = productService.getProductsByCategoryWithChildren(categoryId);
-            model.addAttribute("currentCategory", categoryService.getCategoryById(categoryId)
-                            .orElseThrow(() -> new CategoryNotFoundException("Категория не найдена!")));
+            model.addAttribute("currentCategory", categoryService.getCategoryById(categoryId));
         } else if (supplierId != null) {
-            // Фильтрация по поставщику
             products = productService.getProductsBySupplier(supplierId);
-            model.addAttribute("currentSupplier", supplierService.getSupplierById(supplierId)
-                    .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден!")));
+            model.addAttribute("currentSupplier", supplierService.getSupplierById(supplierId));
         } else {
-            // Обычная сортировка
             products = switch (sortBy) {
                 case "name_asc" -> productService.getAllProductsNameAsc();
                 case "name_desc" -> productService.getAllProductsNameDesc();
@@ -79,91 +62,74 @@ public class ProductController {
         return "products";
     }
 
-    @GetMapping("/products/{id}")
+    @GetMapping("/{id}")
     public String getProductDetails(@PathVariable UUID id, Model model) {
-        Product product = productService.getProductById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Продукт не найден!"));
+        ProductDto product = productService.getProductById(id);
         model.addAttribute("product", product);
         return "product-details";
     }
 
-    @GetMapping("/products/add")
+    @GetMapping("/add")
     public String showAddProductForm(Model model) {
-        model.addAttribute("product", new ProductDto());
+        model.addAttribute("product", new ProductCreateDto());
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("suppliers", supplierService.getAllSuppliers());
         return "add-product";
     }
 
-    @PostMapping("/products/add")
+    @PostMapping("/add")
     public String addProduct(
-            @ModelAttribute Product product,
+            @Valid @ModelAttribute("product") ProductCreateDto createDto,
+            BindingResult bindingResult,
             @RequestParam("imageFile") MultipartFile imageFile,
-            @RequestParam UUID supplierId,
+            Model model,
             RedirectAttributes redirectAttributes) {
 
-        Supplier supplier = supplierService.getSupplierById(supplierId)
-                .orElseThrow(() -> new SupplierNotFoundException("Поставщик не найден"));
-        product.setSupplier(supplier);
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("categories", categoryService.getAllCategories());
+            model.addAttribute("suppliers", supplierService.getAllSuppliers());
+            return "add-product";
+        }
 
         try {
-            // Обработка изображения
-            if (!imageFile.isEmpty()) {
-                String uploadDir = "uploads/products/";
-                String fileName = System.currentTimeMillis() + ".jpg";
-
-                // Создаем директорию, если не существует
-                Path uploadPath = Paths.get(uploadDir);
-                if (!Files.exists(uploadPath)) {
-                    Files.createDirectories(uploadPath);
-                }
-
-                // Сохраняем файл
-                try (InputStream inputStream = imageFile.getInputStream()) {
-                    Files.copy(inputStream, Paths.get(uploadDir + fileName),
-                            StandardCopyOption.REPLACE_EXISTING);
-                }
-
-                product.setImagePath("/" + uploadDir + fileName);
-            }
-
-            productService.save(product);
+            ProductDto savedProduct = productService.createProduct(createDto, imageFile);
             redirectAttributes.addFlashAttribute("successMessage", "Товар успешно добавлен!");
-            return "redirect:/products/" + product.getId();
+            return "redirect:/products/" + savedProduct.getId();
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при загрузке изображения");
+            return "redirect:/products/add";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при добавлении: " + e.getMessage());
             return "redirect:/products/add";
         }
     }
 
-    @GetMapping("/products/{id}/edit")
+    @GetMapping("/{id}/edit")
     public String showEditProductForm(@PathVariable UUID id, Model model) {
-        Product product = productService.getProductById(id)
-                .orElseThrow(() -> new ProductNotFoundException("Продукт не найден"));
+        ProductDto product = productService.getProductById(id);
 
-        // Создаем DTO для формы редактирования
-        ProductDto productDto = new ProductDto();
-        productDto.setId(product.getId());
-        productDto.setName(product.getName());
-        productDto.setDescription(product.getDescription());
-        productDto.setPrice(product.getPrice());
-        productDto.setStockQuantity(product.getStockQuantity());
-        productDto.setManufacturer(product.getManufacturer());
-        productDto.setWarrantyPeriod(product.getWarrantyPeriod());
-        productDto.setCategoryId(product.getCategory() != null ? product.getCategory().getId() : null);
-        productDto.setSupplierId(product.getSupplier() != null ? product.getSupplier().getId() : null);
-        productDto.setImagePath(product.getImagePath());
+        ProductCreateDto createDto = new ProductCreateDto();
+        createDto.setName(product.getName());
+        createDto.setDescription(product.getDescription());
+        createDto.setPrice(product.getPrice());
+        createDto.setStockQuantity(product.getStockQuantity());
+        createDto.setManufacturer(product.getManufacturer());
+        createDto.setWarrantyPeriod(product.getWarrantyPeriod());
+        createDto.setCategoryId(product.getCategoryId());
+        createDto.setSupplierId(product.getSupplierId());
 
-        model.addAttribute("productEditDto", productDto);
+        model.addAttribute("productEditDto", createDto);
+        model.addAttribute("productId", id);
+        model.addAttribute("currentImage", product.getImagePath());
         model.addAttribute("categories", categoryService.getAllCategories());
         model.addAttribute("suppliers", supplierService.getAllSuppliers());
         return "edit-product";
     }
 
-    @PutMapping("/products/{id}")
+    @PutMapping("/{id}")
     public String updateProduct(
             @PathVariable UUID id,
-            @Valid @ModelAttribute("productEditDto") ProductDto productDto,
+            @Valid @ModelAttribute("productEditDto") ProductCreateDto createDto,
             BindingResult bindingResult,
             @RequestParam(value = "imageFile", required = false) MultipartFile imageFile,
             Model model,
@@ -172,20 +138,24 @@ public class ProductController {
         if (bindingResult.hasErrors()) {
             model.addAttribute("categories", categoryService.getAllCategories());
             model.addAttribute("suppliers", supplierService.getAllSuppliers());
+            model.addAttribute("currentImage", productService.getProductById(id).getImagePath());
             return "edit-product";
         }
 
         try {
-            productService.updateProduct(id, productDto, imageFile);
+            productService.updateProduct(id, createDto, imageFile);
             redirectAttributes.addFlashAttribute("successMessage", "Товар успешно обновлен!");
             return "redirect:/products";
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении изображения");
             return "redirect:/products/" + id + "/edit";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении: " + e.getMessage());
+            return "redirect:/products/" + id + "/edit";
         }
     }
 
-    @DeleteMapping("/products/{id}")
+    @DeleteMapping("/{id}")
     public String deleteProduct(
             @PathVariable UUID id,
             RedirectAttributes redirectAttributes) {

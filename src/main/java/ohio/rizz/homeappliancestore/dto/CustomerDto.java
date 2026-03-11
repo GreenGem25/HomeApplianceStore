@@ -1,38 +1,31 @@
 package ohio.rizz.homeappliancestore.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CustomerDto {
     private UUID id;
-
-    @NotBlank(message = "Имя обязательно")
-    @Size(min = 2, max = 50, message = "Имя должно быть от 2 до 50 символов")
     private String firstName;
-
-    @NotBlank(message = "Фамилия обязательна")
-    @Size(min = 2, max = 50, message = "Фамилия должна быть от 2 до 50 символов")
     private String lastName;
-
-    @NotBlank(message = "Email обязателен")
-    @Email(message = "Некорректный формат email")
+    private String fullName;
     private String email;
-
-    @Size(max = 20, message = "Телефон не должен превышать 20 символов")
     private String phone;
-
-    @Size(max = 200, message = "Адрес не должен превышать 200 символов")
     private String address;
-
     private String imagePath;
-    private MultipartFile imageFile;
-    private boolean removeImage;
+    private Integer discount;
+    private BigDecimal moneySpent;
+    private LocalDateTime createdAt;
+    private List<OrderDto> orders;
+    private int ordersCount;
+    private BigDecimal averageOrderValue;
 }

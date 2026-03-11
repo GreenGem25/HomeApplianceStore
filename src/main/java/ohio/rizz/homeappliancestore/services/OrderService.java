@@ -1,79 +1,77 @@
 package ohio.rizz.homeappliancestore.services;
 
-import ohio.rizz.homeappliancestore.dto.CreateOrderDto;
+import lombok.RequiredArgsConstructor;
+import ohio.rizz.homeappliancestore.dto.CategoryDto;
+import ohio.rizz.homeappliancestore.dto.OrderCreateDto;
+import ohio.rizz.homeappliancestore.dto.OrderDto;
+import ohio.rizz.homeappliancestore.dto.OrderItemCreateDto;
 import ohio.rizz.homeappliancestore.entities.*;
 import ohio.rizz.homeappliancestore.enums.OrderStatus;
-import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
-import ohio.rizz.homeappliancestore.exceptions.OrderNotFoundException;
-import ohio.rizz.homeappliancestore.exceptions.OutOfStockException;
-import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
+import ohio.rizz.homeappliancestore.exceptions.*;
+import ohio.rizz.homeappliancestore.mappers.OrderMapper;
 import ohio.rizz.homeappliancestore.repositories.OrderRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class OrderService {
     private final OrderRepository orderRepository;
     private final CustomerService customerService;
     private final ProductService productService;
+    private final OrderMapper orderMapper;
 
-    public OrderService(OrderRepository orderRepository,
-                        CustomerService customerService,
-                        ProductService productService) {
-        this.orderRepository = orderRepository;
-        this.customerService = customerService;
-        this.productService = productService;
+    public List<OrderDto> getAllOrders() {
+        return orderMapper.toDto(orderRepository.findAll());
     }
 
-    public List<Order> getAllOrders() {
-        return orderRepository.findAll();
+    public List<OrderDto> getOrdersByCustomer(UUID customerId) {
+        return orderMapper.toDto(orderRepository.findByCustomerId(customerId));
     }
 
-    public List<Order> getOrdersByCustomer(UUID customerId) {
-        return orderRepository.findByCustomerId(customerId);
+    public OrderDto getOrderById(UUID id) {
+        Order order = getOrderEntityOrThrow(id);
+        return orderMapper.toDto(order);
     }
 
-    public Order getOrderById(UUID id) {
+    public Order getOrderEntityOrThrow(UUID id) {
         return orderRepository.findById(id)
                 .orElseThrow(() -> new OrderNotFoundException("Заказ не найден"));
     }
 
-    public UUID getOrderCustomerId(UUID orderId) {
-        return orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("Заказ не найден")).getCustomer().getId();
+    public Optional<Order> findOrderById(UUID id) {
+        return orderRepository.findById(id);
     }
 
     @Transactional
-    public Order createOrder(CreateOrderDto orderDto) {
+    public OrderDto createOrder(OrderCreateDto orderDto) {
         // Получаем клиента
-        Customer customer = customerService.getCustomerById(orderDto.getCustomerId())
-                .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
+        Customer customer = customerService.getCustomerEntityOrThrow(orderDto.getCustomerId());
 
         // Создаем новый заказ
-        Order order = new Order();
+        Order order = orderMapper.toEntity(orderDto);
         order.setCustomer(customer);
-        order.setShippingAddress(orderDto.getShippingAddress());
         order.setStatus(OrderStatus.IN_PROGRESS);
 
         // Добавляем товары в заказ
-        for (var itemRequest : orderDto.getItems()) {
-            addOrderItem(order, itemRequest.getProductId(), itemRequest.getQuantity());
+        for (OrderItemCreateDto itemDto : orderDto.getItems()) {
+            addOrderItem(order, itemDto.getProductId(), itemDto.getQuantity());
         }
 
         // Сохраняем заказ
-        return orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
+        return orderMapper.toDto(savedOrder);
     }
 
     @Transactional
-    public Order updateOrder(UUID orderId, CreateOrderDto orderDto) {
+    public OrderDto updateOrder(UUID orderId, OrderCreateDto orderDto) {
         // Получаем существующий заказ
-        Order order = getOrderById(orderId);
+        Order order = getOrderEntityOrThrow(orderId);
 
         // Проверяем, что заказ можно редактировать
         if (order.getStatus() != OrderStatus.IN_PROGRESS) {
@@ -82,40 +80,35 @@ public class OrderService {
 
         // Обновляем клиента, если изменился
         if (!order.getCustomer().getId().equals(orderDto.getCustomerId())) {
-            Customer customer = customerService.getCustomerById(orderDto.getCustomerId())
-                    .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
+            Customer customer = customerService.getCustomerEntityOrThrow(orderDto.getCustomerId());
             order.setCustomer(customer);
         }
 
         // Обновляем адрес доставки
         order.setShippingAddress(orderDto.getShippingAddress());
 
-        // Удаляем все текущие товары из заказа (возвращаем на склад)
-        order.getOrderItems().forEach(item -> {
-            Product product = item.getProduct();
-            product.increaseStock(item.getOrderQuantity());
-            productService.save(product);
-        });
+        // Возвращаем товары на склад
+        returnItemsToStock(order);
+
+        // Очищаем текущие товары
         order.getOrderItems().clear();
 
-        // Добавляем новые товары в заказ
-        for (var itemRequest : orderDto.getItems()) {
-            if (itemRequest.getProductId() != null) {
-                addOrderItem(order, itemRequest.getProductId(), itemRequest.getQuantity());
-            }
+        // Добавляем новые товары
+        for (OrderItemCreateDto itemDto : orderDto.getItems()) {
+            addOrderItem(order, itemDto.getProductId(), itemDto.getQuantity());
         }
 
         // Пересчитываем общую стоимость
         order.recalculateTotalPrice();
 
-        return orderRepository.save(order);
+        Order updatedOrder = orderRepository.save(order);
+        return orderMapper.toDto(updatedOrder);
     }
 
     @Transactional
-    public Order completeOrder(UUID orderId) {
-        Order order = getOrderById(orderId);
+    public OrderDto completeOrder(UUID orderId) {
+        Order order = getOrderEntityOrThrow(orderId);
 
-        // Проверяем, что заказ еще не завершен
         if (order.getStatus() == OrderStatus.COMPLETED) {
             throw new IllegalStateException("Заказ уже завершен");
         }
@@ -124,30 +117,26 @@ public class OrderService {
         order.setStatus(OrderStatus.COMPLETED);
         order.setTotalPrice(order.calculateFinalPrice());
 
-        // Обновляем информацию о клиенте (добавляем сумму заказа к потраченным средствам)
+        // Обновляем информацию о клиенте
         Customer customer = order.getCustomer();
         if (customer.getMoneySpent() == null) {
             customer.setMoneySpent(BigDecimal.ZERO);
         }
         customer.setMoneySpent(customer.getMoneySpent().add(order.calculateFinalPrice()));
-         // Рассчитываем скидку на следующий заказ
         customer.setDiscount(customer.calculateDiscount());
         customerService.save(customer);
 
-        return orderRepository.save(order);
+        Order completedOrder = orderRepository.save(order);
+        return orderMapper.toDto(completedOrder);
     }
 
     @Transactional
     public void deleteOrder(UUID orderId) {
-        Order order = getOrderById(orderId);
+        Order order = getOrderEntityOrThrow(orderId);
 
         // Если заказ в процессе сборки - возвращаем товары на склад
         if (order.getStatus() == OrderStatus.IN_PROGRESS) {
-            for (OrderItem item : order.getOrderItems()) {
-                Product product = item.getProduct();
-                product.increaseStock(item.getOrderQuantity());
-                productService.save(product);
-            }
+            returnItemsToStock(order);
         }
 
         orderRepository.delete(order);
@@ -158,25 +147,30 @@ public class OrderService {
             throw new IllegalArgumentException("Количество товара должно быть положительным");
         }
 
-        Product product = productService.getProductById(productId)
-                .orElseThrow(() -> new ProductNotFoundException("Товар не найден"));
+        Product product = productService.getProductEntityOrThrow(productId);
 
-        // Проверяем наличие товара на складе
         if (product.getStockQuantity() < quantity) {
             throw new OutOfStockException("Недостаточно товара на складе: " + product.getName());
         }
 
-        // Создаем позицию заказа
         OrderItem orderItem = new OrderItem();
         orderItem.setProduct(product);
         orderItem.setOrderQuantity(quantity);
         orderItem.setOrderPrice(product.getPrice());
 
-        // Уменьшаем количество товара на складе
         product.decreaseStock(quantity);
         productService.save(product);
 
-        // Добавляем позицию в заказ
         order.addOrderItem(orderItem);
+    }
+
+    private void returnItemsToStock(Order order) {
+        order.getOrderItems().forEach(item -> {
+            Product product = item.getProduct();
+            if (product != null) {
+                product.increaseStock(item.getOrderQuantity());
+                productService.save(product);
+            }
+        });
     }
 }

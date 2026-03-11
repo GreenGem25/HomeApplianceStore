@@ -82,18 +82,17 @@
             <!-- Форма редактирования -->
             <div class="card form-container">
                 <div class="card-body">
-                    <form th:action="@{/categories/{id}(id=${categoryDto.id})}"
+                    <form th:action="@{/categories/{id}(id=${categoryId})}"
                           method="post"
                           th:object="${categoryDto}">
 
                         <input type="hidden" name="_method" value="put">
-                        <!-- ID (скрытое поле) -->
-                        <input type="hidden" th:field="*{id}">
+                        <input type="hidden" name="id" th:value="${categoryId}" />
 
                         <!-- Название категории -->
                         <div class="mb-3">
                             <label for="name" class="form-label">Название категории</label>
-                            <input type="text" class="form-control" id="name" th:field="*{name}"
+                            <input type="text" class="form-control" id="name" th:field="*{name}" required
                                    th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}"
                                  th:errors="*{name}"></div>
@@ -116,9 +115,9 @@
                                 <option value="">-- Без родительской категории --</option>
                                 <option th:each="cat : ${allCategories}"
                                         th:value="${cat.id}"
-                                        th:text="${cat.name}"
+                                        th:text="${cat.name + ' (' + cat.productCount + ' тов.)'}"
                                         th:selected="${cat.id == categoryDto.parentCategoryId}"
-                                        th:disabled="${cat.id == categoryDto.id}"></option>
+                                        th:disabled="${cat.id == categoryId}"></option>
                             </select>
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('parentCategoryId')}"
                                  th:errors="*{parentCategoryId}"></div>

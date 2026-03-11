@@ -114,11 +114,11 @@
                             <h3 class="border-bottom pb-2">Связи</h3>
                             <div class="mb-3">
                                 <span class="property-label">Родительская категория:</span>
-                                <p th:if="${category.parentCategory != null}">
-                                    <a th:href="@{/categories/{id}(id=${category.parentCategory.id})}"
-                                       th:text="${category.parentCategory.name}"></a>
+                                <p th:if="${category.parentCategoryId != null}">
+                                    <a th:href="@{/categories/{id}(id=${category.parentCategoryId})}"
+                                       th:text="${category.parentCategoryName}"></a>
                                 </p>
-                                <p th:unless="${category.parentCategory != null}">Нет родительской категории</p>
+                                <p th:unless="${category.parentCategoryId != null}">Нет родительской категории</p>
                             </div>
                             <div class="mb-3">
                                 <span class="property-label">Количество подкатегорий:</span>
@@ -166,8 +166,8 @@
                                 <span th:if="${category.childCategories != null and !category.childCategories.empty}">
                                     Будут также удалены все подкатегории (<span th:text="${category.childCategories.size()}"></span>)!
                                 </span>
-                                <span th:if="${category.products != null and !category.products.empty}">
-                                    Будут также отвязаны все товары (<span th:text="${category.products.size()}"></span>)!
+                                <span th:if="${productCount > 0}">
+                                    Будут также отвязаны все товары (<span th:text="${productCount}"></span>)!
                                 </span>
                                 Это действие нельзя отменить!
                             </div>

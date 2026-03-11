@@ -75,14 +75,15 @@
                     <i class="bi bi-truck"></i> Редактировать поставщика
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/suppliers/{id}(id=${supplierDto.id})}" class="btn btn-sm btn-outline-secondary">
+                    <a th:href="@{/suppliers/{id}(id=${supplierId})}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-x-circle"></i> Отмена
                     </a>
                 </div>
             </div>
 
-            <form th:action="@{/suppliers/{id}(id=${supplierDto.id})}" method="post">
+            <form th:action="@{/suppliers/{id}(id=${supplierId})}" method="post" th:object="${supplierDto}">
                 <input type="hidden" name="_method" value="put">
+                <input type="hidden" name="id" th:value="${supplierId}" />
                 <div class="card mb-4">
                     <div class="card-body">
                         <!-- Основная информация -->
@@ -95,43 +96,43 @@
                             <div class="col-md-9">
                                 <div class="mb-3">
                                     <label for="name" class="form-label">Название компании</label>
-                                    <input type="text" class="form-control" id="name" th:field="*{supplierDto.name}" required
-                                           th:classappend="${#fields.hasErrors('supplierDto.name')} ? 'is-invalid'">
-                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('supplierDto.name')}"
-                                         th:errors="*{supplierDto.name}"></div>
+                                    <input type="text" class="form-control" id="name" th:field="*{name}" required
+                                           th:classappend="${#fields.hasErrors('name')} ? 'is-invalid'">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}"
+                                         th:errors="*{name}"></div>
                                 </div>
 
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="contactName" class="form-label">Контактное лицо</label>
-                                        <input type="text" class="form-control" id="contactName" th:field="*{supplierDto.contactName}"
-                                               th:classappend="${#fields.hasErrors('supplierDto.contactName')} ? 'is-invalid'">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('supplierDto.contactName')}"
-                                             th:errors="*{supplierDto.contactName}"></div>
+                                        <input type="text" class="form-control" id="contactName" th:field="*{contactName}"
+                                               th:classappend="${#fields.hasErrors('contactName')} ? 'is-invalid'">
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('contactName')}"
+                                             th:errors="*{contactName}"></div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="phone" class="form-label">Телефон</label>
-                                        <input type="tel" class="form-control" id="phone" th:field="*{supplierDto.phone}"
-                                               th:classappend="${#fields.hasErrors('supplierDto.phone')} ? 'is-invalid'">
-                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('supplierDto.phone')}"
-                                             th:errors="*{supplierDto.phone}"></div>
+                                        <input type="tel" class="form-control" id="phone" th:field="*{phone}"
+                                               th:classappend="${#fields.hasErrors('phone')} ? 'is-invalid'">
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}"
+                                             th:errors="*{phone}"></div>
                                     </div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="email" class="form-label">Email</label>
-                                    <input type="email" class="form-control" id="email" th:field="*{supplierDto.email}"
-                                           th:classappend="${#fields.hasErrors('supplierDto.email')} ? 'is-invalid'">
-                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('supplierDto.email')}"
-                                         th:errors="*{supplierDto.email}"></div>
+                                    <input type="email" class="form-control" id="email" th:field="*{email}"
+                                           th:classappend="${#fields.hasErrors('email')} ? 'is-invalid'">
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}"
+                                         th:errors="*{email}"></div>
                                 </div>
 
                                 <div class="mb-3">
                                     <label for="address" class="form-label">Адрес</label>
-                                    <textarea class="form-control" id="address" th:field="*{supplierDto.address}" rows="2"
-                                              th:classappend="${#fields.hasErrors('supplierDto.address')} ? 'is-invalid'"></textarea>
-                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('supplierDto.address')}"
-                                         th:errors="*{supplierDto.address}"></div>
+                                    <textarea class="form-control" id="address" th:field="*{address}" rows="2"
+                                              th:classappend="${#fields.hasErrors('address')} ? 'is-invalid'"></textarea>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}"
+                                         th:errors="*{address}"></div>
                                 </div>
                             </div>
                         </div>

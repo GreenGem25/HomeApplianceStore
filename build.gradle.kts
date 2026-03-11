@@ -18,19 +18,27 @@ repositories {
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    // Spring
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-web")
     developmentOnly("org.springframework.boot:spring-boot-devtools")
-    runtimeOnly("org.postgresql:postgresql")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     implementation("javax.validation:validation-api:2.0.1.Final")
     implementation("org.hibernate.validator:hibernate-validator:8.0.0.Final")
     implementation("org.glassfish:javax.el:3.0.0")
+
+    // Data
+    runtimeOnly("org.postgresql:postgresql")
+    implementation("org.liquibase:liquibase-core")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+
+    // Utils
     compileOnly("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
-    implementation("org.liquibase:liquibase-core")
+    implementation("org.mapstruct:mapstruct:1.5.5.Final")
+    annotationProcessor("org.mapstruct:mapstruct-processor:1.5.5.Final")
+    annotationProcessor("org.projectlombok:lombok-mapstruct-binding:0.2.0")
 }
 
 tasks.withType<Test> {

@@ -31,12 +31,21 @@
             border-radius: 5px;
             padding: 10px;
             margin-bottom: 10px;
+            background-color: #fff;
         }
         .order-summary {
             background-color: #f8f9fa;
             border-radius: 5px;
             padding: 15px;
             margin-bottom: 20px;
+        }
+        .stock-info {
+            display: block;
+            margin-top: 5px;
+            color: #6c757d;
+        }
+        .btn-remove {
+            padding: 0.375rem 0.75rem;
         }
     </style>
 </head>
@@ -80,31 +89,40 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
+            <!-- Сводка по заказу (read-only) -->
             <div class="order-summary">
                 <div class="row">
                     <div class="col-md-4">
-                        <p><strong>Статус:</strong> <span th:text="${order.status.displayName}"></span></p>
+                        <p><strong>Статус:</strong> <span th:text="${order.statusDisplayName}"></span></p>
                     </div>
                     <div class="col-md-4">
                         <p><strong>Клиент:</strong> <span th:text="${order.customerName}"></span></p>
                     </div>
                     <div class="col-md-4">
-                        <p><strong>Дата заказа:</strong> <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span></p>
+                        <p><strong>Дата заказа:</strong>
+                            <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
+                        </p>
                     </div>
                 </div>
                 <div class="row">
                     <div class="col-md-4">
-                        <p><strong>Скидка клиента:</strong> <span th:text="${order.customerDiscount} + '%'"></span></p>
+                        <p><strong>Скидка клиента:</strong>
+                            <span th:text="${order.customerDiscount != null ? order.customerDiscount + '%' : '0%'}"></span>
+                        </p>
                     </div>
                     <div class="col-md-4">
-                        <p><strong>Итоговая сумма:</strong> <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span></p>
+                        <p><strong>Текущая сумма:</strong>
+                            <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span>
+                        </p>
                     </div>
                 </div>
             </div>
 
+            <!-- Форма редактирования -->
             <form th:action="@{/orders/{id}(id=${order.id})}" method="post" id="orderForm">
                 <input type="hidden" name="_method" value="put">
                 <input type="hidden" name="customerId" th:value="${order.customerId}">
+
                 <div class="card mb-4">
                     <div class="card-body">
                         <div class="row mb-3">
@@ -117,32 +135,38 @@
 
                         <h5 class="border-bottom pb-2 mt-4">Товары в заказе</h5>
                         <div id="itemsContainer">
-                            <!-- Товары будут добавляться динамически -->
-                            <div class="product-item" th:each="item, iterStat : ${order.orderItems}">
+                            <!-- Существующие товары (обрабатываются Thymeleaf) -->
+                            <div class="product-item" th:each="item, iterStat : ${order.items}">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <label class="form-label">Товар *</label>
-                                        <select class="form-select product-select" th:name="items[__${iterStat.index}__].productId" required>
+                                        <select class="form-select product-select"
+                                                th:name="'items[' + ${iterStat.index} + '].productId'"
+                                                th:attr="data-index=${iterStat.index}"
+                                                required>
                                             <option value="">-- Выберите товар --</option>
                                             <option th:each="product : ${products}"
                                                     th:value="${product.id}"
                                                     th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
-                                                    th:attr="data-price=${product.price},data-stock=${product.stockQuantity}"
+                                                    th:attr="data-price=${product.price}, data-stock=${product.stockQuantity}"
                                                     th:selected="${product.id == item.productId}"></option>
                                         </select>
                                     </div>
                                     <div class="col-md-4">
                                         <label class="form-label">Количество *</label>
-                                        <div class="d-flex align-items-center"> <!-- Обертка для выравнивания -->
-                                            <input type="number" class="form-control quantity-input me-2"
-                                                   th:name="items[__${iterStat.index}__].quantity"
-                                                   th:value="${item.quantity}" min="1" required>
-                                            <button type="button" class="btn btn-danger remove-item-btn">
+                                        <div class="d-flex align-items-center">
+                                            <input type="number"
+                                                   class="form-control quantity-input me-2"
+                                                   th:name="'items[' + ${iterStat.index} + '].quantity'"
+                                                   th:value="${item.quantity}"
+                                                   min="1"
+                                                   required>
+                                            <button type="button" class="btn btn-danger btn-remove remove-item-btn">
                                                 <i class="bi bi-trash"></i>
                                             </button>
                                         </div>
-                                        <small class="text-muted stock-info">
-                                            Доступно: <span th:text="${item.productStockQuantity}"></span>
+                                        <small class="stock-info text-muted">
+                                            Доступно: <span class="stock-value">0</span>
                                         </small>
                                     </div>
                                 </div>
@@ -168,100 +192,124 @@
     </div>
 </div>
 
+<!-- Передаем данные о товарах в JavaScript -->
+<script th:inline="javascript">
+    /*<![CDATA[*/
+    const productsData = /*[[${products}]]*/ [];
+    console.log('Products loaded:', productsData.length);
+    /*]]>*/
+</script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        let itemCount = [[${order.orderItems.size()}]];
-        const productsData = JSON.parse(document.getElementById('productsData').textContent);
+        // Используем глобальную переменную productsData
+        console.log('Products in DOMContentLoaded:', productsData.length);
+
+        let itemCount = document.querySelectorAll('.product-item').length;
+
+        // Функция обновления информации об остатке
+        function updateStockInfo(selectElement) {
+            const productItem = selectElement.closest('.product-item');
+            const stockSpan = productItem.querySelector('.stock-value');
+            const quantityInput = productItem.querySelector('.quantity-input');
+
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+
+            if (selectedOption && selectedOption.value) {
+                const stock = parseInt(selectedOption.dataset.stock) || 0;
+                stockSpan.textContent = stock;
+
+                // Устанавливаем максимальное количество
+                quantityInput.max = stock;
+
+                // Проверяем текущее значение
+                const currentValue = parseInt(quantityInput.value);
+                if (currentValue > stock) {
+                    quantityInput.value = stock;
+                }
+            } else {
+                stockSpan.textContent = '0';
+                quantityInput.removeAttribute('max');
+            }
+        }
+
+        // Функция создания нового элемента товара
+        function createProductItem(index) {
+            const div = document.createElement('div');
+            div.className = 'product-item';
+
+            let optionsHtml = '<option value="">-- Выберите товар --</option>';
+            productsData.forEach(product => {
+                optionsHtml += `<option value="${product.id}"
+                    data-price="${product.price}"
+                    data-stock="${product.stockQuantity}">
+                    ${product.name} (₽${product.price.toFixed(2)})
+                </option>`;
+            });
+
+            div.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <label class="form-label">Товар *</label>
+                        <select class="form-select product-select"
+                                name="items[${index}].productId"
+                                required>
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Количество *</label>
+                        <div class="d-flex align-items-center">
+                            <input type="number"
+                                   class="form-control quantity-input me-2"
+                                   name="items[${index}].quantity"
+                                   min="1"
+                                   value="1"
+                                   required>
+                            <button type="button" class="btn btn-danger btn-remove remove-item-btn">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>
+                        <small class="stock-info text-muted">
+                            Доступно: <span class="stock-value">0</span>
+                        </small>
+                    </div>
+                </div>
+            `;
+
+            return div;
+        }
 
         // Добавление нового товара
         document.getElementById('addItemBtn').addEventListener('click', function() {
             const container = document.getElementById('itemsContainer');
-            const newItem = document.createElement('div');
-            newItem.className = 'product-item';
-
-            const optionsHtml = productsData.map(product =>
-                `<option value="${product.id}" data-price="${product.price}" data-stock="${product.stock}">
-          ${product.name} (₽${product.price.toFixed(2)})
-        </option>`
-            ).join('');
-
-            newItem.innerHTML = `
-        <div class="row">
-          <div class="col-md-6">
-            <label class="form-label">Товар *</label>
-            <select class="form-select product-select" name="items[${itemCount}].productId" required>
-              <option value="">-- Выберите товар --</option>
-              ${optionsHtml}
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="form-label">Количество *</label>
-            <div class="d-flex align-items-center">
-                <input type="number" class="form-control quantity-input me-2"
-                       name="items[${itemCount}].quantity" min="1" value="1" required>
-                <button type="button" class="btn btn-danger remove-item-btn">
-                    <i class="bi bi-trash"></i>
-                </button>
-            </div>
-            <small class="text-muted stock-info">Доступно: 0</small>
-          </div>
-        </div>
-      `;
+            const newItem = createProductItem(itemCount);
             container.appendChild(newItem);
-            itemCount++;
 
-            // Добавляем обработчики для нового элемента
-            addProductSelectHandlers(newItem);
+            // Добавляем обработчик для нового селекта
+            const newSelect = newItem.querySelector('.product-select');
+            newSelect.addEventListener('change', function() {
+                updateStockInfo(this);
+            });
+
+            itemCount++;
+            console.log('New item added, total items:', itemCount);
         });
 
         // Удаление товара
         document.addEventListener('click', function(e) {
             if (e.target.classList.contains('remove-item-btn') ||
-                e.target.parentElement.classList.contains('remove-item-btn')) {
+                e.target.closest('.remove-item-btn')) {
+
                 const item = e.target.closest('.product-item');
                 if (document.querySelectorAll('.product-item').length > 1) {
                     item.remove();
-                    // Переиндексация оставшихся элементов
                     reindexItems();
                 } else {
                     alert('Заказ должен содержать хотя бы один товар');
                 }
             }
-        });
-
-        // Обработчики для выбора товара и количества
-        function addProductSelectHandlers(item) {
-            const select = item.querySelector('.product-select');
-            const quantityInput = item.querySelector('.quantity-input');
-            const stockInfo = item.querySelector('.stock-info');
-
-            select.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                if (selectedOption && selectedOption.value) {
-                    const stock = parseInt(selectedOption.dataset.stock);
-                    stockInfo.textContent = `Доступно: ${stock}`;
-                    quantityInput.max = stock;
-                } else {
-                    stockInfo.textContent = 'Доступно: 0';
-                    quantityInput.removeAttribute('max');
-                }
-            });
-
-            quantityInput.addEventListener('change', function() {
-                const max = parseFloat(this.max); // Преобразуем в число
-                const value = parseFloat(this.value); // Преобразуем в число
-
-                if (!isNaN(max) && !isNaN(value) && value > max) {
-                    this.value = this.max;
-                    alert(`Максимальное количество: ${this.max}`);
-                }
-            });
-        }
-
-        // Добавляем обработчики для первоначальных элементов
-        document.querySelectorAll('.product-item').forEach(item => {
-            addProductSelectHandlers(item);
         });
 
         // Переиндексация элементов после удаления
@@ -273,39 +321,85 @@
 
                 select.name = `items[${index}].productId`;
                 quantity.name = `items[${index}].quantity`;
+
                 index++;
             });
             itemCount = index;
+            console.log('Items reindexed, total items:', itemCount);
         }
+
+        // Инициализация обработчиков для существующих элементов
+        document.querySelectorAll('.product-item').forEach(item => {
+            const select = item.querySelector('.product-select');
+
+            // Устанавливаем начальное значение остатка для выбранного товара
+            if (select.value) {
+                updateStockInfo(select);
+            }
+
+            // Добавляем обработчик изменения
+            select.addEventListener('change', function() {
+                updateStockInfo(this);
+            });
+
+            // Добавляем обработчик для проверки количества
+            const quantityInput = item.querySelector('.quantity-input');
+            quantityInput.addEventListener('change', function() {
+                const select = item.querySelector('.product-select');
+                if (select.value) {
+                    const max = parseInt(select.selectedOptions[0]?.dataset.stock || 0);
+                    const value = parseInt(this.value);
+
+                    if (value > max) {
+                        this.value = max;
+                        alert(`Максимальное количество: ${max}`);
+                    }
+                }
+            });
+        });
 
         // Валидация формы перед отправкой
         document.getElementById('orderForm').addEventListener('submit', function(e) {
             let isValid = true;
-            const shippingAddress = document.getElementById('shippingAddress').value;
 
-            if (!shippingAddress) {
+            // Проверка адреса
+            const shippingAddress = document.getElementById('shippingAddress').value;
+            if (!shippingAddress.trim()) {
                 alert('Укажите адрес доставки');
                 isValid = false;
+                e.preventDefault();
+                return;
             }
 
+            // Проверка товаров
             const items = document.querySelectorAll('.product-item');
             if (items.length === 0) {
                 alert('Добавьте хотя бы один товар');
                 isValid = false;
+                e.preventDefault();
+                return;
             }
 
-            items.forEach(item => {
+            items.forEach((item, index) => {
                 const select = item.querySelector('.product-select');
                 const quantity = item.querySelector('.quantity-input');
 
                 if (!select.value) {
-                    alert('Выберите товар для всех позиций');
+                    alert(`Выберите товар для позиции ${index + 1}`);
                     isValid = false;
                 }
 
                 if (!quantity.value || parseInt(quantity.value) < 1) {
-                    alert('Укажите корректное количество для всех товаров');
+                    alert(`Укажите корректное количество для позиции ${index + 1}`);
                     isValid = false;
+                }
+
+                if (select.value) {
+                    const max = parseInt(select.selectedOptions[0]?.dataset.stock || 0);
+                    if (max > 0 && parseInt(quantity.value) > max) {
+                        alert(`Количество товара "${select.selectedOptions[0]?.text}" превышает доступный остаток (${max})`);
+                        isValid = false;
+                    }
                 }
             });
 
@@ -314,20 +408,6 @@
             }
         });
     });
-</script>
-
-<!-- Скрытый элемент с данными о товарах -->
-<script type="application/json" id="productsData">
-    [
-        <th:block th:each="product, iterStat : ${products}">
-        {
-            "id": <th:block th:text="${product.id}"/>,
-            "name": "<th:block th:text="${product.name}"/>",
-        "price": <th:block th:text="${product.price}"/>,
-        "stock": <th:block th:text="${product.stockQuantity}"/>
-        }<th:block th:unless="${iterStat.last}">,</th:block>
-        </th:block>
-    ]
 </script>
 </body>
 </html>

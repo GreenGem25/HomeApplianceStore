@@ -1,48 +1,43 @@
 package ohio.rizz.homeappliancestore.controllers;
 
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import ohio.rizz.homeappliancestore.dto.*;
-import ohio.rizz.homeappliancestore.entities.*;
 import ohio.rizz.homeappliancestore.enums.OrderStatus;
-import ohio.rizz.homeappliancestore.exceptions.CustomerNotFoundException;
+import ohio.rizz.homeappliancestore.mappers.OrderEditMapper;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import ohio.rizz.homeappliancestore.services.OrderService;
 import ohio.rizz.homeappliancestore.services.ProductService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/orders")
+@RequiredArgsConstructor
 public class OrderController {
     private final OrderService orderService;
     private final CustomerService customerService;
     private final ProductService productService;
-
-    public OrderController(OrderService orderService, CustomerService customerService, ProductService productService) {
-        this.orderService = orderService;
-        this.customerService = customerService;
-        this.productService = productService;
-    }
+    private final OrderEditMapper orderEditMapper;
 
     @GetMapping
     public String listOrders(
             @RequestParam(required = false) UUID customerId,
             Model model) {
-        List<Order> orders;
+
+        List<OrderDto> orders;
 
         if (customerId != null) {
-            System.out.println("Showing orders for customer " + customerId);
             orders = orderService.getOrdersByCustomer(customerId);
-            Customer customer = customerService.getCustomerById(customerId)
-                    .orElseThrow(() -> new CustomerNotFoundException("Клиент не найден"));
+            CustomerDto customer = customerService.getCustomerById(customerId);
             model.addAttribute("customer", customer);
         } else {
-            System.out.println("Showing all orders");
             orders = orderService.getAllOrders();
         }
 
@@ -52,7 +47,7 @@ public class OrderController {
 
     @GetMapping("/add")
     public String showAddOrderForm(Model model) {
-        model.addAttribute("order", new CreateOrderDto());
+        model.addAttribute("order", new OrderCreateDto());
         model.addAttribute("customers", customerService.getAllCustomers());
         model.addAttribute("products", productService.getAllAvailableProducts());
         return "add-order";
@@ -60,10 +55,10 @@ public class OrderController {
 
     @PostMapping("/add")
     public String addOrder(
-            @ModelAttribute CreateOrderDto orderDto,
+            @ModelAttribute("order") OrderCreateDto orderDto,
             RedirectAttributes redirectAttributes) {
         try {
-            Order order = orderService.createOrder(orderDto);
+            OrderDto order = orderService.createOrder(orderDto);
             redirectAttributes.addFlashAttribute("successMessage", "Заказ успешно создан");
             return "redirect:/orders/" + order.getId();
         } catch (Exception e) {
@@ -74,41 +69,46 @@ public class OrderController {
 
     @GetMapping("/{id}")
     public String getOrderDetails(@PathVariable UUID id, Model model) {
-        Order order = orderService.getOrderById(id);
-
-        OrderDto orderDto = convertToDto(order);
-        model.addAttribute("order", orderDto);
+        OrderDto order = orderService.getOrderById(id);
+        model.addAttribute("order", order);
         model.addAttribute("canEdit", order.getStatus() == OrderStatus.IN_PROGRESS);
         return "order-details";
     }
 
     @GetMapping("/{id}/edit")
     public String showEditOrderForm(@PathVariable UUID id, Model model) {
-        Order order = orderService.getOrderById(id);
+        OrderDto order = orderService.getOrderById(id);
 
         if (order.getStatus() != OrderStatus.IN_PROGRESS) {
             throw new IllegalStateException("Невозможно редактировать завершенный заказ");
         }
 
-        // Преобразуем заказ в DTO для формы редактирования
-        OrderDto orderDto = convertToDto(order);
+        OrderEditDto editDto = orderEditMapper.toEditDto(order);
 
-        model.addAttribute("order", orderDto);
+        model.addAttribute("order", editDto);
         model.addAttribute("products", productService.getAllAvailableProducts());
+
         return "edit-order";
     }
 
     @PutMapping("/{id}")
     public String updateOrder(
             @PathVariable UUID id,
-            @ModelAttribute CreateOrderDto orderDto,
+            @Valid @ModelAttribute("order") OrderEditDto editDto,
+            BindingResult bindingResult,
             RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            return "edit-order";
+        }
+
         try {
-            Order order = orderService.updateOrder(id, orderDto);
+            OrderCreateDto createDto = orderEditMapper.toCreateDto(editDto);
+            OrderDto updated = orderService.updateOrder(id, createDto);
             redirectAttributes.addFlashAttribute("successMessage", "Заказ успешно обновлен");
-            return "redirect:/orders/" + order.getId();
+            return "redirect:/orders/" + updated.getId();
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении заказа: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/orders/" + id + "/edit";
         }
     }
@@ -118,7 +118,7 @@ public class OrderController {
             @PathVariable UUID id,
             RedirectAttributes redirectAttributes) {
         try {
-            Order order = orderService.completeOrder(id);
+            OrderDto order = orderService.completeOrder(id);
             redirectAttributes.addFlashAttribute("successMessage", "Заказ успешно завершен");
             return "redirect:/orders/" + order.getId();
         } catch (Exception e) {
@@ -138,37 +138,5 @@ public class OrderController {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при удалении заказа: " + e.getMessage());
         }
         return "redirect:/orders";
-    }
-
-    private OrderDto convertToDto(Order order) {
-        OrderDto dto = new OrderDto();
-        dto.setId(order.getId());
-        dto.setTotalPrice(order.getTotalPrice());
-        dto.setStatus(order.getStatus());
-        dto.setShippingAddress(order.getShippingAddress());
-        dto.setOrderDate(order.getOrderDate());
-        dto.setCustomerId(order.getCustomer().getId());
-        dto.setCustomerName(order.getCustomer().getFirstName() + " " + order.getCustomer().getLastName());
-        dto.setCustomerDiscount(order.getCustomer().getDiscount());
-        dto.setOrderNumber(order.getOrderNumber());
-
-        dto.setOrderItems(order.getOrderItems().stream()
-                .map(this::convertItemToDto)
-                .collect(Collectors.toList()));
-
-        return dto;
-    }
-
-    private OrderItemDto convertItemToDto(OrderItem item) {
-        OrderItemDto dto = new OrderItemDto();
-        dto.setId(item.getId());
-        dto.setQuantity(item.getOrderQuantity());
-        dto.setPrice(item.getOrderPrice());
-        dto.setProductId(item.getProduct().getId());
-        dto.setProductName(item.getProduct().getName());
-        dto.setProductManufacturer(item.getProduct().getManufacturer());
-        dto.setProductImagePath(item.getProduct().getImagePath());
-        dto.setProductStockQuantity(item.getProduct().getStockQuantity());
-        return dto;
     }
 }

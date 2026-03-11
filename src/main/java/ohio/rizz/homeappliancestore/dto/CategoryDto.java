@@ -1,23 +1,23 @@
 package ohio.rizz.homeappliancestore.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.Setter;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.List;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CategoryDto {
     private UUID id;
-
-    @NotBlank(message = "Название категории обязательно")
-    @Size(min = 2, max = 50, message = "Название должно быть от 2 до 50 символов")
     private String name;
-
-    @Size(max = 500, message = "Описание не должно превышать 500 символов")
     private String description;
-
     private UUID parentCategoryId;
+    private String parentCategoryName;
+    private List<CategoryDto> childCategories;
+    private List<ProductDto> products;
+    private int productCount;
 }

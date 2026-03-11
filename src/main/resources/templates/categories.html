@@ -112,9 +112,9 @@
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
 
-            <!-- Дерево категорий -->
+            <!-- Дерево категорий (используем CategoryDto) -->
             <div class="list-group">
-                <div th:each="category : ${categories}" th:if="${category.parentCategory == null}">
+                <div th:each="category : ${categories}" th:if="${category.parentCategoryId == null}">
                     <!-- Рекурсивный вызов фрагмента для корневых категорий -->
                     <div th:replace="~{fragments/category-node :: category-node(category=${category}, level=0)}"></div>
                 </div>

@@ -1,46 +1,31 @@
 package ohio.rizz.homeappliancestore.dto;
 
-import jakarta.validation.constraints.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.web.multipart.MultipartFile;
-
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Getter
-@Setter
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductDto {
     private UUID id;
-
-    @NotBlank(message = "Название товара обязательно")
-    @Size(min = 3, max = 100, message = "Название должно быть от 3 до 100 символов")
     private String name;
-
-    @Size(max = 1000, message = "Описание не должно превышать 1000 символов")
     private String description;
-
-    @NotNull(message = "Цена обязательна")
-    @DecimalMin(value = "0.01", message = "Цена должна быть больше 0")
     private BigDecimal price;
-
-    @NotNull(message = "Количество обязательно")
-    @Min(value = 0, message = "Количество не может быть отрицательным")
-    private Integer stockQuantity;
-
-    @Size(max = 50, message = "Название производителя не должно превышать 50 символов")
+    private int stockQuantity;
     private String manufacturer;
-
-    @Min(value = 0, message = "Гарантия не может быть отрицательной")
-    private Integer warrantyPeriod;
-
-    @NotNull(message = "Поставщик обязателен")
-    private UUID supplierId;
-
-    @NotNull(message = "Категория обязательна")
-    private UUID categoryId;
-
+    private int warrantyPeriod;
     private String imagePath;
-    private MultipartFile imageFile;
-
+    private LocalDateTime createdAt;
+    private UUID categoryId;
+    private String categoryName;
+    private UUID supplierId;
+    private String supplierName;
+    private int totalSold;
+    private boolean inStock;
 }

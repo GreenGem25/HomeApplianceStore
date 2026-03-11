@@ -94,7 +94,7 @@
       <div th:if="${customer}" class="alert alert-info mb-3">
         <i class="bi bi-filter"></i>
         Показаны заказы клиента:
-        <strong th:text="${customer.firstName + ' ' + customer.lastName}"></strong>
+        <strong th:text="${customer.fullName}"></strong>
         <a th:href="@{/orders}" class="btn btn-sm btn-outline-danger ms-3">
           <i class="bi bi-x"></i> Сбросить фильтр
         </a>
@@ -108,13 +108,13 @@
               <h5 class="mb-1">
                 Заказ #<span th:text="${order.orderNumber}"></span>
                 <span class="badge status-badge"
-                      th:classappend="${order.status.name().equals('IN_PROGRESS')} ? 'status-in-progress' : 'status-completed'"
-                      th:text="${order.status.getDisplayName()}"></span>
+                      th:classappend="${order.status.name() == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-completed'"
+                      th:text="${order.statusDisplayName}"></span>
               </h5>
               <p class="mb-1">
                 <i class="bi bi-person"></i>
-                <a th:href="@{/customers/{id}(id=${order.customer.id})}"
-                   th:text="${order.customer.firstName}"></a>
+                <a th:href="@{/customers/{id}(id=${order.customerId})}"
+                   th:text="${order.customerName}"></a>
               </p>
               <small class="text-muted">
                 <i class="bi bi-calendar"></i>
@@ -122,8 +122,10 @@
               </small>
             </div>
             <div class="text-end">
-              <h4 th:text="${'₽' + #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></h4>
-              <a th:if="${order.status.name().equals('IN_PROGRESS')}" th:href="@{/orders/{id}/edit(id=${order.id})}" class="btn btn-sm btn-outline-success">
+              <h4 th:text="${'₽' + #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA')}"></h4>
+              <a th:if="${order.status.name() == 'IN_PROGRESS'}"
+                 th:href="@{/orders/{id}/edit(id=${order.id})}"
+                 class="btn btn-sm btn-outline-success">
                 <i class="bi bi-pencil"></i>
               </a>
               <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary">

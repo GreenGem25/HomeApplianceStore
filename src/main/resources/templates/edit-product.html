@@ -66,14 +66,18 @@
                     <i class="bi bi-pencil"></i> Редактировать товар
                 </h1>
                 <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/products/{id}(id=${productEditDto.id})}" class="btn btn-sm btn-outline-secondary">
+                    <a th:href="@{/products/{id}(id=${productId})}" class="btn btn-sm btn-outline-secondary">
                         <i class="bi bi-x-circle"></i> Отмена
                     </a>
                 </div>
             </div>
 
-            <form th:action="@{/products/{id}(id=${productEditDto.id})}" method="post" enctype="multipart/form-data" th:object="${productEditDto}">
+            <form th:action="@{/products/{id}(id=${productId})}"
+                  method="post"
+                  enctype="multipart/form-data"
+                  th:object="${productEditDto}">
                 <input type="hidden" name="_method" value="put">
+                <input type="hidden" name="id" th:value="${productId}" />
                 <div class="card mb-4">
                     <div class="card-body">
                         <!-- Общие сведения -->
@@ -162,7 +166,7 @@
                         <div class="mb-3">
                             <label class="form-label">Текущее изображение</label>
                             <div>
-                                <img th:src="${productEditDto.imagePath != null} ? ${productEditDto.imagePath} : '/images/no-image.png'"
+                                <img th:src="${currentImage != null} ? ${currentImage} : '/images/no-image.png'"
                                      class="product-image mb-2"
                                      alt="Фото товара"
                                      onerror="this.src='/images/no-image.png'">
@@ -178,7 +182,7 @@
                     <button type="submit" class="btn btn-primary me-2">
                         <i class="bi bi-save"></i> Сохранить изменения
                     </button>
-                    <a th:href="@{/products/{id}(id=${productEditDto.id})}" class="btn btn-outline-secondary">
+                    <a th:href="@{/products/{id}(id=${productId})}" class="btn btn-outline-secondary">
                         <i class="bi bi-x-circle"></i> Отмена
                     </a>
                 </div>
@@ -204,6 +208,18 @@
                 this.style.transform = '';
             });
         });
+    });
+
+    // Предпросмотр изображения
+    document.getElementById('imageFile').addEventListener('change', function(e) {
+        const preview = document.querySelector('.product-image');
+        if (preview && e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+            }
+            reader.readAsDataURL(e.target.files[0]);
+        }
     });
 </script>
 </body>
