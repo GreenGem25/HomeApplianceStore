@@ -29,19 +29,47 @@ public class OrderController {
     @GetMapping
     public String listOrders(
             @RequestParam(required = false) UUID customerId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String status,
             Model model) {
 
-        List<OrderDto> orders;
-
-        if (customerId != null) {
-            orders = orderService.getOrdersByCustomer(customerId);
-            CustomerDto customer = customerService.getCustomerById(customerId);
-            model.addAttribute("customer", customer);
-        } else {
-            orders = orderService.getAllOrders();
+        // Преобразуем статус из строки в enum
+        OrderStatus orderStatus = null;
+        if (status != null && !status.trim().isEmpty()) {
+            try {
+                orderStatus = OrderStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                // Игнорируем неверный статус
+            }
         }
 
+        // Получаем отфильтрованные заказы одним методом
+        List<OrderDto> orders = orderService.getFilteredOrders(search, orderStatus, customerId);
+
+        // Если есть фильтр по клиенту, добавляем информацию о клиенте в модель
+        if (customerId != null) {
+            CustomerDto customer = customerService.getCustomerById(customerId);
+            model.addAttribute("customer", customer);
+        }
+
+        // Подсчет статистики
+        int totalOrders = orders.size();
+        int inProgressCount = (int) orders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.IN_PROGRESS)
+                .count();
+        int completedCount = (int) orders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
+                .count();
+
         model.addAttribute("orders", orders);
+        model.addAttribute("totalOrders", totalOrders);
+        model.addAttribute("inProgressCount", inProgressCount);
+        model.addAttribute("completedCount", completedCount);
+
+        // Сохраняем параметры для формы
+        model.addAttribute("searchParam", search);
+        model.addAttribute("statusParam", status);
+
         return "orders";
     }
 
@@ -55,8 +83,17 @@ public class OrderController {
 
     @PostMapping("/add")
     public String addOrder(
-            @ModelAttribute("order") OrderCreateDto orderDto,
+            @Valid @ModelAttribute("order") OrderCreateDto orderDto,
+            BindingResult bindingResult,
+            Model model,
             RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            model.addAttribute("customers", customerService.getAllCustomers());
+            model.addAttribute("products", productService.getAllAvailableProducts());
+            return "add-order";
+        }
+
         try {
             OrderDto order = orderService.createOrder(orderDto);
             redirectAttributes.addFlashAttribute("successMessage", "Заказ успешно создан");
@@ -86,6 +123,7 @@ public class OrderController {
         OrderEditDto editDto = orderEditMapper.toEditDto(order);
 
         model.addAttribute("order", editDto);
+        model.addAttribute("orderId", id);
         model.addAttribute("products", productService.getAllAvailableProducts());
 
         return "edit-order";
@@ -96,9 +134,11 @@ public class OrderController {
             @PathVariable UUID id,
             @Valid @ModelAttribute("order") OrderEditDto editDto,
             BindingResult bindingResult,
+            Model model,
             RedirectAttributes redirectAttributes) {
 
         if (bindingResult.hasErrors()) {
+            model.addAttribute("products", productService.getAllAvailableProducts());
             return "edit-order";
         }
 
