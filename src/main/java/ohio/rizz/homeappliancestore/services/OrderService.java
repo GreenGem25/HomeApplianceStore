@@ -142,6 +142,39 @@ public class OrderService {
         orderRepository.delete(order);
     }
 
+    public List<OrderDto> searchOrders(String searchTerm) {
+        if (searchTerm == null || searchTerm.trim().isEmpty()) {
+            return getAllOrders();
+        }
+        return orderMapper.toDto(orderRepository.searchByOrderNumber(searchTerm.trim()));
+    }
+
+    public List<OrderDto> getOrdersByStatus(OrderStatus status) {
+        if (status == null) {
+            return getAllOrders();
+        }
+        return orderMapper.toDto(orderRepository.findByStatus(status));
+    }
+
+    public List<OrderDto> getFilteredOrders(String searchTerm, OrderStatus status, UUID customerId) {
+        // Начинаем со всех заказов
+        List<Order> orders;
+
+        if (customerId != null) {
+            orders = orderRepository.findByCustomerId(customerId);
+        } else {
+            orders = orderRepository.findAll();
+        }
+
+        // Применяем фильтры в памяти (для простоты, но для больших данных лучше делать в БД)
+        return orders.stream()
+                .filter(order -> searchTerm == null || searchTerm.trim().isEmpty() ||
+                        order.getOrderNumber().toLowerCase().contains(searchTerm.toLowerCase().trim()))
+                .filter(order -> status == null || order.getStatus() == status)
+                .map(orderMapper::toDto)
+                .toList();
+    }
+
     private void addOrderItem(Order order, UUID productId, int quantity) {
         if (quantity <= 0) {
             throw new IllegalArgumentException("Количество товара должно быть положительным");

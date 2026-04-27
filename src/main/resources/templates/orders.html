@@ -45,6 +45,23 @@
       background-color: #198754;
       color: #fff;
     }
+    .filter-card {
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .search-input {
+      border-radius: 20px 0 0 20px;
+    }
+    .search-btn {
+      border-radius: 0 20px 20px 0;
+    }
+    .active-filter {
+      background-color: #0d6efd;
+      color: white;
+      border-color: #0d6efd;
+    }
   </style>
 </head>
 <body>
@@ -100,6 +117,88 @@
         </a>
       </div>
 
+      <!-- Фильтры и поиск -->
+      <div class="filter-card">
+        <form th:action="@{/orders}" method="get" class="row g-3">
+          <div class="col-md-5">
+            <div class="input-group">
+              <input type="text" class="form-control search-input"
+                     name="search" placeholder="Поиск по номеру заказа..."
+                     th:value="${param.search != null ? param.search[0] : ''}">
+              <button class="btn btn-primary search-btn" type="submit">
+                <i class="bi bi-search"></i> Поиск
+              </button>
+            </div>
+          </div>
+
+          <div class="col-md-4">
+            <select class="form-select" name="status" onchange="this.form.submit()">
+              <option value="">Все статусы</option>
+              <option value="IN_PROGRESS" th:selected="${param.status != null and param.status[0] == 'IN_PROGRESS'}">
+                В сборке
+              </option>
+              <option value="COMPLETED" th:selected="${param.status != null and param.status[0] == 'COMPLETED'}">
+                Выполнены
+              </option>
+            </select>
+          </div>
+
+          <div class="col-md-3">
+            <a th:href="@{/orders}" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-x-circle"></i> Сбросить фильтры
+            </a>
+          </div>
+        </form>
+
+        <!-- Активные фильтры - ИСПРАВЛЕНО -->
+        <div class="mt-3" th:if="${(param.search != null and !param.search.empty) or (param.status != null and !param.status.empty)}">
+          <small class="text-muted me-2">Активные фильтры:</small>
+          <span class="badge bg-info me-1" th:if="${param.search != null and !param.search.empty}">
+            Поиск: <span th:text="${param.search[0]}"></span>
+          </span>
+          <span class="badge bg-info me-1" th:if="${param.status != null and param.status[0] == 'IN_PROGRESS'}">
+            Статус: В сборке
+          </span>
+          <span class="badge bg-info me-1" th:if="${param.status != null and param.status[0] == 'COMPLETED'}">
+            Статус: Выполнены
+          </span>
+        </div>
+      </div>
+
+      <!-- Краткая статистика -->
+      <div class="row mb-3">
+        <div class="col-md-4">
+          <div class="card text-white bg-primary">
+            <div class="card-body py-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-cart"></i> Всего заказов:</span>
+                <span class="badge bg-light text-primary fs-6" th:text="${totalOrders != null ? totalOrders : orders.size()}"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-white bg-warning">
+            <div class="card-body py-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-hourglass-split"></i> В сборке:</span>
+                <span class="badge bg-light text-warning fs-6" th:text="${inProgressCount != null ? inProgressCount : 0}"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="card text-white bg-success">
+            <div class="card-body py-2">
+              <div class="d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-check-circle"></i> Выполнены:</span>
+                <span class="badge bg-light text-success fs-6" th:text="${completedCount != null ? completedCount : 0}"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Список заказов -->
       <div class="list-group">
         <div th:each="order : ${orders}" class="list-group-item list-group-item-action order-card mb-2">
@@ -119,16 +218,23 @@
               <small class="text-muted">
                 <i class="bi bi-calendar"></i>
                 <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
+                <span class="ms-3">
+                  <i class="bi bi-box"></i>
+                  <span th:text="${order.itemsCount} + ' товаров'"></span>
+                </span>
               </small>
             </div>
             <div class="text-end">
               <h4 th:text="${'₽' + #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA')}"></h4>
               <a th:if="${order.status.name() == 'IN_PROGRESS'}"
                  th:href="@{/orders/{id}/edit(id=${order.id})}"
-                 class="btn btn-sm btn-outline-success">
+                 class="btn btn-sm btn-outline-success"
+                 title="Редактировать заказ">
                 <i class="bi bi-pencil"></i>
               </a>
-              <a th:href="@{/orders/{id}(id=${order.id})}" class="btn btn-sm btn-outline-primary">
+              <a th:href="@{/orders/{id}(id=${order.id})}"
+                 class="btn btn-sm btn-outline-primary"
+                 title="Просмотреть детали">
                 <i class="bi bi-eye"></i> Подробнее
               </a>
             </div>
@@ -136,19 +242,72 @@
         </div>
       </div>
 
-      <!-- Сообщение, если нет заказов -->
+      <!-- Сообщение, если нет заказов - ИСПРАВЛЕНО -->
       <div th:if="${orders.empty}" class="text-center py-5">
         <i class="bi bi-cart" style="font-size: 3rem; color: #6c757d;"></i>
         <h5 class="card-title mt-3">Заказы не найдены</h5>
-        <p class="card-text" th:text="${customer != null} ? 'У этого клиента пока нет заказов' : 'Создайте первый заказ'"></p>
+        <p class="card-text"
+           th:text="${customer != null} ? 'У этого клиента пока нет заказов' :
+                    (${param.search != null and !param.search.empty} ? 'По вашему запросу ничего не найдено' :
+                    (${param.status != null and !param.status.empty} ? 'Заказы с выбранным статусом отсутствуют' : 'Создайте первый заказ'))">
+        </p>
         <a th:href="@{/orders/add}" class="btn btn-primary">
           <i class="bi bi-plus-circle"></i> Создать заказ
         </a>
       </div>
+
+      <!-- Пагинация (если понадобится) -->
+      <nav aria-label="Page navigation" class="mt-4" th:if="${totalPages != null and totalPages > 1}">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+            <a class="page-link" th:href="@{/orders(page=${currentPage - 1}, size=${pageSize}, search=${param.search}, status=${param.status})}">
+              <i class="bi bi-chevron-left"></i>
+            </a>
+          </li>
+          <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+              th:classappend="${i == currentPage} ? 'active'">
+            <a class="page-link" th:href="@{/orders(page=${i}, size=${pageSize}, search=${param.search}, status=${param.status})}"
+               th:text="${i + 1}"></a>
+          </li>
+          <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+            <a class="page-link" th:href="@{/orders(page=${currentPage + 1}, size=${pageSize}, search=${param.search}, status=${param.status})}">
+              <i class="bi bi-chevron-right"></i>
+            </a>
+          </li>
+        </ul>
+      </nav>
     </main>
   </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Подсветка активного фильтра
+  document.addEventListener('DOMContentLoaded', function() {
+    const statusSelect = document.querySelector('select[name="status"]');
+    if (statusSelect) {
+      statusSelect.addEventListener('change', function() {
+        this.form.submit();
+      });
+    }
+  });
+</script>
+
+<script>
+  // Анимация бокового меню
+  document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    navLinks.forEach(link => {
+      link.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateX(5px)';
+      });
+
+      link.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+      });
+    });
+  });
+</script>
 </body>
 </html>

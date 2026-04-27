@@ -29,15 +29,20 @@
     .product-item {
       border: 1px solid #dee2e6;
       border-radius: 5px;
-      padding: 10px;
-      margin-bottom: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f8f9fa;
+      transition: all 0.2s ease-in-out;
+    }
+    .product-item:hover {
+      border-color: #b6d4fe;
+      box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
     }
   </style>
 </head>
 <body>
 <div class="container-fluid">
   <div class="row">
-    <!-- Боковое меню -->
     <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
       <div class="position-sticky pt-3">
         <div class="text-center mb-4">
@@ -56,7 +61,6 @@
       </div>
     </div>
 
-    <!-- Основной контент -->
     <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
       <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">
@@ -75,11 +79,11 @@
       </div>
 
       <form th:action="@{/orders/add}" method="post" id="orderForm">
-        <div class="card mb-4">
+        <div class="card mb-4 shadow-sm">
           <div class="card-body">
-            <div class="row mb-3">
+            <div class="row mb-4">
               <div class="col-md-6">
-                <label for="customerId" class="form-label">Клиент *</label>
+                <label for="customerId" class="form-label fw-bold">Клиент *</label>
                 <select class="form-select" id="customerId" name="customerId" required>
                   <option value="">-- Выберите клиента --</option>
                   <option th:each="customer : ${customers}"
@@ -88,18 +92,17 @@
                 </select>
               </div>
               <div class="col-md-6">
-                <label for="shippingAddress" class="form-label">Адрес доставки *</label>
+                <label for="shippingAddress" class="form-label fw-bold">Адрес доставки *</label>
                 <input type="text" class="form-control" id="shippingAddress" name="shippingAddress" required>
               </div>
             </div>
 
-            <h5 class="border-bottom pb-2 mt-4">Товары в заказе</h5>
+            <h5 class="border-bottom pb-2 mt-4 text-primary">Товары в заказе</h5>
             <div id="itemsContainer">
-              <!-- Товары будут добавляться динамически -->
               <div class="product-item">
                 <div class="row">
                   <div class="col-md-6">
-                    <label class="form-label">Товар *</label>
+                    <label class="form-label text-muted small mb-1">Товар *</label>
                     <select class="form-select product-select" name="items[0].productId" required>
                       <option value="">-- Выберите товар --</option>
                       <option th:each="product : ${products}"
@@ -109,33 +112,33 @@
                     </select>
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label">Количество *</label>
+                    <label class="form-label text-muted small mb-1">Количество *</label>
                     <input type="number" class="form-control quantity-input"
                            name="items[0].quantity" min="1" value="1" required>
-                    <small class="text-muted stock-info"></small>
+                    <small class="text-secondary stock-info d-block mt-1"></small>
                   </div>
                   <div class="col-md-2 d-flex align-items-end">
-                    <button type="button" class="btn btn-danger remove-item-btn">
-                      <i class="bi bi-trash"></i>
+                    <button type="button" class="btn btn-outline-danger w-100 remove-item-btn" title="Удалить позицию">
+                      <i class="bi bi-trash"></i> Удалить
                     </button>
                   </div>
                 </div>
               </div>
             </div>
 
-            <button type="button" id="addItemBtn" class="btn btn-outline-primary mt-3">
-              <i class="bi bi-plus-circle"></i> Добавить товар
+            <button type="button" id="addItemBtn" class="btn btn-outline-primary mt-2">
+              <i class="bi bi-plus-circle"></i> Добавить еще товар
             </button>
           </div>
         </div>
 
-        <div class="d-flex justify-content-end">
-          <button type="submit" class="btn btn-primary me-2">
-            <i class="bi bi-save"></i> Сохранить заказ
-          </button>
-          <a th:href="@{/orders}" class="btn btn-outline-secondary">
-            <i class="bi bi-x-circle"></i> Отмена
+        <div class="d-flex justify-content-end gap-2">
+          <a th:href="@{/orders}" class="btn btn-light border">
+            Отмена
           </a>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="bi bi-check2-circle"></i> Сохранить заказ
+          </button>
         </div>
       </form>
     </main>
@@ -143,173 +146,154 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
+
+<script th:inline="javascript">
+  /*<![CDATA[*/
   document.addEventListener('DOMContentLoaded', function() {
-    let itemCount = 1;
 
-    // Получаем данные о товарах из скрытого элемента
-    const productsData = JSON.parse(document.getElementById('productsData').textContent);
+    // Получаем массив товаров напрямую, Thymeleaf сам превратит его в корректный JSON
+    const productsData = /*[[${products}]]*/ [];
+    const container = document.getElementById('itemsContainer');
 
-    // Добавление нового товара
+    // Предварительно собираем HTML для выпадающего списка товаров
+    const optionsHtml = productsData.map(product =>
+            `<option value="${product.id}" data-price="${product.price}" data-stock="${product.stockQuantity}">
+        ${product.name} (₽${product.price.toFixed(2)})
+      </option>`
+    ).join('');
+
+    // --- 1. ДОБАВЛЕНИЕ НОВОГО ТОВАРА ---
     document.getElementById('addItemBtn').addEventListener('click', function() {
-      const container = document.getElementById('itemsContainer');
       const newItem = document.createElement('div');
       newItem.className = 'product-item';
 
-      const optionsHtml = productsData.map(product =>
-              `<option value="${product.id}" data-price="${product.price}" data-stock="${product.stock}">
-          ${product.name} (₽${product.price.toFixed(2)})
-        </option>`
-      ).join('');
-
+      // Используем шаблонную строку. Индексы name обновятся функцией reindexItems
       newItem.innerHTML = `
         <div class="row">
           <div class="col-md-6">
-            <label class="form-label">Товар *</label>
-            <select class="form-select product-select" name="items[${itemCount}].productId" required>
+            <label class="form-label text-muted small mb-1">Товар *</label>
+            <select class="form-select product-select" required>
               <option value="">-- Выберите товар --</option>
               ${optionsHtml}
             </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label">Количество *</label>
-            <input type="number" class="form-control quantity-input"
-                   name="items[${itemCount}].quantity" min="1" value="1" required>
-            <small class="text-muted stock-info"></small>
+            <label class="form-label text-muted small mb-1">Количество *</label>
+            <input type="number" class="form-control quantity-input" min="1" value="1" required>
+            <small class="text-secondary stock-info d-block mt-1"></small>
           </div>
           <div class="col-md-2 d-flex align-items-end">
-            <button type="button" class="btn btn-danger remove-item-btn">
-              <i class="bi bi-trash"></i>
+            <button type="button" class="btn btn-outline-danger w-100 remove-item-btn" title="Удалить позицию">
+              <i class="bi bi-trash"></i> Удалить
             </button>
           </div>
         </div>
       `;
+
       container.appendChild(newItem);
-      itemCount++;
-
-      // Добавляем обработчики для нового элемента
-      addProductSelectHandlers(newItem);
+      reindexItems();
     });
 
-    // Удаление товара
-    document.addEventListener('click', function(e) {
-      if (e.target.classList.contains('remove-item-btn') ||
-              e.target.parentElement.classList.contains('remove-item-btn')) {
-        const item = e.target.closest('.product-item');
-        if (document.querySelectorAll('.product-item').length > 1) {
-          item.remove();
-          // Переиндексация оставшихся элементов
-          reindexItems();
-        } else {
-          alert('Заказ должен содержать хотя бы один товар');
-        }
-      }
-    });
+    // --- 2. ДЕЛЕГИРОВАНИЕ СОБЫТИЙ (Один обработчик для всех строк) ---
+    // Обработка изменений в селектах и инпутах
+    container.addEventListener('change', function(e) {
 
-    // Обработчики для выбора товара и количества
-    function addProductSelectHandlers(item) {
-      const select = item.querySelector('.product-select');
-      const quantityInput = item.querySelector('.quantity-input');
-      const stockInfo = item.querySelector('.stock-info');
+      // Если изменили выбор товара
+      if (e.target.classList.contains('product-select')) {
+        const select = e.target;
+        const item = select.closest('.product-item');
+        const quantityInput = item.querySelector('.quantity-input');
+        const stockInfo = item.querySelector('.stock-info');
+        const selectedOption = select.options[select.selectedIndex];
 
-      select.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
         if (selectedOption && selectedOption.value) {
           const stock = parseInt(selectedOption.dataset.stock);
-          stockInfo.textContent = `Доступно: ${stock}`;
+          stockInfo.textContent = `В наличии: ${stock} шт.`;
           quantityInput.max = stock;
+
+          // Если текущее введенное значение больше доступного остатка
+          if (parseInt(quantityInput.value) > stock) {
+            quantityInput.value = stock;
+          }
         } else {
           stockInfo.textContent = '';
           quantityInput.removeAttribute('max');
         }
-      });
+      }
 
-      quantityInput.addEventListener('change', function() {
-        const max = parseFloat(this.max); // Преобразуем в число
-        const value = parseFloat(this.value); // Преобразуем в число
+      // Если изменили количество
+      if (e.target.classList.contains('quantity-input')) {
+        const input = e.target;
+        const max = parseInt(input.max);
+        const value = parseInt(input.value);
 
         if (!isNaN(max) && !isNaN(value) && value > max) {
-          this.value = this.max;
-          alert(`Максимальное количество: ${this.max}`);
+          input.value = max;
+          alert(`Максимально доступное количество для этого товара: ${max} шт.`);
         }
-      });
-    }
-
-    // Добавляем обработчики для первоначального элемента
-    document.querySelectorAll('.product-item').forEach(item => {
-      addProductSelectHandlers(item);
+      }
     });
 
-    // Переиндексация элементов после удаления
-    function reindexItems() {
-      let index = 0;
-      document.querySelectorAll('.product-item').forEach(item => {
-        const select = item.querySelector('.product-select');
-        const quantity = item.querySelector('.quantity-input');
+    // Обработка кликов (Удаление строки)
+    container.addEventListener('click', function(e) {
+      const removeBtn = e.target.closest('.remove-item-btn');
+      if (removeBtn) {
+        const items = document.querySelectorAll('.product-item');
+        if (items.length > 1) {
+          removeBtn.closest('.product-item').remove();
+          reindexItems();
+        } else {
+          alert('В заказе должен оставаться хотя бы один товар.');
+        }
+      }
+    });
 
-        select.name = `items[${index}].productId`;
-        quantity.name = `items[${index}].quantity`;
-        index++;
+    // --- 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
+
+    // Пересчет индексов для Spring (items[0], items[1]...)
+    function reindexItems() {
+      document.querySelectorAll('.product-item').forEach((item, index) => {
+        item.querySelector('.product-select').name = `items[${index}].productId`;
+        item.querySelector('.quantity-input').name = `items[${index}].quantity`;
       });
-      itemCount = index;
     }
 
     // Валидация формы перед отправкой
     document.getElementById('orderForm').addEventListener('submit', function(e) {
-      let isValid = true;
-      const customerId = document.getElementById('customerId').value;
-      const shippingAddress = document.getElementById('shippingAddress').value;
-
-      if (!customerId) {
-        alert('Выберите клиента');
-        isValid = false;
-      }
-
-      if (!shippingAddress) {
-        alert('Укажите адрес доставки');
-        isValid = false;
-      }
-
       const items = document.querySelectorAll('.product-item');
-      if (items.length === 0) {
-        alert('Добавьте хотя бы один товар');
-        isValid = false;
-      }
+      let isValid = true;
 
       items.forEach(item => {
         const select = item.querySelector('.product-select');
-        const quantity = item.querySelector('.quantity-input');
-
         if (!select.value) {
-          alert('Выберите товар для всех позиций');
-          isValid = false;
-        }
-
-        if (!quantity.value || parseInt(quantity.value) < 1) {
-          alert('Укажите корректное количество для всех товаров');
+          alert('Пожалуйста, выберите товар для всех добавленных позиций.');
           isValid = false;
         }
       });
 
-      if (!isValid) {
-        e.preventDefault();
-      }
+      if (!isValid) e.preventDefault();
+    });
+
+  });
+  /*]]>*/
+</script>
+
+<script>
+  // Анимация бокового меню
+  document.addEventListener('DOMContentLoaded', function() {
+    const navLinks = document.querySelectorAll('.nav-link');
+
+    navLinks.forEach(link => {
+      link.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateX(5px)';
+      });
+
+      link.addEventListener('mouseleave', function() {
+        this.style.transform = '';
+      });
     });
   });
 </script>
 
-<!-- Скрытый элемент с данными о товарах -->
-<script type="application/json" id="productsData">
-  [
-    <th:block th:each="product, iterStat : ${products}">
-    {
-      "id": <th:block th:text="${product.id}"/>,
-      "name": "<th:block th:text="${product.name}"/>",
-    "price": <th:block th:text="${product.price}"/>,
-    "stock": <th:block th:text="${product.stockQuantity}"/>
-    }<th:block th:unless="${iterStat.last}">,</th:block>
-    </th:block>
-  ]
-</script>
 </body>
 </html>

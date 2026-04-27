@@ -95,3 +95,41 @@ ALTER TABLE products ADD CONSTRAINT check_price_positive CHECK (price >= 0);
 ALTER TABLE products ADD CONSTRAINT check_stock_quantity_non_negative CHECK (stock_quantity >= 0);
 ALTER TABLE order_items ADD CONSTRAINT check_quantity_positive CHECK (quantity > 0);
 ALTER TABLE order_items ADD CONSTRAINT check_price_positive CHECK (price >= 0);
+
+--changeset author:10
+--comment: Create supplies table
+CREATE TABLE supplies (
+                          supply_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                          supplier_id UUID NOT NULL REFERENCES suppliers(supplier_id) ON DELETE CASCADE,
+                          supply_number VARCHAR(50) UNIQUE NOT NULL,
+                          supply_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          status VARCHAR(50) DEFAULT 'PENDING',
+                          notes TEXT,
+                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--changeset author:11
+--comment: Create supply_items table
+CREATE TABLE supply_items (
+                              supply_item_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                              supply_id UUID NOT NULL REFERENCES supplies(supply_id) ON DELETE CASCADE,
+                              product_id UUID NOT NULL REFERENCES products(product_id) ON DELETE CASCADE,
+                              quantity INTEGER NOT NULL CHECK (quantity > 0),
+                              price_per_unit DECIMAL(10,2) NOT NULL CHECK (price_per_unit >= 0),
+                              total_price DECIMAL(10,2) GENERATED ALWAYS AS (quantity * price_per_unit) STORED,
+                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+--changeset author:12
+--comment: Create indexes for supplies tables
+CREATE INDEX idx_supplies_supplier_id ON supplies(supplier_id);
+CREATE INDEX idx_supplies_supply_date ON supplies(supply_date);
+CREATE INDEX idx_supplies_status ON supplies(status);
+CREATE INDEX idx_supply_items_supply_id ON supply_items(supply_id);
+CREATE INDEX idx_supply_items_product_id ON supply_items(product_id);
+
+--changeset author:13
+--comment: Add check constraint for supply date
+ALTER TABLE supplies ADD CONSTRAINT check_supply_date_not_future
+    CHECK (supply_date <= CURRENT_TIMESTAMP + interval '1 day');
