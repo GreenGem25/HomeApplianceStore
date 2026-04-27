@@ -33,6 +33,7 @@ CREATE TABLE products (
                           name VARCHAR(255) NOT NULL,
                           description TEXT,
                           price DECIMAL(10,2) NOT NULL DEFAULT 0,
+                          cost_price DECIMAL(10,2) NOT NULL DEFAULT 0,
                           stock_quantity INTEGER NOT NULL DEFAULT 0,
                           manufacturer VARCHAR(255),
                           warranty_period INTEGER DEFAULT 0,
@@ -133,3 +134,19 @@ CREATE INDEX idx_supply_items_product_id ON supply_items(product_id);
 --comment: Add check constraint for supply date
 ALTER TABLE supplies ADD CONSTRAINT check_supply_date_not_future
     CHECK (supply_date <= CURRENT_TIMESTAMP + interval '1 day');
+
+CREATE TABLE expenses (
+                          expense_id UUID PRIMARY KEY,
+                          amount NUMERIC(19,2) NOT NULL,
+                          description VARCHAR(500),
+                          category VARCHAR(50) NOT NULL,
+                          expense_date DATE NOT NULL
+);
+
+CREATE TABLE analytics_daily (
+                                               date DATE NOT NULL PRIMARY KEY,
+                                               total_revenue NUMERIC(19,2) NOT NULL DEFAULT 0,
+                                               total_cost NUMERIC(19,2) NOT NULL DEFAULT 0,
+                                               order_count INT NOT NULL DEFAULT 0,
+                                               new_customers INT NOT NULL DEFAULT 0
+);

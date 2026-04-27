@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Аналитика магазина</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* === Общие стили боковой панели (как в orders.html) === */
+        .sidebar {
+            position: fixed;
+            width: 250px;
+            min-height: 100vh;
+            background: #212529;
+            transition: all 0.3s;
+        }
+        .nav-link {
+            color: #adb5bd;
+            border-radius: 5px;
+            margin-bottom: 5px;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+            background: #0d6efd;
+        }
+        .nav-link i {
+            width: 24px;
+            text-align: center;
+        }
+
+        /* === Карточки KPI === */
+        .kpi-card {
+            transition: transform 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        /* === Графики === */
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+        .chart-container-small {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+
+        /* === Топ товаров === */
+        .top-product-item {
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            padding: 0.75rem 0;
+        }
+        .top-product-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <div class="row">
+        <!-- ========== Боковое меню (как в других страницах) ========== -->
+        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
+            <div class="position-sticky pt-3">
+                <div class="text-center mb-4">
+                    <h4 class="text-white">Магазин техники</h4>
+                </div>
+                <ul class="nav flex-column px-3">
+                    <li class="nav-item" th:each="item : ${menuItems}">
+                        <a th:href="@{${item.url}}"
+                           class="nav-link d-flex align-items-center"
+                           th:classappend="${item.isActive} ? 'active'">
+                            <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
+                            <span th:text="${item.name}"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ========== Основной контент ========== -->
+        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
+            <!-- Заголовок -->
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">
+                    <i class="bi bi-graph-up"></i> Аналитика магазина
+                </h1>
+
+                <!-- Фильтр по датам (опционально) -->
+                <form th:action="@{/analytics}" method="get" class="d-flex align-items-center gap-2">
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">с</span>
+                        <input type="date" class="form-control" name="from" th:value="${from}">
+                    </div>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">по</span>
+                        <input type="date" class="form-control" name="to" th:value="${to}">
+                    </div>
+                    <button class="btn btn-primary btn-sm" type="submit">
+                        <i class="bi bi-funnel"></i> Применить
+                    </button>
+                    <a th:href="@{/analytics}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-counterclockwise"></i> Сброс
+                    </a>
+                </form>
+            </div>
+
+            <!-- Сообщения об успехе / ошибке (если будут) -->
+            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+                <span th:text="${successMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                <span th:text="${errorMessage}"></span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+
+            <!-- ==================== Карточки KPI ==================== -->
+            <div class="row g-3 mb-4">
+                <!-- Выручка -->
+                <div class="col-xl-4 col-md-6">
+                    <div class="card text-white bg-primary kpi-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-uppercase opacity-75">Выручка сегодня</h6>
+                                    <h2 class="mb-0"
+                                        th:text="${dashboard.todayRevenue != null ? '₽' + #numbers.formatDecimal(dashboard.todayRevenue, 1, 2, 'COMMA') : '—'}">
+                                        ₽0.00
+                                    </h2>
+                                </div>
+                                <i class="bi bi-cash-stack display-6 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Прибыль -->
+                <div class="col-xl-4 col-md-6">
+                    <div class="card text-white bg-success kpi-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-uppercase opacity-75">Прибыль сегодня</h6>
+                                    <h2 class="mb-0"
+                                        th:text="${dashboard.todayProfit != null ? '₽' + #numbers.formatDecimal(dashboard.todayProfit, 1, 2, 'COMMA') : '—'}">
+                                        ₽0.00
+                                    </h2>
+                                </div>
+                                <i class="bi bi-graph-up-arrow display-6 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Средний чек -->
+                <div class="col-xl-4 col-md-6">
+                    <div class="card text-white bg-info kpi-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-uppercase opacity-75">Средний чек</h6>
+                                    <h2 class="mb-0"
+                                        th:text="${dashboard.averageCheck != null ? '₽' + #numbers.formatDecimal(dashboard.averageCheck, 1, 2, 'COMMA') : '—'}">
+                                        ₽0.00
+                                    </h2>
+                                </div>
+                                <i class="bi bi-receipt display-6 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Заказов в обработке -->
+                <div class="col-xl-4 col-md-6">
+                    <div class="card text-white bg-warning kpi-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-uppercase opacity-75">Заказов в обработке</h6>
+                                    <h2 class="mb-0" th:text="${dashboard.ordersInProgress}">0</h2>
+                                </div>
+                                <i class="bi bi-hourglass-split display-6 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Выполнено сегодня -->
+                <div class="col-xl-4 col-md-6">
+                    <div class="card text-white bg-secondary kpi-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-uppercase opacity-75">Выполнено сегодня</h6>
+                                    <h2 class="mb-0" th:text="${dashboard.ordersCompletedToday}">0</h2>
+                                </div>
+                                <i class="bi bi-check-circle display-6 opacity-50"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Товаров на складе -->
+                <div class="col-xl-4 col-md-6">
+                    <div class="card text-dark bg-light kpi-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between">
+                                <div>
+                                    <h6 class="card-title text-uppercase opacity-75">Товаров на складе</h6>
+                                    <h2 class="mb-0">
+                                        <span th:text="${dashboard.productsInStock}">0</span>
+                                        <small class="text-muted">ед.</small>
+                                    </h2>
+                                    <div class="small text-muted"
+                                         th:text="${dashboard.stockValue != null ? 'Стоимость: ₽' + #numbers.formatDecimal(dashboard.stockValue, 1, 2, 'COMMA') : ''}">
+                                    </div>
+                                </div>
+                                <i class="bi bi-boxes display-6 opacity-25"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== Графики ==================== -->
+            <div class="row g-3 mb-4">
+                <!-- Линейный график выручки по дням -->
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-graph-up"></i> Выручка по дням
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="revenueChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Круговая диаграмма по категориям -->
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-pie-chart"></i> Выручка по категориям
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container-small">
+                                <canvas id="categoryChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== Топ-5 товаров ==================== -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-trophy"></i> Топ-5 продаваемых товаров
+                </div>
+                <div class="card-body">
+                    <div th:if="${dashboard.topProducts != null and !dashboard.topProducts.empty}">
+                        <div class="top-product-item" th:each="product, iterStat : ${dashboard.topProducts}">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="badge bg-primary me-2" th:text="${iterStat.count}">1</span>
+                                    <strong th:text="${product.productName}">Название товара</strong>
+                                </div>
+                                <div class="text-end">
+                                    <div>
+                    <span class="badge bg-success"
+                          th:text="${'Продано: ' + product.totalQuantitySold + ' шт.'}">0 шт.</span>
+                                    </div>
+                                    <div class="text-muted small"
+                                         th:text="${'₽' + #numbers.formatDecimal(product.totalRevenue, 1, 2, 'COMMA')}">
+                                        ₽0.00
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:unless="${dashboard.topProducts != null and !dashboard.topProducts.empty}" class="text-center text-muted py-3">
+                        <i class="bi bi-info-circle"></i> Нет данных о продажах за выбранный период
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Инициализация графиков данными из модели -->
+<script th:inline="javascript">
+    (function() {
+        // ========== Линейный график выручки ==========
+        const revenueLabels = /*[[${dashboard.revenueByDay != null ? dashboard.revenueByDay.![label] : {}}]]*/ [];
+        const revenueValues = /*[[${dashboard.revenueByDay != null ? dashboard.revenueByDay.![value] : {}}]]*/ [];
+
+        const ctxLine = document.getElementById('revenueChart');
+        if (ctxLine) {
+            new Chart(ctxLine, {
+                type: 'line',
+                data: {
+                    labels: revenueLabels,
+                    datasets: [{
+                        label: 'Выручка (₽)',
+                        data: revenueValues,
+                        borderColor: '#0d6efd',
+                        backgroundColor: 'rgba(13,110,253,0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₽' + value.toLocaleString('ru-RU');
+                                }
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                maxTicksLimit: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // ========== Круговой график по категориям ==========
+        const categoryLabels = /*[[${dashboard.revenueByCategory != null ? dashboard.revenueByCategory.![label] : {}}]]*/ [];
+        const categoryValues = /*[[${dashboard.revenueByCategory != null ? dashboard.revenueByCategory.![value] : {}}]]*/ [];
+
+        const ctxPie = document.getElementById('categoryChart');
+        if (ctxPie) {
+            new Chart(ctxPie, {
+                type: 'doughnut',
+                data: {
+                    labels: categoryLabels,
+                    datasets: [{
+                        data: categoryValues,
+                        backgroundColor: [
+                            '#0d6efd', '#6610f2', '#6f42c1', '#d63384',
+                            '#dc3545', '#fd7e14', '#ffc107', '#198754',
+                            '#20c997', '#0dcaf0'
+                        ],
+                        borderColor: 'white',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                padding: 15
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    })();
+</script>
+
+<!-- Анимация бокового меню (как в других страницах) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const navLinks = document.querySelectorAll('.nav-link');
+        navLinks.forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(5px)';
+            });
+            link.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+            });
+        });
+    });
+</script>
+</body>
+</html>

@@ -201,7 +201,8 @@
 
       <!-- Список заказов -->
       <div class="list-group">
-        <div th:each="order : ${orders}" class="list-group-item list-group-item-action order-card mb-2">
+        <!-- 1. Добавляем position-relative, чтобы растянутая ссылка не выходила за границы карточки -->
+        <div th:each="order : ${orders}" class="list-group-item list-group-item-action order-card mb-2 position-relative">
           <div class="d-flex w-100 justify-content-between">
             <div>
               <h5 class="mb-1">
@@ -212,28 +213,35 @@
               </h5>
               <p class="mb-1">
                 <i class="bi bi-person"></i>
+                <!-- 2. Ссылку на клиента нужно поднять по z-index, чтобы она осталась кликабельной отдельно -->
                 <a th:href="@{/customers/{id}(id=${order.customerId})}"
-                   th:text="${order.customerName}"></a>
+                   th:text="${order.customerName}"
+                   class="position-relative" style="z-index: 2;"></a>
               </p>
               <small class="text-muted">
                 <i class="bi bi-calendar"></i>
                 <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
                 <span class="ms-3">
-                  <i class="bi bi-box"></i>
-                  <span th:text="${order.itemsCount} + ' товаров'"></span>
-                </span>
+            <i class="bi bi-box"></i>
+            <span th:text="${order.itemsCount} + ' товаров'"></span>
+          </span>
               </small>
             </div>
             <div class="text-end">
               <h4 th:text="${'₽' + #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA')}"></h4>
+
+              <!-- 3. Кнопку редактирования тоже поднимаем по z-index -->
               <a th:if="${order.status.name() == 'IN_PROGRESS'}"
                  th:href="@{/orders/{id}/edit(id=${order.id})}"
-                 class="btn btn-sm btn-outline-success"
+                 class="btn btn-sm btn-outline-success position-relative"
+                 style="z-index: 2;"
                  title="Редактировать заказ">
                 <i class="bi bi-pencil"></i>
               </a>
+
+              <!-- 4. Добавляем класс stretched-link. Теперь эта ссылка "заполнит" собой всю карточку -->
               <a th:href="@{/orders/{id}(id=${order.id})}"
-                 class="btn btn-sm btn-outline-primary"
+                 class="btn btn-sm btn-outline-primary stretched-link"
                  title="Просмотреть детали">
                 <i class="bi bi-eye"></i> Подробнее
               </a>
