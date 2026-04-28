@@ -35,7 +35,6 @@ public class AnalyticsService {
     private final ExpenseRepository expenseRepository;
     private final DailyAnalyticsRepository dailyAnalyticsRepository;
 
-    // ─── Ежедневное обновление аналитики ─────────────────────────────
     @Transactional
     public void updateDailyAnalytics(LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
@@ -50,7 +49,7 @@ public class AnalyticsService {
 
         BigDecimal cost = completedOrders.stream()
                 .flatMap(o -> o.getOrderItems().stream())
-                .map(oi -> oi.getProduct().getCostPrice()
+                .map(oi -> oi.getCostPrice()
                         .multiply(BigDecimal.valueOf(oi.getOrderQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
@@ -67,14 +66,21 @@ public class AnalyticsService {
         dailyAnalyticsRepository.save(da);
     }
 
-    // ─── Сборка дашборда ─────────────────────────────────────────────
+    @Transactional
+    public void refreshAnalytics(LocalDate from, LocalDate to) {
+        LocalDate date = from;
+        while (!date.isAfter(to)) {
+            updateDailyAnalytics(date);
+            date = date.plusDays(1);
+        }
+    }
+
     @Transactional(readOnly = true)
     public DashboardDto getDashboard(LocalDate from, LocalDate to) {
         LocalDate today = LocalDate.now();
         LocalDateTime dayStart = today.atStartOfDay();
         LocalDateTime dayEnd = today.plusDays(1).atStartOfDay();
 
-        // --- Быстрые виджеты (сегодня / на лету) ---
         DailyAnalytics todayDA = dailyAnalyticsRepository.findById(today).orElse(null);
         BigDecimal todayRevenue;
         BigDecimal todayCost;

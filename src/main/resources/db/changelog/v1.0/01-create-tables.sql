@@ -78,6 +78,7 @@ CREATE TABLE order_items (
                              product_id UUID REFERENCES products(product_id) ON DELETE SET NULL,
                              quantity INTEGER NOT NULL DEFAULT 0,
                              price DECIMAL(10,2) NOT NULL DEFAULT 0,
+                             cost_price DECIMAL(10,2) NOT NULL DEFAULT 0,
                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

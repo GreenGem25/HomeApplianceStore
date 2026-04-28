@@ -23,6 +23,9 @@ public class OrderItem {
     @Column(name = "price", nullable = false)
     private BigDecimal orderPrice = BigDecimal.ZERO;
 
+    @Column(name = "cost_price", nullable = false)
+    private BigDecimal costPrice = BigDecimal.ZERO;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false)
     private Order order;

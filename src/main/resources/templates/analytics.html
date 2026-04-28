@@ -98,23 +98,44 @@
                     <i class="bi bi-graph-up"></i> Аналитика магазина
                 </h1>
 
-                <!-- Фильтр по датам (опционально) -->
-                <form th:action="@{/analytics}" method="get" class="d-flex align-items-center gap-2">
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text">с</span>
-                        <input type="date" class="form-control" name="from" th:value="${from}">
-                    </div>
-                    <div class="input-group input-group-sm">
-                        <span class="input-group-text">по</span>
-                        <input type="date" class="form-control" name="to" th:value="${to}">
-                    </div>
-                    <button class="btn btn-primary btn-sm" type="submit">
-                        <i class="bi bi-funnel"></i> Применить
-                    </button>
-                    <a th:href="@{/analytics}" class="btn btn-outline-secondary btn-sm">
-                        <i class="bi bi-arrow-counterclockwise"></i> Сброс
-                    </a>
-                </form>
+                <div class="d-flex align-items-center gap-2">
+                    <!-- Фрагмент формы фильтра (GET) -->
+                    <form th:action="@{/analytics}" method="get" class="d-flex align-items-center gap-2" id="filterForm">
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">с</span>
+                            <input type="date" class="form-control" name="from" id="fromDate" th:value="${from}">
+                        </div>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">по</span>
+                            <input type="date" class="form-control" name="to" id="toDate" th:value="${to}">
+                        </div>
+                        <button class="btn btn-primary btn-sm" type="submit">
+                            <i class="bi bi-funnel"></i> Применить
+                        </button>
+                        <a th:href="@{/analytics}" class="btn btn-outline-secondary btn-sm">
+                            <i class="bi bi-arrow-counterclockwise"></i> Сброс
+                        </a>
+                    </form>
+
+                    <!-- Форма "Обновить" (POST) -->
+                    <form th:action="@{/analytics/refresh}" method="post" class="d-inline" id="refreshForm">
+                        <input type="hidden" name="date" id="refreshDate" value="">
+                        <input type="hidden" name="from" id="refreshFrom" value="">
+                        <input type="hidden" name="to" id="refreshTo" value="">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Пересчитать аналитику за сегодня">
+                            <i class="bi bi-arrow-clockwise"></i> Перерасчет (сегодня)
+                        </button>
+                    </form>
+
+                    <!-- Форма "Обновить период" (POST) -->
+                    <form th:action="@{/analytics/refresh-range}" method="post" class="d-inline" id="refreshRangeForm">
+                        <input type="hidden" name="from" id="rangeFrom" value="">
+                        <input type="hidden" name="to" id="rangeTo" value="">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm" title="Пересчитать аналитику за весь период">
+                            <i class="bi bi-arrow-clockwise"></i> Перерасчет (период)
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <!-- Сообщения об успехе / ошибке (если будут) -->
@@ -171,7 +192,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between">
                                 <div>
-                                    <h6 class="card-title text-uppercase opacity-75">Средний чек</h6>
+                                    <h6 class="card-title text-uppercase opacity-75">Средний чек за сегодня</h6>
                                     <h2 class="mb-0"
                                         th:text="${dashboard.averageCheck != null ? '₽' + #numbers.formatDecimal(dashboard.averageCheck, 1, 2, 'COMMA') : '—'}">
                                         ₽0.00
@@ -388,6 +409,27 @@
                 }
             });
         }
+    })();
+</script>
+
+<!-- Скрипт синхронизации дат -->
+<script>
+    (function() {
+        const fromInput = document.getElementById('fromDate');
+        const toInput = document.getElementById('toDate');
+
+        // Перед отправкой "Обновить" – копируем текущие даты
+        document.getElementById('refreshForm').addEventListener('submit', function() {
+            document.getElementById('refreshDate').value = toInput.value;
+            document.getElementById('refreshFrom').value = fromInput.value;
+            document.getElementById('refreshTo').value = toInput.value;
+        });
+
+        // Перед отправкой "Обновить (период)"
+        document.getElementById('refreshRangeForm').addEventListener('submit', function() {
+            document.getElementById('rangeFrom').value = fromInput.value;
+            document.getElementById('rangeTo').value = toInput.value;
+        });
     })();
 </script>
 
