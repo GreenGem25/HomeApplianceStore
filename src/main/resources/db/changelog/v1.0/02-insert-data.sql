@@ -207,3 +207,10 @@ VALUES
     ('50a1ac87-6615-4c19-8335-b013e323f9bb', 'cccc3333-3333-cccc-3333-cccc33333333', '99999999-cccc-9999-cccc-999999999999', 3, 69999.00),
     ('eb2a3fe6-6c68-4fdf-a920-85c6f5b854f6', 'cccc3333-3333-cccc-3333-cccc33333333', 'bbbbbbbb-eeee-bbbb-eeee-bbbbbbbbbbbb', 2, 119999.00),
     ('17f80acf-4090-45f3-839d-caa83ed1d41a', 'cccc3333-3333-cccc-3333-cccc33333333', 'dddddddd-aaaa-dddd-aaaa-dddddddddddd', 5, 69999.00);
+
+-- admin pass: admin123
+-- manager pass: manager123
+INSERT INTO users (user_id, username, password, role, full_name, enabled)
+VALUES
+    ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'admin', '$2a$10$50C3EUMQP/PZU9NshSksSuLtk4A7dixlfaOFHXvN9lnBV1J4rFp8S', 'ADMIN', 'Администратор', true),
+    ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'manager', '$2a$10$o3zMDO36IGPIZ7qmLUnTg.bX46ABl8Q6uweeAEn3ROzYK.neyUX3e', 'MANAGER', 'Менеджер', true);

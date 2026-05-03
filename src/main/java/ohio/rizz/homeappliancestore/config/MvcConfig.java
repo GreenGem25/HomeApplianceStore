@@ -1,4 +1,4 @@
-package ohio.rizz.homeappliancestore;
+package ohio.rizz.homeappliancestore.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
