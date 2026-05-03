@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -24,4 +27,21 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
 
     @Query("SELECT MAX(o.orderNumber) FROM Order o WHERE o.orderNumber LIKE :prefix%")
     String findMaxOrderNumberByPrefix(@Param("prefix") String prefix);
+
+    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.status = 'COMPLETED' AND CAST(o.orderDate AS LocalDate) = :date")
+    BigDecimal sumCompletedRevenueOnDate(@Param("date") LocalDate date);
+
+    @Query("SELECT COUNT(o) FROM Order o WHERE o.status = 'COMPLETED' AND CAST(o.orderDate AS LocalDate) = :date")
+    int countCompletedOnDate(@Param("date") LocalDate date);
+
+    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o WHERE o.status = 'COMPLETED'")
+    BigDecimal totalRevenueAllTime();
+
+    long countByStatus(OrderStatus status);
+
+    @Query("SELECT COALESCE(SUM(o.totalPrice), 0) FROM Order o " +
+            "WHERE o.status = 'COMPLETED' AND CAST(o.orderDate AS LocalDate) BETWEEN :from AND :to")
+    BigDecimal sumCompletedRevenueBetween(@Param("from") LocalDate from, @Param("to") LocalDate to);
+
+    List<Order> findByStatusAndOrderDateBetween(OrderStatus status, LocalDateTime start, LocalDateTime end);
 }

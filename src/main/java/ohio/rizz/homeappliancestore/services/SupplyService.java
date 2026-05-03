@@ -186,6 +186,7 @@ public class SupplyService {
         for (SupplyItem item : supply.getSupplyItems()) {
             Product product = item.getProduct();
             product.increaseStock(item.getQuantity());
+            product.setCostPrice(item.getPricePerUnit());
             productRepository.save(product);
         }
     }

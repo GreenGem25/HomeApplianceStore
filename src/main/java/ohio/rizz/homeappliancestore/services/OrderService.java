@@ -190,6 +190,7 @@ public class OrderService {
         orderItem.setProduct(product);
         orderItem.setOrderQuantity(quantity);
         orderItem.setOrderPrice(product.getPrice());
+        orderItem.setCostPrice(product.getCostPrice());
 
         product.decreaseStock(quantity);
         productService.save(product);

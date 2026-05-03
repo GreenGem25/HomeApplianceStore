@@ -32,6 +32,9 @@ public class Product {
     @Column(name = "price", nullable = false)
     private BigDecimal price = BigDecimal.ZERO;
 
+    @Column(name = "cost_price", nullable = false)
+    private BigDecimal costPrice = BigDecimal.ZERO;
+
     @Column(name = "stock_quantity", nullable = false)
     private int stockQuantity = 0;
 

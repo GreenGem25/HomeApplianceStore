@@ -103,3 +103,107 @@ INSERT INTO order_items (order_item_id, order_id, product_id, quantity, price) V
                                                                                    ('22222222-1111-2222-2222-222222222222', '18181818-1111-2222-3333-181818181818', '77777777-aaaa-7777-aaaa-777777777777', 2, 17999.00),
                                                                                    ('23232323-1111-2323-2222-232323232323', '18181818-1111-2222-3333-181818181818', '20202020-ffff-2020-ffff-202020202020', 1, 59999.00),
                                                                                    ('24242424-1111-2424-2222-242424242424', '18181818-1111-2222-3333-181818181818', '13131313-eeee-1313-eeee-131313131313', 1, 24999.00);
+
+--changeset test-data:2
+--comment: Add cost_price to products, update order_items with cost_price, add test supplies
+
+-- ============================================================
+-- 1. Устанавливаем себестоимость товаров (цена закупки)
+-- ============================================================
+UPDATE products SET cost_price = 89999.00 WHERE product_id = '11111111-aaaa-1111-aaaa-111111111111'; -- iPhone 15 Pro
+UPDATE products SET cost_price = 69999.00 WHERE product_id = '22222222-bbbb-2222-bbbb-222222222222'; -- iPhone 15
+UPDATE products SET cost_price = 83999.00 WHERE product_id = '33333333-cccc-3333-cccc-333333333333'; -- Samsung S24
+UPDATE products SET cost_price = 28999.00 WHERE product_id = '44444444-dddd-4444-dddd-444444444444'; -- Samsung A54
+UPDATE products SET cost_price = 20999.00 WHERE product_id = '55555555-eeee-5555-eeee-555555555555'; -- Xiaomi Note 13
+UPDATE products SET cost_price = 67999.00 WHERE product_id = '66666666-ffff-6666-ffff-666666666666'; -- Xiaomi 14 Ultra
+UPDATE products SET cost_price = 12999.00 WHERE product_id = '77777777-aaaa-7777-aaaa-777777777777'; -- Irbis NB261
+UPDATE products SET cost_price = 17999.00 WHERE product_id = '88888888-bbbb-8888-bbbb-888888888888'; -- Irbis NB275
+UPDATE products SET cost_price = 69999.00 WHERE product_id = '99999999-cccc-9999-cccc-999999999999'; -- Asus TUF
+UPDATE products SET cost_price = 102999.00 WHERE product_id = 'aaaaaaaa-dddd-aaaa-dddd-aaaaaaaaaaaa'; -- MSI Katana
+UPDATE products SET cost_price = 119999.00 WHERE product_id = 'bbbbbbbb-eeee-bbbb-eeee-bbbbbbbbbbbb'; -- iPad Pro
+UPDATE products SET cost_price = 61999.00 WHERE product_id = 'cccccccc-ffff-cccc-ffff-cccccccccccc'; -- iPad Air
+UPDATE products SET cost_price = 69999.00 WHERE product_id = 'dddddddd-aaaa-dddd-aaaa-dddddddddddd'; -- Samsung Tab S9
+UPDATE products SET cost_price = 44999.00 WHERE product_id = 'eeeeeeee-bbbb-eeee-bbbb-eeeeeeeeeeee'; -- PS5
+UPDATE products SET cost_price = 41999.00 WHERE product_id = 'ffffffff-cccc-ffff-cccc-ffffffffffff'; -- Xbox Series X
+UPDATE products SET cost_price = 24999.00 WHERE product_id = '12121212-dddd-1212-dddd-121212121212'; -- Sony WH-1000XM5
+UPDATE products SET cost_price = 18999.00 WHERE product_id = '13131313-eeee-1313-eeee-131313131313'; -- AirPods Pro 2
+UPDATE products SET cost_price = 11999.00 WHERE product_id = '14141414-ffff-1414-ffff-141414141414'; -- Яндекс Станция 2
+UPDATE products SET cost_price = 9999.00 WHERE product_id = '15151515-aaaa-1515-aaaa-151515151515'; -- SberBoom
+UPDATE products SET cost_price = 35999.00 WHERE product_id = '16161616-bbbb-1616-bbbb-161616161616'; -- Canon EOS
+UPDATE products SET cost_price = 45999.00 WHERE product_id = '17171717-cccc-1717-cccc-171717171717'; -- Холодильник LG
+UPDATE products SET cost_price = 34999.00 WHERE product_id = '18181818-dddd-1818-dddd-181818181818'; -- Стиральная машина
+UPDATE products SET cost_price = 5599.00 WHERE product_id = '19191919-eeee-1919-eeee-191919191919'; -- Микроволновка
+UPDATE products SET cost_price = 46999.00 WHERE product_id = '20202020-ffff-2020-ffff-202020202020'; -- Dyson
+
+-- ============================================================
+-- 2. Добавляем себестоимость в существующие позиции заказов
+--    (фиксируем ту же цену, что сейчас у товара)
+-- ============================================================
+UPDATE order_items SET cost_price = 89999.00 WHERE order_item_id = 'aaaaaaaa-1111-aaaa-2222-aaaaaaaaaaaa';
+UPDATE order_items SET cost_price = 24999.00 WHERE order_item_id = 'bbbbbbbb-1111-bbbb-2222-bbbbbbbbbbbb';
+UPDATE order_items SET cost_price = 119999.00 WHERE order_item_id = 'cccccccc-1111-cccc-2222-cccccccccccc';
+UPDATE order_items SET cost_price = 61999.00 WHERE order_item_id = 'dddddddd-1111-dddd-2222-dddddddddddd';
+UPDATE order_items SET cost_price = 69999.00 WHERE order_item_id = 'eeeeeeee-1111-eeee-2222-eeeeeeeeeeee';
+UPDATE order_items SET cost_price = 45999.00 WHERE order_item_id = 'ffffffff-1111-ffff-2222-ffffffffffff';
+UPDATE order_items SET cost_price = 83999.00 WHERE order_item_id = '12121212-1111-1212-2222-121212121212';
+UPDATE order_items SET cost_price = 69999.00 WHERE order_item_id = '13131313-1111-1313-2222-131313131313';
+UPDATE order_items SET cost_price = 5599.00 WHERE order_item_id = '14141414-1111-1414-2222-141414141414';
+UPDATE order_items SET cost_price = 102999.00 WHERE order_item_id = '15151515-1111-1515-2222-151515151515';
+UPDATE order_items SET cost_price = 20999.00 WHERE order_item_id = '16161616-1111-1616-2222-161616161616';
+UPDATE order_items SET cost_price = 11999.00 WHERE order_item_id = '17171717-1111-1717-2222-171717171717';
+UPDATE order_items SET cost_price = 69999.00 WHERE order_item_id = '18181818-1111-1818-2222-181818181818';
+UPDATE order_items SET cost_price = 45999.00 WHERE order_item_id = '19191919-1111-1919-2222-191919191919';
+UPDATE order_items SET cost_price = 20999.00 WHERE order_item_id = '20202020-1111-2020-2222-202020202020';
+UPDATE order_items SET cost_price = 41999.00 WHERE order_item_id = '21212121-1111-2121-2222-212121212121';
+
+-- Позиции заказа 18181818... (три товара)
+UPDATE order_items SET cost_price = 12999.00 WHERE order_item_id = '22222222-1111-2222-2222-222222222222';
+UPDATE order_items SET cost_price = 46999.00 WHERE order_item_id = '23232323-1111-2323-2222-232323232323';
+UPDATE order_items SET cost_price = 18999.00 WHERE order_item_id = '24242424-1111-2424-2222-242424242424';
+
+-- ============================================================
+-- 3. Тестовые поставки
+-- ============================================================
+
+-- Поставка №1 (завершена, пополнила склад в прошлом)
+INSERT INTO supplies (supply_id, supplier_id, supply_number, supply_date, status, notes)
+VALUES ('aaaa1111-1111-aaaa-1111-aaaa11111111',
+        'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        'SUP-20260305-00001',
+        '2026-03-05 09:30:00',
+        'COMPLETED',
+        'Первая партия телефонов iPhone');
+
+INSERT INTO supply_items (supply_item_id, supply_id, product_id, quantity, price_per_unit)
+VALUES
+    ('4ea37542-2177-4b77-8ea1-15bcfeac4d05', 'aaaa1111-1111-aaaa-1111-aaaa11111111', '11111111-aaaa-1111-aaaa-111111111111', 5, 89999.00),
+    ('58eb2393-faaf-438e-a4a5-e13dce8d9b9d', 'aaaa1111-1111-aaaa-1111-aaaa11111111', '22222222-bbbb-2222-bbbb-222222222222', 3, 69999.00);
+
+-- Поставка №2 (завершена, бытовая техника)
+INSERT INTO supplies (supply_id, supplier_id, supply_number, supply_date, status, notes)
+VALUES ('bbbb2222-2222-bbbb-2222-bbbb22222222',
+        'dddddddd-dddd-dddd-dddd-dddddddddddd',
+        'SUP-20260307-00002',
+        '2026-03-07 11:00:00',
+        'COMPLETED',
+        'Поступление пылесосов и холодильников');
+
+INSERT INTO supply_items (supply_item_id, supply_id, product_id, quantity, price_per_unit)
+VALUES
+    ('eaf8b63d-dd49-4816-a97f-236dd65eed5a', 'bbbb2222-2222-bbbb-2222-bbbb22222222', '17171717-cccc-1717-cccc-171717171717', 2, 45999.00),
+    ('8c66a8c3-f07c-434e-b64e-d39926589bc7', 'bbbb2222-2222-bbbb-2222-bbbb22222222', '20202020-ffff-2020-ffff-202020202020', 4, 46999.00);
+
+-- Поставка №3 (ожидает завершения)
+INSERT INTO supplies (supply_id, supplier_id, supply_number, supply_date, status, notes)
+VALUES ('cccc3333-3333-cccc-3333-cccc33333333',
+        'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+        'SUP-20260312-00003',
+        '2026-03-12 14:15:00',
+        'PENDING',
+        'Ноутбуки и планшеты');
+
+INSERT INTO supply_items (supply_item_id, supply_id, product_id, quantity, price_per_unit)
+VALUES
+    ('50a1ac87-6615-4c19-8335-b013e323f9bb', 'cccc3333-3333-cccc-3333-cccc33333333', '99999999-cccc-9999-cccc-999999999999', 3, 69999.00),
+    ('eb2a3fe6-6c68-4fdf-a920-85c6f5b854f6', 'cccc3333-3333-cccc-3333-cccc33333333', 'bbbbbbbb-eeee-bbbb-eeee-bbbbbbbbbbbb', 2, 119999.00),
+    ('17f80acf-4090-45f3-839d-caa83ed1d41a', 'cccc3333-3333-cccc-3333-cccc33333333', 'dddddddd-aaaa-dddd-aaaa-dddddddddddd', 5, 69999.00);

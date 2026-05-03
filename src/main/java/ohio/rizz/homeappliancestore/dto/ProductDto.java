@@ -17,6 +17,7 @@ public class ProductDto {
     private String name;
     private String description;
     private BigDecimal price;
+    private BigDecimal costPrice;
     private int stockQuantity;
     private String manufacturer;
     private int warrantyPeriod;
