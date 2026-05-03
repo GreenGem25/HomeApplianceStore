@@ -1,255 +1,215 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
 <head>
-    <meta charset="UTF-8">
-    <title>Пользователи</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        .sidebar {
-            position: fixed;
-            width: 250px;
-            min-height: 100vh;
-            background: #212529;
+    <title>Товары</title>
+
+    <!-- Стили, специфичные для страницы товаров (можно вынести в отдельный CSS-файл) -->
+    <style layout:fragment="styles">
+        .product-card {
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .sort-container {
+            width: 35%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .flex-row {
+            display: flex;
+            justify-content: space-between;
+        }
+        .input-group {
             transition: all 0.3s;
         }
-        .nav-link {
-            color: #adb5bd;
-            border-radius: 5px;
-            margin-bottom: 5px;
+        .input-group:focus-within {
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
         }
-        .nav-link:hover, .nav-link.active {
-            color: white;
-            background: #0d6efd;
+        .input-group input {
+            border-right: none;
         }
-        .nav-link i {
-            width: 24px;
-            text-align: center;
+        .input-group button {
+            border-left: none;
+            background-color: white;
         }
-        .user-card {
-            transition: all 0.2s;
-        }
-        .user-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        .input-group button:hover {
+            background-color: rgba(0,0,0,0.1);
         }
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Боковое меню -->
-        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
-            <div class="d-flex flex-column min-vh-100 position-sticky pt-3">
-                <div class="text-center mb-4">
-                    <h4 class="text-white">Магазин техники</h4>
+
+<!-- Основной контент -->
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-people"></i> Пользователи системы
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a th:href="@{/users/add}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Добавить пользователя
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <div class="card user-card mb-4">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                    <tr>
+                        <th scope="col">Логин</th>
+                        <th scope="col">ФИО</th>
+                        <th scope="col">Роль</th>
+                        <th scope="col">Статус</th>
+                        <th scope="col">Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="user : ${users}">
+                        <td th:text="${user.username}"></td>
+                        <td th:text="${user.fullName}"></td>
+                        <td>
+                                    <span class="badge"
+                                          th:classappend="${user.role == 'ADMIN'} ? 'bg-danger' : 'bg-primary'"
+                                          th:text="${user.role}"></span>
+                        </td>
+                        <td>
+                                    <span class="badge"
+                                          th:classappend="${user.enabled} ? 'bg-success' : 'bg-secondary'"
+                                          th:text="${user.enabled} ? 'Активен' : 'Заблокирован'"></span>
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="@{/users/{id}/edit(id=${user.id})}"
+                                   class="btn btn-outline-primary">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button"
+                                        class="btn btn-outline-warning"
+                                        th:if="${user.enabled}"
+                                        th:data-user-id="${user.id}"
+                                        th:data-action="block"
+                                        onclick="confirmToggle(this)">
+                                    <i class="bi bi-lock"></i>
+                                </button>
+                                <button type="button"
+                                        class="btn btn-outline-success"
+                                        th:if="${!user.enabled}"
+                                        th:data-user-id="${user.id}"
+                                        th:data-action="unblock"
+                                        onclick="confirmToggle(this)">
+                                    <i class="bi bi-unlock"></i>
+                                </button>
+                                <button type="button"
+                                        class="btn btn-outline-danger"
+                                        th:data-user-id="${user.id}"
+                                        th:data-username="${user.username}"
+                                        onclick="confirmDelete(this)">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div th:if="${users != null && users.empty}" class="text-center py-5">
+                <i class="bi bi-people" style="font-size: 3rem; color: #6c757d;"></i>
+                <h5 class="mt-3">Нет пользователей</h5>
+                <p>Добавьте первого пользователя, нажав кнопку выше.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно удаления -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <ul class="nav flex-column px-3 flex-grow-1">
-                    <li class="nav-item" th:each="item : ${menuItems}">
-                        <a th:href="@{${item.url}}"
-                           class="nav-link d-flex align-items-center"
-                           th:classappend="${item.isActive} ? 'active'">
-                            <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
-                            <span th:text="${item.name}"></span>
-                        </a>
-                    </li>
-                </ul>
-                <!-- Кнопка выхода внизу -->
-                <div class="px-3 pb-3">
-                    <form th:action="@{/logout}" method="post">
+                <div class="modal-body">
+                    Вы действительно хотите удалить пользователя <strong id="deleteUserName"></strong>?
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle"></i> Это действие нельзя отменить!
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <form id="deleteForm" method="post" action="#">
                         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                        <button type="submit" class="btn btn-link nav-link d-flex align-items-center w-100 text-start"
-                                style="color: #adb5bd; text-decoration: none;">
-                            <i class="bi bi-box-arrow-right me-2"></i>
-                            <span>Выйти</span>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Удалить
                         </button>
                     </form>
                 </div>
             </div>
         </div>
-
-        <!-- Основной контент -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">
-                    <i class="bi bi-people"></i> Пользователи системы
-                </h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/users/add}" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Добавить пользователя
-                    </a>
-                </div>
-            </div>
-
-            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <span th:text="${successMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${errorMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-
-            <div class="card user-card mb-4">
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead>
-                            <tr>
-                                <th scope="col">Логин</th>
-                                <th scope="col">ФИО</th>
-                                <th scope="col">Роль</th>
-                                <th scope="col">Статус</th>
-                                <th scope="col">Действия</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="user : ${users}">
-                                <td th:text="${user.username}"></td>
-                                <td th:text="${user.fullName}"></td>
-                                <td>
-                                    <span class="badge"
-                                          th:classappend="${user.role == 'ADMIN'} ? 'bg-danger' : 'bg-primary'"
-                                          th:text="${user.role}"></span>
-                                </td>
-                                <td>
-                                    <span class="badge"
-                                          th:classappend="${user.enabled} ? 'bg-success' : 'bg-secondary'"
-                                          th:text="${user.enabled} ? 'Активен' : 'Заблокирован'"></span>
-                                </td>
-                                <td>
-                                    <div class="btn-group btn-group-sm">
-                                        <a th:href="@{/users/{id}/edit(id=${user.id})}"
-                                           class="btn btn-outline-primary">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                        <button type="button"
-                                                class="btn btn-outline-warning"
-                                                th:if="${user.enabled}"
-                                                th:data-user-id="${user.id}"
-                                                th:data-action="block"
-                                                onclick="confirmToggle(this)">
-                                            <i class="bi bi-lock"></i>
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-outline-success"
-                                                th:if="${!user.enabled}"
-                                                th:data-user-id="${user.id}"
-                                                th:data-action="unblock"
-                                                onclick="confirmToggle(this)">
-                                            <i class="bi bi-unlock"></i>
-                                        </button>
-                                        <button type="button"
-                                                class="btn btn-outline-danger"
-                                                th:data-user-id="${user.id}"
-                                                th:data-username="${user.username}"
-                                                onclick="confirmDelete(this)">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div th:if="${users != null && users.empty}" class="text-center py-5">
-                        <i class="bi bi-people" style="font-size: 3rem; color: #6c757d;"></i>
-                        <h5 class="mt-3">Нет пользователей</h5>
-                        <p>Добавьте первого пользователя, нажав кнопку выше.</p>
-                    </div>
-                </div>
-            </div>
-        </main>
     </div>
-</div>
 
-<!-- Модальное окно удаления -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Подтверждение удаления</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                Вы действительно хотите удалить пользователя <strong id="deleteUserName"></strong>?
-                <div class="alert alert-warning mt-3">
-                    <i class="bi bi-exclamation-triangle"></i> Это действие нельзя отменить!
+    <!-- Модальное окно блокировки/разблокировки -->
+    <div class="modal fade" id="toggleModal" tabindex="-1" aria-labelledby="toggleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="toggleModalLabel">Изменение статуса</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <form id="deleteForm" method="post" action="#">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash"></i> Удалить
-                    </button>
-                </form>
+                <div class="modal-body" id="toggleModalBody">
+                    Вы уверены, что хотите изменить статус пользователя?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <form id="toggleForm" method="post" action="#">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-primary" id="toggleSubmitBtn">Подтвердить</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Модальное окно блокировки/разблокировки -->
-<div class="modal fade" id="toggleModal" tabindex="-1" aria-labelledby="toggleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="toggleModalLabel">Изменение статуса</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="toggleModalBody">
-                Вы уверены, что хотите изменить статус пользователя?
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                <form id="toggleForm" method="post" action="#">
-                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                    <button type="submit" class="btn btn-primary" id="toggleSubmitBtn">Подтвердить</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Скрипты для страницы товаров (если нужны специфичные) -->
+<th:block layout:fragment="scripts">
+    <script>
+        function confirmDelete(button) {
+            const userId = button.getAttribute('data-user-id');
+            const username = button.getAttribute('data-username');
+            document.getElementById('deleteUserName').textContent = username;
+            const form = document.getElementById('deleteForm');
+            form.action = '/users/' + userId + '/delete';
+            const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            modal.show();
+        }
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    function confirmDelete(button) {
-        const userId = button.getAttribute('data-user-id');
-        const username = button.getAttribute('data-username');
-        document.getElementById('deleteUserName').textContent = username;
-        const form = document.getElementById('deleteForm');
-        form.action = '/users/' + userId + '/delete';
-        const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
-        modal.show();
-    }
-
-    function confirmToggle(button) {
-        const userId = button.getAttribute('data-user-id');
-        const action = button.getAttribute('data-action'); // "block" или "unblock"
-        const form = document.getElementById('toggleForm');
-        form.action = '/users/' + userId + '/' + (action === 'block' ? 'block' : 'unblock');
-        document.getElementById('toggleModalBody').textContent = action === 'block' ?
-            'Заблокировать пользователя? Он не сможет войти в систему.' :
-            'Разблокировать пользователя? Он снова сможет войти.';
-        const modal = new bootstrap.Modal(document.getElementById('toggleModal'));
-        modal.show();
-    }
-</script>
-
-<script>
-    // Анимация бокового меню
-    document.addEventListener('DOMContentLoaded', function() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateX(5px)';
-            });
-            link.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-            });
-        });
-    });
-</script>
+        function confirmToggle(button) {
+            const userId = button.getAttribute('data-user-id');
+            const action = button.getAttribute('data-action'); // "block" или "unblock"
+            const form = document.getElementById('toggleForm');
+            form.action = '/users/' + userId + '/' + (action === 'block' ? 'block' : 'unblock');
+            document.getElementById('toggleModalBody').textContent = action === 'block' ?
+                'Заблокировать пользователя? Он не сможет войти в систему.' :
+                'Разблокировать пользователя? Он снова сможет войти.';
+            const modal = new bootstrap.Modal(document.getElementById('toggleModal'));
+            modal.show();
+        }
+    </script>
+</th:block>
 </body>
 </html>

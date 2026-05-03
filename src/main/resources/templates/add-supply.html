@@ -1,35 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
 <head>
-    <meta charset="UTF-8">
-    <title>Добавить поставку</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <!-- Flatpickr для удобного выбора даты -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
-    <style>
-        .sidebar {
-            position: fixed;
-            width: 250px;
-            min-height: 100vh;
-            background: #212529;
-            transition: all 0.3s;
-        }
-        .nav-link {
-            color: #adb5bd;
-            border-radius: 5px;
-            margin-bottom: 5px;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: white;
-            background: #0d6efd;
-        }
-        .nav-link i {
-            width: 24px;
-            text-align: center;
-        }
+    <title>Товары</title>
+    <style layout:fragment="styles">
         .form-container {
             max-width: 900px;
             margin: 0 auto;
@@ -61,206 +36,184 @@
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Боковое меню -->
-        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
-            <div class="position-sticky pt-3">
-                <div class="text-center mb-4">
-                    <h4 class="text-white">Магазин техники</h4>
-                </div>
-                <ul class="nav flex-column px-3">
-                    <li class="nav-item" th:each="item : ${menuItems}">
-                        <a th:href="@{${item.url}}"
-                           class="nav-link d-flex align-items-center"
-                           th:classappend="${item.isActive} ? 'active'">
-                            <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
-                            <span th:text="${item.name}"></span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
 
-        <!-- Основной контент -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">
-                    <i class="bi bi-truck"></i> Добавить поставку
-                </h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/supplies}" class="btn btn-sm btn-outline-secondary">
+<!-- Основной контент -->
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-truck"></i> Добавить поставку
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a th:href="@{/supplies}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Отмена
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Форма добавления поставки -->
+    <div class="card form-container">
+        <div class="card-body">
+            <form th:action="@{/supplies/add}" method="post" id="supplyForm" th:object="${supply}">
+
+                <!-- Основная информация -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label for="supplierId" class="form-label">Поставщик *</label>
+                        <select class="form-select" id="supplierId" th:field="*{supplierId}" required>
+                            <option value="">-- Выберите поставщика --</option>
+                            <option th:each="supplier : ${suppliers}"
+                                    th:value="${supplier.id}"
+                                    th:text="${supplier.name}"></option>
+                        </select>
+                        <div class="invalid-feedback" th:if="${#fields.hasErrors('supplierId')}"
+                             th:errors="*{supplierId}"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="supplyDate" class="form-label">Дата поставки</label>
+                        <div class="date-input-group">
+                            <input type="text" class="form-control" id="supplyDate"
+                                   th:field="*{supplyDate}" placeholder="Выберите дату и время">
+                            <div class="text-danger small" th:if="${#fields.hasErrors('supplyDate')}" th:errors="*{supplyDate}"></div>
+                            <i class="bi bi-calendar3"></i>
+                        </div>
+                        <small class="text-muted">Оставьте пустым для текущей даты</small>
+                    </div>
+                </div>
+
+                <!-- Примечания -->
+                <div class="mb-4">
+                    <label for="notes" class="form-label">Примечания</label>
+                    <textarea class="form-control" id="notes" th:field="*{notes}" rows="2"
+                              placeholder="Дополнительная информация о поставке"></textarea>
+                </div>
+
+                <!-- Товары в поставке -->
+                <h5 class="border-bottom pb-2 mt-4">
+                    <i class="bi bi-box-seam"></i> Товары в поставке
+                </h5>
+
+                <!-- Отладочный блок: показывает количество товаров в модели -->
+                <div style="display:none" th:text="'Количество товаров в модели: ' + ${#lists.size(products)}"></div>
+
+                <div id="itemsContainer">
+                    <!-- Существующие товары -->
+                    <div class="product-item" th:each="item, iterStat : ${supply.items}" th:if="${not #lists.isEmpty(supply.items)}">
+                        <div class="row align-items-end">
+                            <div class="col-md-5">
+                                <label class="form-label">Товар *</label>
+                                <select class="form-select product-select"
+                                        th:name="'items[' + ${iterStat.index} + '].productId'"
+                                        th:data-index="${iterStat.index}"
+                                        required>
+                                    <option value="">-- Выберите товар --</option>
+                                    <!-- Явное использование th:block для ясности -->
+                                    <th:block th:each="product : ${products}">
+                                        <option th:value="${product.id}"
+                                                th:text="${product.name} + ' (' + (${product.manufacturer} ?: 'Бренд не указан') + ')'"
+                                                th:data-price="${product.price}"
+                                                th:data-stock="${product.stockQuantity}"
+                                                th:selected="${product.id == item.productId}"></option>
+                                    </th:block>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Количество *</label>
+                                <input type="number" class="form-control quantity-input"
+                                       th:name="'items[' + ${iterStat.index} + '].quantity'"
+                                       th:value="${item.quantity}"
+                                       min="1" step="1" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Цена за ед. *</label>
+                                <input type="number" class="form-control price-input"
+                                       th:name="'items[' + ${iterStat.index} + '].pricePerUnit'"
+                                       th:value="${item.pricePerUnit}"
+                                       min="0" step="0.01" required>
+                            </div>
+                            <div class="col-md-1">
+                                <button type="button" class="btn btn-danger remove-item-btn"
+                                        th:if="${iterStat.index > 0}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-12">
+                                <small class="text-muted stock-info">
+                                    Доступно на складе: <span class="stock-value">0</span> шт.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="addItemBtn" class="btn btn-outline-primary mt-3">
+                    <i class="bi bi-plus-circle"></i> Добавить товар
+                </button>
+
+                <!-- Итоговая информация -->
+                <div class="total-summary">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Всего позиций:</strong> <span id="totalItems">0</span></p>
+                            <p class="mb-1"><strong>Всего единиц товара:</strong> <span id="totalQuantity">0</span> шт.</p>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <p class="mb-1"><strong>Общая стоимость:</strong></p>
+                            <h4 class="text-success" id="totalValue">₽0.00</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопки отправки -->
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-save"></i> Сохранить поставку
+                    </button>
+                    <a th:href="@{/supplies}" class="btn btn-outline-secondary">
                         <i class="bi bi-x-circle"></i> Отмена
                     </a>
                 </div>
-            </div>
-
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${errorMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-
-            <!-- Форма добавления поставки -->
-            <div class="card form-container">
-                <div class="card-body">
-                    <form th:action="@{/supplies/add}" method="post" id="supplyForm" th:object="${supply}">
-
-                        <!-- Основная информация -->
-                        <div class="row mb-4">
-                            <div class="col-md-6">
-                                <label for="supplierId" class="form-label">Поставщик *</label>
-                                <select class="form-select" id="supplierId" th:field="*{supplierId}" required>
-                                    <option value="">-- Выберите поставщика --</option>
-                                    <option th:each="supplier : ${suppliers}"
-                                            th:value="${supplier.id}"
-                                            th:text="${supplier.name}"></option>
-                                </select>
-                                <div class="invalid-feedback" th:if="${#fields.hasErrors('supplierId')}"
-                                     th:errors="*{supplierId}"></div>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="supplyDate" class="form-label">Дата поставки</label>
-                                <div class="date-input-group">
-                                    <input type="text" class="form-control" id="supplyDate"
-                                           th:field="*{supplyDate}" placeholder="Выберите дату и время">
-                                    <div class="text-danger small" th:if="${#fields.hasErrors('supplyDate')}" th:errors="*{supplyDate}"></div>
-                                    <i class="bi bi-calendar3"></i>
-                                </div>
-                                <small class="text-muted">Оставьте пустым для текущей даты</small>
-                            </div>
-                        </div>
-
-                        <!-- Примечания -->
-                        <div class="mb-4">
-                            <label for="notes" class="form-label">Примечания</label>
-                            <textarea class="form-control" id="notes" th:field="*{notes}" rows="2"
-                                      placeholder="Дополнительная информация о поставке"></textarea>
-                        </div>
-
-                        <!-- Товары в поставке -->
-                        <h5 class="border-bottom pb-2 mt-4">
-                            <i class="bi bi-box-seam"></i> Товары в поставке
-                        </h5>
-
-                        <!-- Отладочный блок: показывает количество товаров в модели -->
-                        <div style="display:none" th:text="'Количество товаров в модели: ' + ${#lists.size(products)}"></div>
-
-                        <div id="itemsContainer">
-                            <!-- Существующие товары -->
-                            <div class="product-item" th:each="item, iterStat : ${supply.items}" th:if="${not #lists.isEmpty(supply.items)}">
-                                <div class="row align-items-end">
-                                    <div class="col-md-5">
-                                        <label class="form-label">Товар *</label>
-                                        <select class="form-select product-select"
-                                                th:name="'items[' + ${iterStat.index} + '].productId'"
-                                                th:data-index="${iterStat.index}"
-                                                required>
-                                            <option value="">-- Выберите товар --</option>
-                                            <!-- Явное использование th:block для ясности -->
-                                            <th:block th:each="product : ${products}">
-                                                <option th:value="${product.id}"
-                                                        th:text="${product.name} + ' (' + (${product.manufacturer} ?: 'Бренд не указан') + ')'"
-                                                        th:data-price="${product.price}"
-                                                        th:data-stock="${product.stockQuantity}"
-                                                        th:selected="${product.id == item.productId}"></option>
-                                            </th:block>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Количество *</label>
-                                        <input type="number" class="form-control quantity-input"
-                                               th:name="'items[' + ${iterStat.index} + '].quantity'"
-                                               th:value="${item.quantity}"
-                                               min="1" step="1" required>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <label class="form-label">Цена за ед. *</label>
-                                        <input type="number" class="form-control price-input"
-                                               th:name="'items[' + ${iterStat.index} + '].pricePerUnit'"
-                                               th:value="${item.pricePerUnit}"
-                                               min="0" step="0.01" required>
-                                    </div>
-                                    <div class="col-md-1">
-                                        <button type="button" class="btn btn-danger remove-item-btn"
-                                                th:if="${iterStat.index > 0}">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="row mt-2">
-                                    <div class="col-md-12">
-                                        <small class="text-muted stock-info">
-                                            Доступно на складе: <span class="stock-value">0</span> шт.
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" id="addItemBtn" class="btn btn-outline-primary mt-3">
-                            <i class="bi bi-plus-circle"></i> Добавить товар
-                        </button>
-
-                        <!-- Итоговая информация -->
-                        <div class="total-summary">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <p class="mb-1"><strong>Всего позиций:</strong> <span id="totalItems">0</span></p>
-                                    <p class="mb-1"><strong>Всего единиц товара:</strong> <span id="totalQuantity">0</span> шт.</p>
-                                </div>
-                                <div class="col-md-6 text-end">
-                                    <p class="mb-1"><strong>Общая стоимость:</strong></p>
-                                    <h4 class="text-success" id="totalValue">₽0.00</h4>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Кнопки отправки -->
-                        <div class="d-flex justify-content-end mt-4">
-                            <button type="submit" class="btn btn-primary me-2">
-                                <i class="bi bi-save"></i> Сохранить поставку
-                            </button>
-                            <a th:href="@{/supplies}" class="btn btn-outline-secondary">
-                                <i class="bi bi-x-circle"></i> Отмена
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </main>
+            </form>
+        </div>
     </div>
 </div>
 
-<!-- Скрипты -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
-<script th:inline="javascript">
-    (function() {
-        const allProducts = [[${products}]] || [];
-        const itemsContainer = document.getElementById('itemsContainer');
-        const addRowBtn = document.getElementById('addItemBtn');
-        const totalValueElem = document.getElementById('totalValue');
+<!-- Скрипты для страницы товаров (если нужны специфичные) -->
+<th:block layout:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+    <script th:inline="javascript">
+        (function() {
+            const allProducts = [[${products}]] || [];
+            const itemsContainer = document.getElementById('itemsContainer');
+            const addRowBtn = document.getElementById('addItemBtn');
+            const totalValueElem = document.getElementById('totalValue');
 
-        const totalItemsElem = document.getElementById('totalItems');
-        const totalQtyElem = document.getElementById('totalQuantity');
+            const totalItemsElem = document.getElementById('totalItems');
+            const totalQtyElem = document.getElementById('totalQuantity');
 
-        // Инициализация календаря
-        flatpickr("#supplyDate", {
-            enableTime: true,
-            dateFormat: "Y-m-dTH:i",
-            time_24hr: true,
-            locale: "ru"
-        });
+            // Инициализация календаря
+            flatpickr("#supplyDate", {
+                enableTime: true,
+                dateFormat: "Y-m-dTH:i",
+                time_24hr: true,
+                locale: "ru"
+            });
 
-        function createRow() {
-            if (!itemsContainer) return;
+            function createRow() {
+                if (!itemsContainer) return;
 
-            const index = itemsContainer.querySelectorAll('.product-item').length;
-            const row = document.createElement('div');
-            row.className = 'product-item mb-3'; // Класс из ваших стилей
+                const index = itemsContainer.querySelectorAll('.product-item').length;
+                const row = document.createElement('div');
+                row.className = 'product-item mb-3'; // Класс из ваших стилей
 
-            row.innerHTML = `
+                row.innerHTML = `
                 <div class="row align-items-end">
                     <div class="col-md-5">
                         <label class="form-label small text-muted">Товар *</label>
@@ -295,91 +248,74 @@
                     </div>
                 </div>
             `;
-            itemsContainer.appendChild(row);
-            calculateTotals();
-        }
-
-        function reindexItems() {
-            itemsContainer.querySelectorAll('.product-item').forEach((row, idx) => {
-                row.querySelector('.product-select').name = `items[${idx}].productId`;
-                row.querySelector('.quantity-input').name = `items[${idx}].quantity`;
-                row.querySelector('.price-input').name = `items[${idx}].pricePerUnit`;
-            });
-        }
-
-        function calculateTotals() {
-            let totalSum = 0;
-            let totalQty = 0;
-            const rows = itemsContainer.querySelectorAll('.product-item');
-
-            rows.forEach(row => {
-                const qty = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                const price = parseFloat(row.querySelector('.price-input').value) || 0;
-                const rowSum = qty * price;
-
-                const rowDisplay = row.querySelector('.row-total-display');
-                if (rowDisplay) rowDisplay.textContent = rowSum.toFixed(2);
-
-                totalSum += rowSum;
-                totalQty += qty;
-            });
-
-            // Обновляем плашку итогов
-            if (totalValueElem) totalValueElem.textContent = '₽' + totalSum.toLocaleString('ru-RU', { minimumFractionDigits: 2 });
-            if (totalItemsElem) totalItemsElem.textContent = rows.length;
-            if (totalQtyElem) totalQtyElem.textContent = totalQty;
-        }
-
-        // Слушатели
-        if (addRowBtn) {
-            addRowBtn.addEventListener('click', createRow);
-        }
-
-        if (itemsContainer) {
-            itemsContainer.addEventListener('click', (e) => {
-                if (e.target.closest('.remove-item-btn')) {
-                    e.target.closest('.product-item').remove();
-                    reindexItems();
-                    calculateTotals();
-                }
-            });
-
-            itemsContainer.addEventListener('input', (e) => {
-                const row = e.target.closest('.product-item');
-                if (e.target.classList.contains('product-select')) {
-                    const opt = e.target.options[e.target.selectedIndex];
-                    row.querySelector('.price-input').value = opt.dataset.price || 0;
-                    row.querySelector('.stock-display').textContent = opt.dataset.stock || 0;
-                }
+                itemsContainer.appendChild(row);
                 calculateTotals();
-            });
-        }
+            }
 
-        // Инициализация: если в контейнере пусто (новая поставка), добавляем строку
-        if (itemsContainer && itemsContainer.children.length === 0) {
-            createRow();
-        } else {
-            calculateTotals(); // Если правим существующую, считаем итоги
-        }
-    })();
-</script>
+            function reindexItems() {
+                itemsContainer.querySelectorAll('.product-item').forEach((row, idx) => {
+                    row.querySelector('.product-select').name = `items[${idx}].productId`;
+                    row.querySelector('.quantity-input').name = `items[${idx}].quantity`;
+                    row.querySelector('.price-input').name = `items[${idx}].pricePerUnit`;
+                });
+            }
 
-<script>
-    // Анимация бокового меню
-    document.addEventListener('DOMContentLoaded', function() {
-        const navLinks = document.querySelectorAll('.nav-link');
+            function calculateTotals() {
+                let totalSum = 0;
+                let totalQty = 0;
+                const rows = itemsContainer.querySelectorAll('.product-item');
 
-        navLinks.forEach(link => {
-            link.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateX(5px)';
-            });
+                rows.forEach(row => {
+                    const qty = parseFloat(row.querySelector('.quantity-input').value) || 0;
+                    const price = parseFloat(row.querySelector('.price-input').value) || 0;
+                    const rowSum = qty * price;
 
-            link.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-            });
-        });
-    });
-</script>
+                    const rowDisplay = row.querySelector('.row-total-display');
+                    if (rowDisplay) rowDisplay.textContent = rowSum.toFixed(2);
 
+                    totalSum += rowSum;
+                    totalQty += qty;
+                });
+
+                // Обновляем плашку итогов
+                if (totalValueElem) totalValueElem.textContent = '₽' + totalSum.toLocaleString('ru-RU', { minimumFractionDigits: 2 });
+                if (totalItemsElem) totalItemsElem.textContent = rows.length;
+                if (totalQtyElem) totalQtyElem.textContent = totalQty;
+            }
+
+            // Слушатели
+            if (addRowBtn) {
+                addRowBtn.addEventListener('click', createRow);
+            }
+
+            if (itemsContainer) {
+                itemsContainer.addEventListener('click', (e) => {
+                    if (e.target.closest('.remove-item-btn')) {
+                        e.target.closest('.product-item').remove();
+                        reindexItems();
+                        calculateTotals();
+                    }
+                });
+
+                itemsContainer.addEventListener('input', (e) => {
+                    const row = e.target.closest('.product-item');
+                    if (e.target.classList.contains('product-select')) {
+                        const opt = e.target.options[e.target.selectedIndex];
+                        row.querySelector('.price-input').value = opt.dataset.price || 0;
+                        row.querySelector('.stock-display').textContent = opt.dataset.stock || 0;
+                    }
+                    calculateTotals();
+                });
+            }
+
+            // Инициализация: если в контейнере пусто (новая поставка), добавляем строку
+            if (itemsContainer && itemsContainer.children.length === 0) {
+                createRow();
+            } else {
+                calculateTotals(); // Если правим существующую, считаем итоги
+            }
+        })();
+    </script>
+</th:block>
 </body>
 </html>

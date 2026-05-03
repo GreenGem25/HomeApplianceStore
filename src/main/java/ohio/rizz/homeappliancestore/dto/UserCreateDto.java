@@ -18,9 +18,12 @@ import ohio.rizz.homeappliancestore.enums.Role;
 public class UserCreateDto {
     @NotBlank
     private String username;
+
     @NotBlank @Size(min = 4)
     private String password;
+
     private String fullName;
+
     @NotNull
     private Role role;
 }

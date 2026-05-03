@@ -1,31 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
 <head>
-    <meta charset="UTF-8">
-    <title>Редактировать заказ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        .sidebar {
-            position: fixed;
-            width: 250px;
-            min-height: 100vh;
-            background: #212529;
-            transition: all 0.3s;
-        }
-        .nav-link {
-            color: #adb5bd;
-            border-radius: 5px;
-            margin-bottom: 5px;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: white;
-            background: #0d6efd;
-        }
-        .nav-link i {
-            width: 24px;
-            text-align: center;
-        }
+    <title>Товары</title>
+    <style layout:fragment="styles">
         .product-item {
             border: 1px solid #dee2e6;
             border-radius: 5px;
@@ -50,205 +29,176 @@
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Боковое меню -->
-        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
-            <div class="position-sticky pt-3">
-                <div class="text-center mb-4">
-                    <h4 class="text-white">Магазин техники</h4>
+
+<!-- Основной контент -->
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-pencil-square"></i> Редактировать заказ #<span th:text="${order.orderNumber}"></span>
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a th:href="@{'/orders/' + ${order.id}}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Назад к заказу
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Сводка по заказу (read-only) -->
+    <div class="order-summary">
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Статус:</strong> <span th:text="${order.statusDisplayName}"></span></p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Клиент:</strong> <span th:text="${order.customerName}"></span></p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Дата заказа:</strong>
+                    <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
+                </p>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-4">
+                <p><strong>Скидка клиента:</strong>
+                    <span th:text="${order.customerDiscount != null ? order.customerDiscount + '%' : '0%'}"></span>
+                </p>
+            </div>
+            <div class="col-md-4">
+                <p><strong>Текущая сумма:</strong>
+                    <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Форма редактирования -->
+    <form th:action="@{/orders/{id}(id=${order.id})}" method="post" id="orderForm">
+        <input type="hidden" name="_method" value="put">
+        <input type="hidden" name="customerId" th:value="${order.customerId}">
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-12">
+                        <label for="shippingAddress" class="form-label">Адрес доставки *</label>
+                        <input type="text" class="form-control" id="shippingAddress"
+                               name="shippingAddress" th:value="${order.shippingAddress}" required>
+                    </div>
                 </div>
-                <ul class="nav flex-column px-3">
-                    <li class="nav-item" th:each="item : ${menuItems}">
-                        <a th:href="@{${item.url}}"
-                           class="nav-link d-flex align-items-center"
-                           th:classappend="${item.isActive} ? 'active'">
-                            <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
-                            <span th:text="${item.name}"></span>
-                        </a>
-                    </li>
-                </ul>
+
+                <h5 class="border-bottom pb-2 mt-4">Товары в заказе</h5>
+                <div id="itemsContainer">
+                    <!-- Существующие товары (обрабатываются Thymeleaf) -->
+                    <div class="product-item" th:each="item, iterStat : ${order.items}">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label class="form-label">Товар *</label>
+                                <select class="form-select product-select"
+                                        th:name="'items[' + ${iterStat.index} + '].productId'"
+                                        th:attr="data-index=${iterStat.index}"
+                                        required>
+                                    <option value="">-- Выберите товар --</option>
+                                    <option th:each="product : ${products}"
+                                            th:value="${product.id}"
+                                            th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
+                                            th:attr="data-price=${product.price}, data-stock=${product.stockQuantity}"
+                                            th:selected="${product.id == item.productId}"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Количество *</label>
+                                <div class="d-flex align-items-center">
+                                    <input type="number"
+                                           class="form-control quantity-input me-2"
+                                           th:name="'items[' + ${iterStat.index} + '].quantity'"
+                                           th:value="${item.quantity}"
+                                           min="1"
+                                           required>
+                                    <button type="button" class="btn btn-danger btn-remove remove-item-btn">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <small class="stock-info text-muted">
+                                    Доступно: <span class="stock-value">0</span>
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" id="addItemBtn" class="btn btn-outline-primary mt-3">
+                    <i class="bi bi-plus-circle"></i> Добавить товар
+                </button>
             </div>
         </div>
 
-        <!-- Основной контент -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">
-                    <i class="bi bi-pencil-square"></i> Редактировать заказ #<span th:text="${order.orderNumber}"></span>
-                </h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{'/orders/' + ${order.id}}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Назад к заказу
-                    </a>
-                </div>
-            </div>
-
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${errorMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-
-            <!-- Сводка по заказу (read-only) -->
-            <div class="order-summary">
-                <div class="row">
-                    <div class="col-md-4">
-                        <p><strong>Статус:</strong> <span th:text="${order.statusDisplayName}"></span></p>
-                    </div>
-                    <div class="col-md-4">
-                        <p><strong>Клиент:</strong> <span th:text="${order.customerName}"></span></p>
-                    </div>
-                    <div class="col-md-4">
-                        <p><strong>Дата заказа:</strong>
-                            <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
-                        </p>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-md-4">
-                        <p><strong>Скидка клиента:</strong>
-                            <span th:text="${order.customerDiscount != null ? order.customerDiscount + '%' : '0%'}"></span>
-                        </p>
-                    </div>
-                    <div class="col-md-4">
-                        <p><strong>Текущая сумма:</strong>
-                            <span th:text="${#numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')} + ' ₽'"></span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Форма редактирования -->
-            <form th:action="@{/orders/{id}(id=${order.id})}" method="post" id="orderForm">
-                <input type="hidden" name="_method" value="put">
-                <input type="hidden" name="customerId" th:value="${order.customerId}">
-
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label for="shippingAddress" class="form-label">Адрес доставки *</label>
-                                <input type="text" class="form-control" id="shippingAddress"
-                                       name="shippingAddress" th:value="${order.shippingAddress}" required>
-                            </div>
-                        </div>
-
-                        <h5 class="border-bottom pb-2 mt-4">Товары в заказе</h5>
-                        <div id="itemsContainer">
-                            <!-- Существующие товары (обрабатываются Thymeleaf) -->
-                            <div class="product-item" th:each="item, iterStat : ${order.items}">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Товар *</label>
-                                        <select class="form-select product-select"
-                                                th:name="'items[' + ${iterStat.index} + '].productId'"
-                                                th:attr="data-index=${iterStat.index}"
-                                                required>
-                                            <option value="">-- Выберите товар --</option>
-                                            <option th:each="product : ${products}"
-                                                    th:value="${product.id}"
-                                                    th:text="${product.name + ' (₽' + #numbers.formatDecimal(product.price, 1, 2, 'COMMA') + ')'}"
-                                                    th:attr="data-price=${product.price}, data-stock=${product.stockQuantity}"
-                                                    th:selected="${product.id == item.productId}"></option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Количество *</label>
-                                        <div class="d-flex align-items-center">
-                                            <input type="number"
-                                                   class="form-control quantity-input me-2"
-                                                   th:name="'items[' + ${iterStat.index} + '].quantity'"
-                                                   th:value="${item.quantity}"
-                                                   min="1"
-                                                   required>
-                                            <button type="button" class="btn btn-danger btn-remove remove-item-btn">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </div>
-                                        <small class="stock-info text-muted">
-                                            Доступно: <span class="stock-value">0</span>
-                                        </small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="button" id="addItemBtn" class="btn btn-outline-primary mt-3">
-                            <i class="bi bi-plus-circle"></i> Добавить товар
-                        </button>
-                    </div>
-                </div>
-
-                <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="bi bi-save"></i> Сохранить изменения
-                    </button>
-                    <a th:href="@{'/orders/' + ${order.id}}" class="btn btn-outline-secondary">
-                        <i class="bi bi-x-circle"></i> Отмена
-                    </a>
-                </div>
-            </form>
-        </main>
-    </div>
+        <div class="d-flex justify-content-end">
+            <button type="submit" class="btn btn-primary me-2">
+                <i class="bi bi-save"></i> Сохранить изменения
+            </button>
+            <a th:href="@{'/orders/' + ${order.id}}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Отмена
+            </a>
+        </div>
+    </form>
 </div>
 
-<!-- Передаем данные о товарах в JavaScript -->
-<script th:inline="javascript">
-    /*<![CDATA[*/
-    const productsData = /*[[${products}]]*/ [];
-    console.log('Products loaded:', productsData.length);
-    /*]]>*/
-</script>
+<!-- Скрипты для страницы товаров (если нужны специфичные) -->
+<th:block layout:fragment="scripts">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Используем глобальную переменную productsData
+            console.log('Products in DOMContentLoaded:', productsData.length);
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Используем глобальную переменную productsData
-        console.log('Products in DOMContentLoaded:', productsData.length);
+            let itemCount = document.querySelectorAll('.product-item').length;
 
-        let itemCount = document.querySelectorAll('.product-item').length;
+            // Функция обновления информации об остатке
+            function updateStockInfo(selectElement) {
+                const productItem = selectElement.closest('.product-item');
+                const stockSpan = productItem.querySelector('.stock-value');
+                const quantityInput = productItem.querySelector('.quantity-input');
 
-        // Функция обновления информации об остатке
-        function updateStockInfo(selectElement) {
-            const productItem = selectElement.closest('.product-item');
-            const stockSpan = productItem.querySelector('.stock-value');
-            const quantityInput = productItem.querySelector('.quantity-input');
+                const selectedOption = selectElement.options[selectElement.selectedIndex];
 
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
+                if (selectedOption && selectedOption.value) {
+                    const stock = parseInt(selectedOption.dataset.stock) || 0;
+                    stockSpan.textContent = stock;
 
-            if (selectedOption && selectedOption.value) {
-                const stock = parseInt(selectedOption.dataset.stock) || 0;
-                stockSpan.textContent = stock;
+                    // Устанавливаем максимальное количество
+                    quantityInput.max = stock;
 
-                // Устанавливаем максимальное количество
-                quantityInput.max = stock;
-
-                // Проверяем текущее значение
-                const currentValue = parseInt(quantityInput.value);
-                if (currentValue > stock) {
-                    quantityInput.value = stock;
+                    // Проверяем текущее значение
+                    const currentValue = parseInt(quantityInput.value);
+                    if (currentValue > stock) {
+                        quantityInput.value = stock;
+                    }
+                } else {
+                    stockSpan.textContent = '0';
+                    quantityInput.removeAttribute('max');
                 }
-            } else {
-                stockSpan.textContent = '0';
-                quantityInput.removeAttribute('max');
             }
-        }
 
-        // Функция создания нового элемента товара
-        function createProductItem(index) {
-            const div = document.createElement('div');
-            div.className = 'product-item';
+            // Функция создания нового элемента товара
+            function createProductItem(index) {
+                const div = document.createElement('div');
+                div.className = 'product-item';
 
-            let optionsHtml = '<option value="">-- Выберите товар --</option>';
-            productsData.forEach(product => {
-                optionsHtml += `<option value="${product.id}"
+                let optionsHtml = '<option value="">-- Выберите товар --</option>';
+                productsData.forEach(product => {
+                    optionsHtml += `<option value="${product.id}"
                     data-price="${product.price}"
                     data-stock="${product.stockQuantity}">
                     ${product.name} (₽${product.price.toFixed(2)})
                 </option>`;
-            });
+                });
 
-            div.innerHTML = `
+                div.innerHTML = `
                 <div class="row">
                     <div class="col-md-6">
                         <label class="form-label">Товар *</label>
@@ -278,136 +228,137 @@
                 </div>
             `;
 
-            return div;
-        }
+                return div;
+            }
 
-        // Добавление нового товара
-        document.getElementById('addItemBtn').addEventListener('click', function() {
-            const container = document.getElementById('itemsContainer');
-            const newItem = createProductItem(itemCount);
-            container.appendChild(newItem);
+            // Добавление нового товара
+            document.getElementById('addItemBtn').addEventListener('click', function() {
+                const container = document.getElementById('itemsContainer');
+                const newItem = createProductItem(itemCount);
+                container.appendChild(newItem);
 
-            // Добавляем обработчик для нового селекта
-            const newSelect = newItem.querySelector('.product-select');
-            newSelect.addEventListener('change', function() {
-                updateStockInfo(this);
+                // Добавляем обработчик для нового селекта
+                const newSelect = newItem.querySelector('.product-select');
+                newSelect.addEventListener('change', function() {
+                    updateStockInfo(this);
+                });
+
+                itemCount++;
+                console.log('New item added, total items:', itemCount);
             });
 
-            itemCount++;
-            console.log('New item added, total items:', itemCount);
-        });
+            // Удаление товара
+            document.addEventListener('click', function(e) {
+                if (e.target.classList.contains('remove-item-btn') ||
+                    e.target.closest('.remove-item-btn')) {
 
-        // Удаление товара
-        document.addEventListener('click', function(e) {
-            if (e.target.classList.contains('remove-item-btn') ||
-                e.target.closest('.remove-item-btn')) {
-
-                const item = e.target.closest('.product-item');
-                if (document.querySelectorAll('.product-item').length > 1) {
-                    item.remove();
-                    reindexItems();
-                } else {
-                    alert('Заказ должен содержать хотя бы один товар');
+                    const item = e.target.closest('.product-item');
+                    if (document.querySelectorAll('.product-item').length > 1) {
+                        item.remove();
+                        reindexItems();
+                    } else {
+                        alert('Заказ должен содержать хотя бы один товар');
+                    }
                 }
-            }
-        });
+            });
 
-        // Переиндексация элементов после удаления
-        function reindexItems() {
-            let index = 0;
+            // Переиндексация элементов после удаления
+            function reindexItems() {
+                let index = 0;
+                document.querySelectorAll('.product-item').forEach(item => {
+                    const select = item.querySelector('.product-select');
+                    const quantity = item.querySelector('.quantity-input');
+
+                    select.name = `items[${index}].productId`;
+                    quantity.name = `items[${index}].quantity`;
+
+                    index++;
+                });
+                itemCount = index;
+                console.log('Items reindexed, total items:', itemCount);
+            }
+
+            // Инициализация обработчиков для существующих элементов
             document.querySelectorAll('.product-item').forEach(item => {
                 const select = item.querySelector('.product-select');
-                const quantity = item.querySelector('.quantity-input');
 
-                select.name = `items[${index}].productId`;
-                quantity.name = `items[${index}].quantity`;
-
-                index++;
-            });
-            itemCount = index;
-            console.log('Items reindexed, total items:', itemCount);
-        }
-
-        // Инициализация обработчиков для существующих элементов
-        document.querySelectorAll('.product-item').forEach(item => {
-            const select = item.querySelector('.product-select');
-
-            // Устанавливаем начальное значение остатка для выбранного товара
-            if (select.value) {
-                updateStockInfo(select);
-            }
-
-            // Добавляем обработчик изменения
-            select.addEventListener('change', function() {
-                updateStockInfo(this);
-            });
-
-            // Добавляем обработчик для проверки количества
-            const quantityInput = item.querySelector('.quantity-input');
-            quantityInput.addEventListener('change', function() {
-                const select = item.querySelector('.product-select');
+                // Устанавливаем начальное значение остатка для выбранного товара
                 if (select.value) {
-                    const max = parseInt(select.selectedOptions[0]?.dataset.stock || 0);
-                    const value = parseInt(this.value);
+                    updateStockInfo(select);
+                }
 
-                    if (value > max) {
-                        this.value = max;
-                        alert(`Максимальное количество: ${max}`);
+                // Добавляем обработчик изменения
+                select.addEventListener('change', function() {
+                    updateStockInfo(this);
+                });
+
+                // Добавляем обработчик для проверки количества
+                const quantityInput = item.querySelector('.quantity-input');
+                quantityInput.addEventListener('change', function() {
+                    const select = item.querySelector('.product-select');
+                    if (select.value) {
+                        const max = parseInt(select.selectedOptions[0]?.dataset.stock || 0);
+                        const value = parseInt(this.value);
+
+                        if (value > max) {
+                            this.value = max;
+                            alert(`Максимальное количество: ${max}`);
+                        }
                     }
-                }
+                });
             });
-        });
 
-        // Валидация формы перед отправкой
-        document.getElementById('orderForm').addEventListener('submit', function(e) {
-            let isValid = true;
+            // Валидация формы перед отправкой
+            document.getElementById('orderForm').addEventListener('submit', function(e) {
+                let isValid = true;
 
-            // Проверка адреса
-            const shippingAddress = document.getElementById('shippingAddress').value;
-            if (!shippingAddress.trim()) {
-                alert('Укажите адрес доставки');
-                isValid = false;
-                e.preventDefault();
-                return;
-            }
-
-            // Проверка товаров
-            const items = document.querySelectorAll('.product-item');
-            if (items.length === 0) {
-                alert('Добавьте хотя бы один товар');
-                isValid = false;
-                e.preventDefault();
-                return;
-            }
-
-            items.forEach((item, index) => {
-                const select = item.querySelector('.product-select');
-                const quantity = item.querySelector('.quantity-input');
-
-                if (!select.value) {
-                    alert(`Выберите товар для позиции ${index + 1}`);
+                // Проверка адреса
+                const shippingAddress = document.getElementById('shippingAddress').value;
+                if (!shippingAddress.trim()) {
+                    alert('Укажите адрес доставки');
                     isValid = false;
+                    e.preventDefault();
+                    return;
                 }
 
-                if (!quantity.value || parseInt(quantity.value) < 1) {
-                    alert(`Укажите корректное количество для позиции ${index + 1}`);
+                // Проверка товаров
+                const items = document.querySelectorAll('.product-item');
+                if (items.length === 0) {
+                    alert('Добавьте хотя бы один товар');
                     isValid = false;
+                    e.preventDefault();
+                    return;
                 }
 
-                if (select.value) {
-                    const max = parseInt(select.selectedOptions[0]?.dataset.stock || 0);
-                    if (max > 0 && parseInt(quantity.value) > max) {
-                        alert(`Количество товара "${select.selectedOptions[0]?.text}" превышает доступный остаток (${max})`);
+                items.forEach((item, index) => {
+                    const select = item.querySelector('.product-select');
+                    const quantity = item.querySelector('.quantity-input');
+
+                    if (!select.value) {
+                        alert(`Выберите товар для позиции ${index + 1}`);
                         isValid = false;
                     }
+
+                    if (!quantity.value || parseInt(quantity.value) < 1) {
+                        alert(`Укажите корректное количество для позиции ${index + 1}`);
+                        isValid = false;
+                    }
+
+                    if (select.value) {
+                        const max = parseInt(select.selectedOptions[0]?.dataset.stock || 0);
+                        if (max > 0 && parseInt(quantity.value) > max) {
+                            alert(`Количество товара "${select.selectedOptions[0]?.text}" превышает доступный остаток (${max})`);
+                            isValid = false;
+                        }
+                    }
+                });
+
+                if (!isValid) {
+                    e.preventDefault();
                 }
             });
-
-            if (!isValid) {
-                e.preventDefault();
-            }
         });
-    });
-</script>
+    </script>
+</th:block>
 </body>
 </html>
