@@ -18,5 +18,6 @@ public class UserDto {
     private String password;
     private Role role;
     private String fullName;
+    @Builder.Default
     private boolean enabled = true;
 }

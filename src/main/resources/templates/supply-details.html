@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Товары</title>
+    <title th:text="'Информация о поставке #'+${supply.supplyNumber}"></title>
     <style layout:fragment="styles">
         .supply-details-card {
             border-radius: 10px;
@@ -44,8 +44,8 @@
         <h1 class="h2">
             <i class="bi bi-truck"></i> Поставка #<span th:text="${supply.supplyNumber}"></span>
             <span class="badge status-badge ms-2"
-                  th:classappend="${supply.status == 'PENDING'} ? 'status-pending' :
-                                         (${supply.status == 'COMPLETED'} ? 'status-completed' : 'status-cancelled')"
+                  th:classappend="${supply.status.name() == 'PENDING'} ? 'status-pending' :
+                                         (${supply.status.name() == 'COMPLETED'} ? 'status-completed' : 'status-cancelled')"
                   th:text="${supply.statusDisplayName}"></span>
         </h1>
         <div class="btn-toolbar mb-2 mb-md-0">
@@ -78,8 +78,8 @@
                     <div class="mb-3">
                         <span class="fw-bold">Статус:</span>
                         <span class="badge"
-                              th:classappend="${supply.status == 'PENDING'} ? 'bg-warning' :
-                                                     (${supply.status == 'COMPLETED'} ? 'bg-success' : 'bg-danger')"
+                              th:classappend="${supply.status.name() == 'PENDING'} ? 'bg-warning' :
+                                                     (${supply.status.name() == 'COMPLETED'} ? 'bg-success' : 'bg-danger')"
                               th:text="${supply.statusDisplayName}"></span>
                     </div>
                     <div class="mb-3">
@@ -203,7 +203,7 @@
                     <p>Вы уверены, что хотите удалить поставку #<span th:text="${supply.supplyNumber}"></span>?</p>
                     <div class="alert alert-warning mt-3">
                         <i class="bi bi-exclamation-triangle"></i>
-                        <span th:if="${supply.status == 'COMPLETED'}">
+                        <span th:if="${supply.status.name() == 'COMPLETED'}">
                                     Все товары (<span th:text="${supply.totalItems}"></span> позиций) будут возвращены со склада!
                                 </span>
                         Это действие нельзя отменить!

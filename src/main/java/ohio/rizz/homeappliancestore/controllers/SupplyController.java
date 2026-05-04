@@ -50,13 +50,13 @@ public class SupplyController {
         // Подсчет статистики
         int totalSupplies = supplies.size();
         int pendingCount = (int) supplies.stream()
-                .filter(s -> "PENDING".equals(s.getStatus()))
+                .filter(s -> "PENDING".equals(s.getStatus().name()))
                 .count();
         int completedCount = (int) supplies.stream()
-                .filter(s -> "COMPLETED".equals(s.getStatus()))
+                .filter(s -> "COMPLETED".equals(s.getStatus().name()))
                 .count();
         int cancelledCount = (int) supplies.stream()
-                .filter(s -> "CANCELLED".equals(s.getStatus()))
+                .filter(s -> "CANCELLED".equals(s.getStatus().name()))
                 .count();
 
         model.addAttribute("supplies", supplies);
@@ -76,7 +76,7 @@ public class SupplyController {
     public String getSupplyDetails(@PathVariable UUID id, Model model) {
         SupplyDto supply = supplyService.getSupplyById(id);
         model.addAttribute("supply", supply);
-        model.addAttribute("canEdit", !"COMPLETED".equals(supply.getStatus()));
+        model.addAttribute("canEdit", !"COMPLETED".equals(supply.getStatus().name()));
         return "supply-details";
     }
 
@@ -118,7 +118,7 @@ public class SupplyController {
     public String showEditSupplyForm(@PathVariable UUID id, Model model) {
         SupplyDto supply = supplyService.getSupplyById(id);
 
-        if ("COMPLETED".equals(supply.getStatus())) {
+        if ("COMPLETED".equals(supply.getStatus().name())) {
             throw new IllegalStateException("Нельзя редактировать завершенную поставку");
         }
 
@@ -126,6 +126,7 @@ public class SupplyController {
         createDto.setSupplierId(supply.getSupplierId());
         createDto.setSupplyDate(supply.getSupplyDate());
         createDto.setNotes(supply.getNotes());
+        createDto.setSupplyNumber(supply.getSupplyNumber());
         List<SupplyItemCreateDto> itemCreateDtos = supply.getItems().stream()
                 .map(supplyItemEditMapper::toCreateDto)
                 .collect(Collectors.toList());

@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ohio.rizz.homeappliancestore.entities.Supply;
+import ohio.rizz.homeappliancestore.enums.SupplyStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -21,7 +22,7 @@ public class SupplyDto {
     private String supplierName;
     private String supplierContact;
     private LocalDateTime supplyDate;
-    private String status;
+    private SupplyStatus status;
     private String statusDisplayName;
     private String notes;
     private LocalDateTime createdAt;

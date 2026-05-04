@@ -3,7 +3,9 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Товары</title>
+    <title>Редактирование поставки</title>
+    <!-- flatpickr CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/light.css">
     <style layout:fragment="styles">
         .content { margin-left: 250px; padding: 20px; background: #f8f9fa; min-height: 100vh; }
         .product-item { border: 1px solid #dee2e6; border-radius: 8px; padding: 15px; margin-bottom: 15px; background: white; }
@@ -15,7 +17,7 @@
 <!-- Основной контент -->
 <div layout:fragment="content">
     <div class="container-fluid">
-        <form th:action="@{/supplies/{id}(id=${id})}" th:method="post" th:object="${supply}" id="supplyForm">
+        <form th:action="@{/supplies/{id}(id=${supplyId})}" th:method="post" th:object="${supply}" id="supplyForm">
             <input type="hidden" name="_method" value="PUT" />
 
             <div class="d-flex justify-content-between align-items-center mb-4">
@@ -23,7 +25,7 @@
                     <h2 class="mb-0">Редактирование поставки <span th:text="${supplyNumber}" class="text-muted small"></span></h2>
                 </div>
                 <div class="d-flex gap-2">
-                    <a th:href="@{/supplies/{id}(id=${id})}" class="btn btn-outline-secondary">Отмена</a>
+                    <a th:href="@{/supplies/{id}(id=${supplyId})}" class="btn btn-outline-secondary">Отмена</a>
                     <button type="submit" class="btn btn-primary">Сохранить</button>
                 </div>
             </div>
@@ -54,34 +56,37 @@
                         </div>
                         <div class="card-body">
                             <div id="itemsContainer">
-                                <div th:each="item, stat : *{items}" class="product-item">
-                                    <div class="row align-items-end g-3">
-                                        <div class="col-md-5">
-                                            <label class="form-label small text-muted">Товар</label>
-                                            <select th:field="*{items[__${stat.index}__].productId}" class="form-select product-select" required>
-                                                <option value="">-- Выберите товар --</option>
-                                                <option th:each="p : ${products}"
-                                                        th:value="${p.id}"
-                                                        th:text="${p.name}"
-                                                        th:data-price="${p.price}"></option>
-                                            </select>
+                                <!-- Существующие строки редактируемой поставки -->
+                                <th:block th:each="item, stat : *{items}">
+                                    <div class="product-item">
+                                        <div class="row align-items-end g-3">
+                                            <div class="col-md-5">
+                                                <label class="form-label small text-muted">Товар</label>
+                                                <select th:field="*{items[__${stat.index}__].productId}" class="form-select product-select" required>
+                                                    <option value="">-- Выберите товар --</option>
+                                                    <option th:each="p : ${products}"
+                                                            th:value="${p.id}"
+                                                            th:text="${p.name}"
+                                                            th:data-price="${p.price}"></option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small text-muted">Кол-во</label>
+                                                <input type="number" th:field="*{items[__${stat.index}__].quantity}" class="form-control quantity-input" min="1" required>
+                                            </div>
+                                            <div class="col-md-3">
+                                                <label class="form-label small text-muted">Цена за ед.</label>
+                                                <input type="number" th:field="*{items[__${stat.index}__].pricePerUnit}" class="form-control price-input" step="0.01" min="0" required>
+                                            </div>
+                                            <div class="col-md-1">
+                                                <button type="button" class="btn btn-outline-danger remove-item-btn"><i class="bi bi-trash"></i></button>
+                                            </div>
                                         </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label small text-muted">Кол-во</label>
-                                            <input type="number" th:field="*{items[__${stat.index}__].quantity}" class="form-control quantity-input" min="1" required>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label small text-muted">Цена за ед.</label>
-                                            <input type="number" th:field="*{items[__${stat.index}__].pricePerUnit}" class="form-control price-input" step="0.01" min="0" required>
-                                        </div>
-                                        <div class="col-md-1">
-                                            <button type="button" class="btn btn-outline-danger remove-item-btn"><i class="bi bi-trash"></i></button>
+                                        <div class="mt-2 text-end">
+                                            <small class="text-muted">Позиция на сумму: <span class="row-total-display">0.00</span> ₽</small>
                                         </div>
                                     </div>
-                                    <div class="mt-2 text-end">
-                                        <small class="text-muted">Позиция на сумму: <span class="row-total-display">0.00</span> ₽</small>
-                                    </div>
-                                </div>
+                                </th:block>
                             </div>
                         </div>
                     </div>
@@ -104,16 +109,15 @@
     </div>
 </div>
 
-<!-- Скрипты для страницы товаров (если нужны специфичные) -->
 <th:block layout:fragment="scripts">
-    <script th:inline="javascript">
-        (function() {
-            // Загружаем список продуктов из модели для новых строк
-            const allProducts = [[${products}]] || [];
-            const itemsContainer = document.getElementById('itemsContainer');
-            const addItemBtn = document.getElementById('addItemBtn');
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
 
-            // Flatpickr инициализация
+    <script th:inline="javascript">
+        const allProducts = /*[[${products}]]*/ [];
+        console.log('Товары загружены:', allProducts);
+
+        document.addEventListener('DOMContentLoaded', function() {
             flatpickr("#supplyDate", {
                 enableTime: true,
                 dateFormat: "Y-m-dTH:i",
@@ -121,46 +125,57 @@
                 locale: "ru"
             });
 
-            // Расчет итогов (с учетом уже существующих данных в HTML)
+            const itemsContainer = document.getElementById('itemsContainer');
+            const addItemBtn = document.getElementById('addItemBtn');
+
+            function updateRowDisplay(row) {
+                const qty = parseFloat(row.querySelector('.quantity-input')?.value) || 0;
+                const price = parseFloat(row.querySelector('.price-input')?.value) || 0;
+                const rowDisplay = row.querySelector('.row-total-display');
+                if (rowDisplay) rowDisplay.textContent = (qty * price).toFixed(2);
+            }
+
             function calculateTotals() {
                 let totalSum = 0;
                 let totalQty = 0;
                 const rows = itemsContainer.querySelectorAll('.product-item');
 
-                rows.forEach(row => {
-                    const q = parseFloat(row.querySelector('.quantity-input').value) || 0;
-                    const p = parseFloat(row.querySelector('.price-input').value) || 0;
-                    const sum = q * p;
+                rows.forEach(row => updateRowDisplay(row));
 
-                    row.querySelector('.row-total-display').textContent = sum.toFixed(2);
-                    totalSum += sum;
-                    totalQty += q;
+                rows.forEach(row => {
+                    const qty = parseFloat(row.querySelector('.quantity-input')?.value) || 0;
+                    const price = parseFloat(row.querySelector('.price-input')?.value) || 0;
+                    totalSum += qty * price;
+                    totalQty += qty;
                 });
 
-                document.getElementById('totalValue').textContent = totalSum.toLocaleString('ru-RU', { minimumFractionDigits: 2 }) + ' ₽';
+                document.getElementById('totalValue').textContent =
+                    totalSum.toLocaleString('ru-RU', { minimumFractionDigits: 2 }) + ' ₽';
                 document.getElementById('totalItems').textContent = rows.length;
                 document.getElementById('totalQuantity').textContent = totalQty;
             }
 
-            // Функция добавления НОВОЙ строки (использует индекс на основе текущего кол-ва строк)
             function createRow() {
+                if (!allProducts || allProducts.length === 0) {
+                    alert('Ошибка: список товаров не загружен');
+                    return;
+                }
                 const index = itemsContainer.querySelectorAll('.product-item').length;
                 const row = document.createElement('div');
                 row.className = 'product-item';
-
                 row.innerHTML = `
                 <div class="row align-items-end g-3">
                     <div class="col-md-5">
-                        <select name="items[${index}].productId" class="form-select product-select" required>
+                        <select class="form-select product-select" name="items[${index}].productId" required>
                             <option value="">-- Выберите товар --</option>
                             ${allProducts.map(p => `<option value="${p.id}" data-price="${p.price}">${p.name}</option>`).join('')}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <input type="number" name="items[${index}].quantity" class="form-control quantity-input" min="1" value="1" required>
+                        <input type="number" class="form-control quantity-input" name="items[${index}].quantity" min="1" value="1" required>
                     </div>
                     <div class="col-md-3">
-                        <input type="number" name="items[${index}].pricePerUnit" class="form-control price-input" step="0.01" min="0" required>
+                        <input type="number" class="form-control price-input" name="items[${index}].pricePerUnit" step="0.01" min="0" required>
                     </div>
                     <div class="col-md-1">
                         <button type="button" class="btn btn-outline-danger remove-item-btn"><i class="bi bi-trash"></i></button>
@@ -174,7 +189,6 @@
                 calculateTotals();
             }
 
-            // Переиндексация (нужна ТОЛЬКО при удалении строки)
             function reindexItems() {
                 itemsContainer.querySelectorAll('.product-item').forEach((row, i) => {
                     row.querySelector('.product-select').name = `items[${i}].productId`;
@@ -183,35 +197,58 @@
                 });
             }
 
-            // Слушатели событий
             addItemBtn.addEventListener('click', createRow);
 
             itemsContainer.addEventListener('click', (e) => {
                 if (e.target.closest('.remove-item-btn')) {
-                    e.target.closest('.product-item').remove();
-                    reindexItems();
+                    const row = e.target.closest('.product-item');
+                    const allRows = itemsContainer.querySelectorAll('.product-item');
+                    if (allRows.length <= 1) {
+                        const select = row.querySelector('.product-select');
+                        const qty = row.querySelector('.quantity-input');
+                        const price = row.querySelector('.price-input');
+                        if (select) select.selectedIndex = 0;
+                        if (qty) qty.value = 1;
+                        if (price) price.value = '';
+                    } else {
+                        row.remove();
+                        reindexItems();
+                    }
                     calculateTotals();
                 }
             });
 
+            // Только при смене товара проставляем цену
             itemsContainer.addEventListener('input', (e) => {
                 if (e.target.classList.contains('product-select')) {
-                    const opt = e.target.options[e.target.selectedIndex];
+                    const option = e.target.options[e.target.selectedIndex];
                     const row = e.target.closest('.product-item');
-                    // Подставляем цену только если она еще не установлена или товар изменился
-                    if (opt && opt.dataset.price) {
-                        row.querySelector('.price-input').value = opt.dataset.price;
+                    if (option && option.dataset.price) {
+                        row.querySelector('.price-input').value = option.dataset.price;
                     }
                 }
                 calculateTotals();
             });
 
-            // КРИТИЧЕСКИЙ МОМЕНТ: Инициализация при открытии страницы
-            // Если Thymeleaf отрисовал строки, просто считаем итоги.
-            // Не вызываем createRow(), чтобы не добавлять пустую строку поверх существующих.
-            calculateTotals();
-
-        })();
+            // Инициализация при загрузке
+            const rows = itemsContainer.querySelectorAll('.product-item');
+            if (rows.length === 0) {
+                createRow();
+            } else {
+                rows.forEach(row => {
+                    const select = row.querySelector('.product-select');
+                    const priceInput = row.querySelector('.price-input');
+                    if (select && select.selectedIndex > 0) {
+                        const option = select.options[select.selectedIndex];
+                        // Подставляем цену только если она не задана
+                        if (priceInput && (!priceInput.value || priceInput.value === '0')) {
+                            priceInput.value = option.dataset.price || '';
+                        }
+                    }
+                });
+                calculateTotals();
+            }
+        });
     </script>
 </th:block>
 </body>

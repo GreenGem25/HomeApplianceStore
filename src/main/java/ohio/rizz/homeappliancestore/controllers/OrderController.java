@@ -8,6 +8,7 @@ import ohio.rizz.homeappliancestore.mappers.OrderEditMapper;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import ohio.rizz.homeappliancestore.services.OrderService;
 import ohio.rizz.homeappliancestore.services.ProductService;
+import ohio.rizz.homeappliancestore.services.SettingsService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -25,6 +26,7 @@ public class OrderController {
     private final CustomerService customerService;
     private final ProductService productService;
     private final OrderEditMapper orderEditMapper;
+    private final SettingsService settingsService;
 
     @GetMapping
     public String listOrders(
@@ -178,5 +180,14 @@ public class OrderController {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при удалении заказа: " + e.getMessage());
         }
         return "redirect:/orders";
+    }
+
+    @GetMapping("/{id}/print")
+    public String printOrder(@PathVariable UUID id, Model model) {
+        OrderDto order = orderService.getOrderById(id);
+        SettingsDto settingsDto = settingsService.getSettings();
+        model.addAttribute("order", order);
+        model.addAttribute("settings", settingsDto);
+        return "order-print";
     }
 }

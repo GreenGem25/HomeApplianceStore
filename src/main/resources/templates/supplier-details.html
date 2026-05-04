@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Товары</title>
+    <title th:text="'О поставщике: '+${supplier.name}"></title>
     <style layout:fragment="styles">
         .supplier-details-card {
             border-radius: 10px;

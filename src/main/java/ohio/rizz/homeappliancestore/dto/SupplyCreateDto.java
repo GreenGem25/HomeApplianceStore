@@ -27,9 +27,12 @@ public class SupplyCreateDto {
     @PastOrPresent(message = "Дата поставки не может быть в будущем")
     private LocalDateTime supplyDate;
 
+    private String supplyNumber;
+
     private String notes;
 
     @NotEmpty(message = "Добавьте хотя бы один товар")
     @Valid
+    @Builder.Default
     private List<SupplyItemCreateDto> items = new ArrayList<>();
 }

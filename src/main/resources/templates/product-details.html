@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Товары</title>
+    <title th:text="'О товаре: '+${product.name}"></title>
     <style layout:fragment="styles">
         .product-image {
             max-height: 400px;

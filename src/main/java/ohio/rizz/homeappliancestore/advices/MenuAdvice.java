@@ -33,7 +33,8 @@ public class MenuAdvice {
         if (isAdmin) {
             items.addAll(List.of(
                     new MenuItem("Аналитика", "/analytics", "bi-graph-up", currentPath.startsWith("/analytics")),
-                    new MenuItem("Пользователи", "/users", "bi-people", currentPath.startsWith("/users"))
+                    new MenuItem("Пользователи", "/users", "bi-people", currentPath.startsWith("/users")),
+                    new MenuItem("Настройки", "/settings", "bi-gear", currentPath.startsWith("/settings"))
             ));
         }
 

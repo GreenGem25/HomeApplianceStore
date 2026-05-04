@@ -214,3 +214,6 @@ INSERT INTO users (user_id, username, password, role, full_name, enabled)
 VALUES
     ('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'admin', '$2a$10$50C3EUMQP/PZU9NshSksSuLtk4A7dixlfaOFHXvN9lnBV1J4rFp8S', 'ADMIN', 'Администратор', true),
     ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'manager', '$2a$10$o3zMDO36IGPIZ7qmLUnTg.bX46ABl8Q6uweeAEn3ROzYK.neyUX3e', 'MANAGER', 'Менеджер', true);
+
+INSERT INTO settings (id, shop_name, address, phone, email)
+VALUES ('00000000-0000-0000-0000-000000000001', 'Магазин техники', 'г. Ваш Город, ул. Примерная, 1', '+7 (000) 000-00-00', 'info@shop.ru');

@@ -145,7 +145,7 @@ public class ProductController {
         try {
             productService.updateProduct(id, createDto, imageFile);
             redirectAttributes.addFlashAttribute("successMessage", "Товар успешно обновлен!");
-            return "redirect:/products";
+            return "redirect:/products" + id;
         } catch (IOException e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка при обновлении изображения");
             return "redirect:/products/" + id + "/edit";

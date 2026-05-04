@@ -3,7 +3,7 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
 <head>
-    <title>Товары</title>
+    <title>Поставки</title>
     <style layout:fragment="styles">
         .supply-card {
             transition: all 0.2s;
@@ -89,12 +89,12 @@
                     <h5 class="mb-1">
                         Поставка #<span th:text="${supply.supplyNumber}"></span>
                         <span class="badge status-badge"
-                              th:classappend="${supply.status == 'PENDING'} ? 'status-pending' :
-                                                     (${supply.status == 'COMPLETED'} ? 'status-completed' : 'status-cancelled')"
+                              th:classappend="${supply.status.name() == 'PENDING'} ? 'status-pending' :
+                                                     (${supply.status.name() == 'COMPLETED'} ? 'status-completed' : 'status-cancelled')"
                               th:text="${supply.statusDisplayName}"></span>
                     </h5>
                     <p class="mb-1">
-                        <i class="bi bi-building"></i>
+                        <i class="bi bi-truck"></i>
                         <a th:href="@{/suppliers/{id}(id=${supply.supplierId})}"
                            th:text="${supply.supplierName}"></a>
                     </p>
@@ -109,7 +109,16 @@
                 </div>
                 <div class="text-end">
                     <h5 th:text="${'₽' + #numbers.formatDecimal(supply.totalValue, 1, 2, 'COMMA')}"></h5>
-                    <a th:href="@{/supplies/{id}(id=${supply.id})}" class="btn btn-sm btn-outline-primary">
+
+                    <a th:if="${supply.status.name() == 'PENDING'}"
+                       th:href="@{/supplies/{id}/edit(id=${supply.id})}"
+                       class="btn btn-sm btn-outline-success position-relative"
+                       style="z-index: 2;"
+                       title="Редактировать поставку">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+
+                    <a th:href="@{/supplies/{id}(id=${supply.id})}" class="btn btn-sm btn-outline-primary stretched-link">
                         <i class="bi bi-eye"></i> Подробнее
                     </a>
                 </div>
