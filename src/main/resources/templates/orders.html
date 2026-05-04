@@ -1,31 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
 <head>
-  <meta charset="UTF-8">
-  <title>Заказы</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-  <style>
-    .sidebar {
-      position: fixed;
-      width: 250px;
-      min-height: 100vh;
-      background: #212529;
-      transition: all 0.3s;
-    }
-    .nav-link {
-      color: #adb5bd;
-      border-radius: 5px;
-      margin-bottom: 5px;
-    }
-    .nav-link:hover, .nav-link.active {
-      color: white;
-      background: #0d6efd;
-    }
-    .nav-link i {
-      width: 24px;
-      text-align: center;
-    }
+  <title>Товары</title>
+  <style layout:fragment="styles">
     .order-card {
       transition: all 0.2s;
     }
@@ -65,257 +44,220 @@
   </style>
 </head>
 <body>
-<div class="container-fluid">
-  <div class="row">
-    <!-- Боковое меню -->
-    <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
-      <div class="position-sticky pt-3">
-        <div class="text-center mb-4">
-          <h4 class="text-white">Магазин техники</h4>
-        </div>
-        <ul class="nav flex-column px-3">
-          <li class="nav-item" th:each="item : ${menuItems}">
-            <a th:href="@{${item.url}}"
-               class="nav-link d-flex align-items-center"
-               th:classappend="${item.isActive} ? 'active'">
-              <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
-              <span th:text="${item.name}"></span>
-            </a>
-          </li>
-        </ul>
-      </div>
+
+<!-- Основной контент -->
+<div layout:fragment="content">
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+      <i class="bi bi-cart"></i> Список заказов
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+      <a th:href="@{/orders/add}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Создать заказ
+      </a>
     </div>
+  </div>
 
-    <!-- Основной контент -->
-    <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-      <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-        <h1 class="h2">
-          <i class="bi bi-cart"></i> Список заказов
-        </h1>
-        <div class="btn-toolbar mb-2 mb-md-0">
-          <a th:href="@{/orders/add}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Создать заказ
-          </a>
+  <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+    <span th:text="${successMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+  <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+    <span th:text="${errorMessage}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  </div>
+
+  <div th:if="${customer}" class="alert alert-info mb-3">
+    <i class="bi bi-filter"></i>
+    Показаны заказы клиента:
+    <strong th:text="${customer.fullName}"></strong>
+    <a th:href="@{/orders}" class="btn btn-sm btn-outline-danger ms-3">
+      <i class="bi bi-x"></i> Сбросить фильтр
+    </a>
+  </div>
+
+  <!-- Фильтры и поиск -->
+  <div class="filter-card">
+    <form th:action="@{/orders}" method="get" class="row g-3">
+      <div class="col-md-5">
+        <div class="input-group">
+          <input type="text" class="form-control search-input"
+                 name="search" placeholder="Поиск по номеру заказа..."
+                 th:value="${param.search != null ? param.search[0] : ''}">
+          <button class="btn btn-primary search-btn" type="submit">
+            <i class="bi bi-search"></i> Поиск
+          </button>
         </div>
       </div>
 
-      <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-        <span th:text="${successMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      </div>
-      <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-        <span th:text="${errorMessage}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      <div class="col-md-4">
+        <select class="form-select" name="status" onchange="this.form.submit()">
+          <option value="">Все статусы</option>
+          <option value="IN_PROGRESS" th:selected="${param.status != null and param.status[0] == 'IN_PROGRESS'}">
+            В сборке
+          </option>
+          <option value="COMPLETED" th:selected="${param.status != null and param.status[0] == 'COMPLETED'}">
+            Выполнены
+          </option>
+        </select>
       </div>
 
-      <div th:if="${customer}" class="alert alert-info mb-3">
-        <i class="bi bi-filter"></i>
-        Показаны заказы клиента:
-        <strong th:text="${customer.fullName}"></strong>
-        <a th:href="@{/orders}" class="btn btn-sm btn-outline-danger ms-3">
-          <i class="bi bi-x"></i> Сбросить фильтр
+      <div class="col-md-3">
+        <a th:href="@{/orders}" class="btn btn-outline-secondary w-100">
+          <i class="bi bi-x-circle"></i> Сбросить фильтры
         </a>
       </div>
+    </form>
 
-      <!-- Фильтры и поиск -->
-      <div class="filter-card">
-        <form th:action="@{/orders}" method="get" class="row g-3">
-          <div class="col-md-5">
-            <div class="input-group">
-              <input type="text" class="form-control search-input"
-                     name="search" placeholder="Поиск по номеру заказа..."
-                     th:value="${param.search != null ? param.search[0] : ''}">
-              <button class="btn btn-primary search-btn" type="submit">
-                <i class="bi bi-search"></i> Поиск
-              </button>
-            </div>
-          </div>
-
-          <div class="col-md-4">
-            <select class="form-select" name="status" onchange="this.form.submit()">
-              <option value="">Все статусы</option>
-              <option value="IN_PROGRESS" th:selected="${param.status != null and param.status[0] == 'IN_PROGRESS'}">
-                В сборке
-              </option>
-              <option value="COMPLETED" th:selected="${param.status != null and param.status[0] == 'COMPLETED'}">
-                Выполнены
-              </option>
-            </select>
-          </div>
-
-          <div class="col-md-3">
-            <a th:href="@{/orders}" class="btn btn-outline-secondary w-100">
-              <i class="bi bi-x-circle"></i> Сбросить фильтры
-            </a>
-          </div>
-        </form>
-
-        <!-- Активные фильтры - ИСПРАВЛЕНО -->
-        <div class="mt-3" th:if="${(param.search != null and !param.search.empty) or (param.status != null and !param.status.empty)}">
-          <small class="text-muted me-2">Активные фильтры:</small>
-          <span class="badge bg-info me-1" th:if="${param.search != null and !param.search.empty}">
+    <!-- Активные фильтры - ИСПРАВЛЕНО -->
+    <div class="mt-3" th:if="${(param.search != null and !param.search.empty) or (param.status != null and !param.status.empty)}">
+      <small class="text-muted me-2">Активные фильтры:</small>
+      <span class="badge bg-info me-1" th:if="${param.search != null and !param.search.empty}">
             Поиск: <span th:text="${param.search[0]}"></span>
           </span>
-          <span class="badge bg-info me-1" th:if="${param.status != null and param.status[0] == 'IN_PROGRESS'}">
+      <span class="badge bg-info me-1" th:if="${param.status != null and param.status[0] == 'IN_PROGRESS'}">
             Статус: В сборке
           </span>
-          <span class="badge bg-info me-1" th:if="${param.status != null and param.status[0] == 'COMPLETED'}">
+      <span class="badge bg-info me-1" th:if="${param.status != null and param.status[0] == 'COMPLETED'}">
             Статус: Выполнены
           </span>
-        </div>
-      </div>
+    </div>
+  </div>
 
-      <!-- Краткая статистика -->
-      <div class="row mb-3">
-        <div class="col-md-4">
-          <div class="card text-white bg-primary">
-            <div class="card-body py-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-cart"></i> Всего заказов:</span>
-                <span class="badge bg-light text-primary fs-6" th:text="${totalOrders != null ? totalOrders : orders.size()}"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card text-white bg-warning">
-            <div class="card-body py-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-hourglass-split"></i> В сборке:</span>
-                <span class="badge bg-light text-warning fs-6" th:text="${inProgressCount != null ? inProgressCount : 0}"></span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card text-white bg-success">
-            <div class="card-body py-2">
-              <div class="d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-check-circle"></i> Выполнены:</span>
-                <span class="badge bg-light text-success fs-6" th:text="${completedCount != null ? completedCount : 0}"></span>
-              </div>
-            </div>
+  <!-- Краткая статистика -->
+  <div class="row mb-3">
+    <div class="col-md-4">
+      <div class="card text-white bg-primary">
+        <div class="card-body py-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-cart"></i> Всего заказов:</span>
+            <span class="badge bg-light text-primary fs-6" th:text="${totalOrders != null ? totalOrders : orders.size()}"></span>
           </div>
         </div>
       </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-warning">
+        <div class="card-body py-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-hourglass-split"></i> В сборке:</span>
+            <span class="badge bg-light text-warning fs-6" th:text="${inProgressCount != null ? inProgressCount : 0}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card text-white bg-success">
+        <div class="card-body py-2">
+          <div class="d-flex justify-content-between align-items-center">
+            <span><i class="bi bi-check-circle"></i> Выполнены:</span>
+            <span class="badge bg-light text-success fs-6" th:text="${completedCount != null ? completedCount : 0}"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      <!-- Список заказов -->
-      <div class="list-group">
-        <!-- 1. Добавляем position-relative, чтобы растянутая ссылка не выходила за границы карточки -->
-        <div th:each="order : ${orders}" class="list-group-item list-group-item-action order-card mb-2 position-relative">
-          <div class="d-flex w-100 justify-content-between">
-            <div>
-              <h5 class="mb-1">
-                Заказ #<span th:text="${order.orderNumber}"></span>
-                <span class="badge status-badge"
-                      th:classappend="${order.status.name() == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-completed'"
-                      th:text="${order.statusDisplayName}"></span>
-              </h5>
-              <p class="mb-1">
-                <i class="bi bi-person"></i>
-                <!-- 2. Ссылку на клиента нужно поднять по z-index, чтобы она осталась кликабельной отдельно -->
-                <a th:href="@{/customers/{id}(id=${order.customerId})}"
-                   th:text="${order.customerName}"
-                   class="position-relative" style="z-index: 2;"></a>
-              </p>
-              <small class="text-muted">
-                <i class="bi bi-calendar"></i>
-                <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
-                <span class="ms-3">
+  <!-- Список заказов -->
+  <div class="list-group">
+    <!-- 1. Добавляем position-relative, чтобы растянутая ссылка не выходила за границы карточки -->
+    <div th:each="order : ${orders}" class="list-group-item list-group-item-action order-card mb-2 position-relative">
+      <div class="d-flex w-100 justify-content-between">
+        <div>
+          <h5 class="mb-1">
+            Заказ #<span th:text="${order.orderNumber}"></span>
+            <span class="badge status-badge"
+                  th:classappend="${order.status.name() == 'IN_PROGRESS'} ? 'status-in-progress' : 'status-completed'"
+                  th:text="${order.statusDisplayName}"></span>
+          </h5>
+          <p class="mb-1">
+            <i class="bi bi-person"></i>
+            <!-- 2. Ссылку на клиента нужно поднять по z-index, чтобы она осталась кликабельной отдельно -->
+            <a th:href="@{/customers/{id}(id=${order.customerId})}"
+               th:text="${order.customerName}"
+               class="position-relative" style="z-index: 2;"></a>
+          </p>
+          <small class="text-muted">
+            <i class="bi bi-calendar"></i>
+            <span th:text="${#temporals.format(order.orderDate, 'dd.MM.yyyy HH:mm')}"></span>
+            <span class="ms-3">
             <i class="bi bi-box"></i>
             <span th:text="${order.itemsCount} + ' товаров'"></span>
           </span>
-              </small>
-            </div>
-            <div class="text-end">
-              <h4 th:text="${'₽' + #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA')}"></h4>
+          </small>
+        </div>
+        <div class="text-end">
+          <h4 th:text="${'₽' + #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA')}"></h4>
 
-              <!-- 3. Кнопку редактирования тоже поднимаем по z-index -->
-              <a th:if="${order.status.name() == 'IN_PROGRESS'}"
-                 th:href="@{/orders/{id}/edit(id=${order.id})}"
-                 class="btn btn-sm btn-outline-success position-relative"
-                 style="z-index: 2;"
-                 title="Редактировать заказ">
-                <i class="bi bi-pencil"></i>
-              </a>
+          <!-- 3. Кнопку редактирования тоже поднимаем по z-index -->
+          <a th:if="${order.status.name() == 'IN_PROGRESS'}"
+             th:href="@{/orders/{id}/edit(id=${order.id})}"
+             class="btn btn-sm btn-outline-success position-relative"
+             style="z-index: 2;"
+             title="Редактировать заказ">
+            <i class="bi bi-pencil"></i>
+          </a>
 
-              <!-- 4. Добавляем класс stretched-link. Теперь эта ссылка "заполнит" собой всю карточку -->
-              <a th:href="@{/orders/{id}(id=${order.id})}"
-                 class="btn btn-sm btn-outline-primary stretched-link"
-                 title="Просмотреть детали">
-                <i class="bi bi-eye"></i> Подробнее
-              </a>
-            </div>
-          </div>
+          <!-- 4. Добавляем класс stretched-link. Теперь эта ссылка "заполнит" собой всю карточку -->
+          <a th:href="@{/orders/{id}(id=${order.id})}"
+             class="btn btn-sm btn-outline-primary stretched-link"
+             title="Просмотреть детали">
+            <i class="bi bi-eye"></i> Подробнее
+          </a>
         </div>
       </div>
+    </div>
+  </div>
 
-      <!-- Сообщение, если нет заказов - ИСПРАВЛЕНО -->
-      <div th:if="${orders.empty}" class="text-center py-5">
-        <i class="bi bi-cart" style="font-size: 3rem; color: #6c757d;"></i>
-        <h5 class="card-title mt-3">Заказы не найдены</h5>
-        <p class="card-text"
-           th:text="${customer != null} ? 'У этого клиента пока нет заказов' :
+  <!-- Сообщение, если нет заказов - ИСПРАВЛЕНО -->
+  <div th:if="${orders.empty}" class="text-center py-5">
+    <i class="bi bi-cart" style="font-size: 3rem; color: #6c757d;"></i>
+    <h5 class="card-title mt-3">Заказы не найдены</h5>
+    <p class="card-text"
+       th:text="${customer != null} ? 'У этого клиента пока нет заказов' :
                     (${param.search != null and !param.search.empty} ? 'По вашему запросу ничего не найдено' :
                     (${param.status != null and !param.status.empty} ? 'Заказы с выбранным статусом отсутствуют' : 'Создайте первый заказ'))">
-        </p>
-        <a th:href="@{/orders/add}" class="btn btn-primary">
-          <i class="bi bi-plus-circle"></i> Создать заказ
-        </a>
-      </div>
-
-      <!-- Пагинация (если понадобится) -->
-      <nav aria-label="Page navigation" class="mt-4" th:if="${totalPages != null and totalPages > 1}">
-        <ul class="pagination justify-content-center">
-          <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-            <a class="page-link" th:href="@{/orders(page=${currentPage - 1}, size=${pageSize}, search=${param.search}, status=${param.status})}">
-              <i class="bi bi-chevron-left"></i>
-            </a>
-          </li>
-          <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-              th:classappend="${i == currentPage} ? 'active'">
-            <a class="page-link" th:href="@{/orders(page=${i}, size=${pageSize}, search=${param.search}, status=${param.status})}"
-               th:text="${i + 1}"></a>
-          </li>
-          <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-            <a class="page-link" th:href="@{/orders(page=${currentPage + 1}, size=${pageSize}, search=${param.search}, status=${param.status})}">
-              <i class="bi bi-chevron-right"></i>
-            </a>
-          </li>
-        </ul>
-      </nav>
-    </main>
+    </p>
+    <a th:href="@{/orders/add}" class="btn btn-primary">
+      <i class="bi bi-plus-circle"></i> Создать заказ
+    </a>
   </div>
+
+  <!-- Пагинация (если понадобится) -->
+  <nav aria-label="Page navigation" class="mt-4" th:if="${totalPages != null and totalPages > 1}">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+        <a class="page-link" th:href="@{/orders(page=${currentPage - 1}, size=${pageSize}, search=${param.search}, status=${param.status})}">
+          <i class="bi bi-chevron-left"></i>
+        </a>
+      </li>
+      <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+          th:classappend="${i == currentPage} ? 'active'">
+        <a class="page-link" th:href="@{/orders(page=${i}, size=${pageSize}, search=${param.search}, status=${param.status})}"
+           th:text="${i + 1}"></a>
+      </li>
+      <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
+        <a class="page-link" th:href="@{/orders(page=${currentPage + 1}, size=${pageSize}, search=${param.search}, status=${param.status})}">
+          <i class="bi bi-chevron-right"></i>
+        </a>
+      </li>
+    </ul>
+  </nav>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // Подсветка активного фильтра
-  document.addEventListener('DOMContentLoaded', function() {
-    const statusSelect = document.querySelector('select[name="status"]');
-    if (statusSelect) {
-      statusSelect.addEventListener('change', function() {
-        this.form.submit();
-      });
-    }
-  });
-</script>
-
-<script>
-  // Анимация бокового меню
-  document.addEventListener('DOMContentLoaded', function() {
-    const navLinks = document.querySelectorAll('.nav-link');
-
-    navLinks.forEach(link => {
-      link.addEventListener('mouseenter', function() {
-        this.style.transform = 'translateX(5px)';
-      });
-
-      link.addEventListener('mouseleave', function() {
-        this.style.transform = '';
-      });
+<!-- Скрипты для страницы товаров (если нужны специфичные) -->
+<th:block layout:fragment="scripts">
+  <script>
+    // Подсветка активного фильтра
+    document.addEventListener('DOMContentLoaded', function() {
+      const statusSelect = document.querySelector('select[name="status"]');
+      if (statusSelect) {
+        statusSelect.addEventListener('change', function() {
+          this.form.submit();
+        });
+      }
     });
-  });
-</script>
+  </script>
+</th:block>
 </body>
 </html>

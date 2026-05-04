@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+  <title>Товары</title>
+  <style layout:fragment="styles">
+    .form-container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Основной контент -->
+<div layout:fragment="content">
+  <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+      <i class="bi bi-pencil"></i> Редактировать пользователя
+    </h1>
+    <a th:href="@{/users}" class="btn btn-sm btn-outline-secondary">
+      <i class="bi bi-x-circle"></i> Отмена
+    </a>
+  </div>
+
+  <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+  <div class="card form-container">
+    <div class="card-body">
+      <form th:action="@{/users/{id}/edit(id=${user.id})}" method="post" th:object="${user}">
+        <input type="hidden" th:field="*{id}" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+        <div class="mb-3">
+          <label class="form-label">Логин</label>
+          <input type="text" class="form-control" disabled
+                 th:value="${username ?: ''}">
+          <small class="text-muted">Логин изменить нельзя</small>
+        </div>
+
+        <div class="mb-3">
+          <label for="fullName" class="form-label">Полное имя</label>
+          <input type="text" class="form-control" id="fullName" th:field="*{fullName}"
+                 th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'">
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+        </div>
+
+        <div class="mb-3">
+          <label for="role" class="form-label">Роль</label>
+          <select class="form-select" id="role" th:field="*{role}"
+                  th:classappend="${#fields.hasErrors('role')} ? 'is-invalid'">
+            <option value="">-- Выберите роль --</option>
+            <option value="ADMIN">Администратор</option>
+            <option value="MANAGER">Менеджер</option>
+          </select>
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
+        </div>
+
+        <div class="mb-3">
+          <label for="password" class="form-label">Новый пароль</label>
+          <input type="password" class="form-control" id="password" th:field="*{password}"
+                 th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'">
+          <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+          <small class="text-muted">Оставьте пустым, если не хотите менять пароль</small>
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button type="submit" class="btn btn-primary me-2">
+            <i class="bi bi-save"></i> Сохранить
+          </button>
+          <a th:href="@{/users}" class="btn btn-outline-secondary">Отмена</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,31 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
 <head>
-    <meta charset="UTF-8">
-    <title th:text="'Поставка #' + ${supply.supplyNumber} + ' | Магазин техники'"></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <style>
-        .sidebar {
-            position: fixed;
-            width: 250px;
-            min-height: 100vh;
-            background: #212529;
-            transition: all 0.3s;
-        }
-        .nav-link {
-            color: #adb5bd;
-            border-radius: 5px;
-            margin-bottom: 5px;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: white;
-            background: #0d6efd;
-        }
-        .nav-link i {
-            width: 24px;
-            text-align: center;
-        }
+    <title>Товары</title>
+    <style layout:fragment="styles">
         .supply-details-card {
             border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -58,214 +37,191 @@
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Боковое меню -->
-        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
-            <div class="position-sticky pt-3">
-                <div class="text-center mb-4">
-                    <h4 class="text-white">Магазин техники</h4>
+
+<!-- Основной контент -->
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-truck"></i> Поставка #<span th:text="${supply.supplyNumber}"></span>
+            <span class="badge status-badge ms-2"
+                  th:classappend="${supply.status == 'PENDING'} ? 'status-pending' :
+                                         (${supply.status == 'COMPLETED'} ? 'status-completed' : 'status-cancelled')"
+                  th:text="${supply.statusDisplayName}"></span>
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a th:href="@{/supplies}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Назад
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Карточка поставки -->
+    <div class="card supply-details-card mb-4">
+        <div class="card-body">
+            <div class="row mb-4">
+                <!-- Информация о поставке -->
+                <div class="col-md-6">
+                    <h3 class="border-bottom pb-2">Информация о поставке</h3>
+                    <div class="mb-3">
+                        <span class="fw-bold">Дата поставки:</span>
+                        <span th:text="${#temporals.format(supply.supplyDate, 'dd.MM.yyyy HH:mm')}"></span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="fw-bold">Статус:</span>
+                        <span class="badge"
+                              th:classappend="${supply.status == 'PENDING'} ? 'bg-warning' :
+                                                     (${supply.status == 'COMPLETED'} ? 'bg-success' : 'bg-danger')"
+                              th:text="${supply.statusDisplayName}"></span>
+                    </div>
+                    <div class="mb-3">
+                        <span class="fw-bold">Примечания:</span>
+                        <p th:text="${supply.notes ?: 'Нет примечаний'}" class="text-muted"></p>
+                    </div>
                 </div>
-                <ul class="nav flex-column px-3">
-                    <li class="nav-item" th:each="item : ${menuItems}">
-                        <a th:href="@{${item.url}}"
-                           class="nav-link d-flex align-items-center"
-                           th:classappend="${item.isActive} ? 'active'">
-                            <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
-                            <span th:text="${item.name}"></span>
-                        </a>
-                    </li>
-                </ul>
+
+                <!-- Информация о поставщике -->
+                <div class="col-md-6">
+                    <h3 class="border-bottom pb-2">Поставщик</h3>
+                    <div class="mb-3">
+                        <span class="fw-bold">Название:</span>
+                        <a th:href="@{/suppliers/{id}(id=${supply.supplierId})}"
+                           th:text="${supply.supplierName}"></a>
+                    </div>
+                    <div class="mb-3">
+                        <span class="fw-bold">Контактное лицо:</span>
+                        <span th:text="${supply.supplierContact ?: 'Не указано'}"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Товары в поставке -->
+            <h3 class="border-bottom pb-2">Товары в поставке</h3>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>Товар</th>
+                        <th>Количество</th>
+                        <th>Цена за ед.</th>
+                        <th>Сумма</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="item : ${supply.items}">
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <img th:src="${item.productImagePath ?: '/images/no-image.png'}"
+                                     class="product-image me-3"
+                                     alt="Изображение товара"
+                                     onerror="this.src='/images/no-image.png'">
+                                <div>
+                                    <a th:href="@{/products/{id}(id=${item.productId})}"
+                                       th:text="${item.productName}"></a>
+                                    <div class="text-muted small" th:text="${item.productManufacturer}"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td th:text="${item.quantity} + ' шт.'"></td>
+                        <td th:text="${'₽' + #numbers.formatDecimal(item.pricePerUnit, 1, 2, 'COMMA')}"></td>
+                        <td th:text="${'₽' + #numbers.formatDecimal(item.totalPrice, 1, 2, 'COMMA')}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Итоговая информация -->
+            <div class="row justify-content-end mt-4">
+                <div class="col-md-5">
+                    <div class="supply-summary">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Всего позиций:</span>
+                            <span th:text="${supply.totalItems}"></span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="fw-bold">Всего единиц товара:</span>
+                            <span th:text="${supply.totalQuantity} + ' шт.'"></span>
+                        </div>
+                        <div class="d-flex justify-content-between border-top pt-2">
+                            <span class="fw-bold">Общая стоимость:</span>
+                            <span class="fw-bold text-success"
+                                  th:text="${'₽' + #numbers.formatDecimal(supply.totalValue, 1, 2, 'COMMA')}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Кнопки действий -->
+            <div class="d-flex justify-content-between mt-4">
+                <a th:href="@{/supplies}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> К списку поставок
+                </a>
+                <div>
+                    <a th:if="${canEdit}"
+                       th:href="@{/supplies/{id}/edit(id=${supply.id})}"
+                       class="btn btn-primary me-2">
+                        <i class="bi bi-pencil"></i> Редактировать
+                    </a>
+
+                    <form th:if="${canEdit}"
+                          th:action="@{/supplies/{id}/complete(id=${supply.id})}"
+                          method="post"
+                          class="d-inline-block me-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Завершить поставку
+                        </button>
+                    </form>
+
+                    <button type="button"
+                            class="btn btn-danger"
+                            data-bs-toggle="modal"
+                            data-bs-target="#deleteModal">
+                        <i class="bi bi-trash"></i> Удалить
+                    </button>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Основной контент -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">
-                    <i class="bi bi-truck"></i> Поставка #<span th:text="${supply.supplyNumber}"></span>
-                    <span class="badge status-badge ms-2"
-                          th:classappend="${supply.status == 'PENDING'} ? 'status-pending' :
-                                         (${supply.status == 'COMPLETED'} ? 'status-completed' : 'status-cancelled')"
-                          th:text="${supply.statusDisplayName}"></span>
-                </h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/supplies}" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-arrow-left"></i> Назад
-                    </a>
+    <!-- Модальное окно удаления -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Подтверждение удаления</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-            </div>
-
-            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <span th:text="${successMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${errorMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-
-            <!-- Карточка поставки -->
-            <div class="card supply-details-card mb-4">
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <!-- Информация о поставке -->
-                        <div class="col-md-6">
-                            <h3 class="border-bottom pb-2">Информация о поставке</h3>
-                            <div class="mb-3">
-                                <span class="fw-bold">Дата поставки:</span>
-                                <span th:text="${#temporals.format(supply.supplyDate, 'dd.MM.yyyy HH:mm')}"></span>
-                            </div>
-                            <div class="mb-3">
-                                <span class="fw-bold">Статус:</span>
-                                <span class="badge"
-                                      th:classappend="${supply.status == 'PENDING'} ? 'bg-warning' :
-                                                     (${supply.status == 'COMPLETED'} ? 'bg-success' : 'bg-danger')"
-                                      th:text="${supply.statusDisplayName}"></span>
-                            </div>
-                            <div class="mb-3">
-                                <span class="fw-bold">Примечания:</span>
-                                <p th:text="${supply.notes ?: 'Нет примечаний'}" class="text-muted"></p>
-                            </div>
-                        </div>
-
-                        <!-- Информация о поставщике -->
-                        <div class="col-md-6">
-                            <h3 class="border-bottom pb-2">Поставщик</h3>
-                            <div class="mb-3">
-                                <span class="fw-bold">Название:</span>
-                                <a th:href="@{/suppliers/{id}(id=${supply.supplierId})}"
-                                   th:text="${supply.supplierName}"></a>
-                            </div>
-                            <div class="mb-3">
-                                <span class="fw-bold">Контактное лицо:</span>
-                                <span th:text="${supply.supplierContact ?: 'Не указано'}"></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Товары в поставке -->
-                    <h3 class="border-bottom pb-2">Товары в поставке</h3>
-                    <div class="table-responsive">
-                        <table class="table">
-                            <thead>
-                            <tr>
-                                <th>Товар</th>
-                                <th>Количество</th>
-                                <th>Цена за ед.</th>
-                                <th>Сумма</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="item : ${supply.items}">
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <img th:src="${item.productImagePath ?: '/images/no-image.png'}"
-                                             class="product-image me-3"
-                                             alt="Изображение товара"
-                                             onerror="this.src='/images/no-image.png'">
-                                        <div>
-                                            <a th:href="@{/products/{id}(id=${item.productId})}"
-                                               th:text="${item.productName}"></a>
-                                            <div class="text-muted small" th:text="${item.productManufacturer}"></div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td th:text="${item.quantity} + ' шт.'"></td>
-                                <td th:text="${'₽' + #numbers.formatDecimal(item.pricePerUnit, 1, 2, 'COMMA')}"></td>
-                                <td th:text="${'₽' + #numbers.formatDecimal(item.totalPrice, 1, 2, 'COMMA')}"></td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Итоговая информация -->
-                    <div class="row justify-content-end mt-4">
-                        <div class="col-md-5">
-                            <div class="supply-summary">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="fw-bold">Всего позиций:</span>
-                                    <span th:text="${supply.totalItems}"></span>
-                                </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <span class="fw-bold">Всего единиц товара:</span>
-                                    <span th:text="${supply.totalQuantity} + ' шт.'"></span>
-                                </div>
-                                <div class="d-flex justify-content-between border-top pt-2">
-                                    <span class="fw-bold">Общая стоимость:</span>
-                                    <span class="fw-bold text-success"
-                                          th:text="${'₽' + #numbers.formatDecimal(supply.totalValue, 1, 2, 'COMMA')}"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Кнопки действий -->
-                    <div class="d-flex justify-content-between mt-4">
-                        <a th:href="@{/supplies}" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left"></i> К списку поставок
-                        </a>
-                        <div>
-                            <a th:if="${canEdit}"
-                               th:href="@{/supplies/{id}/edit(id=${supply.id})}"
-                               class="btn btn-primary me-2">
-                                <i class="bi bi-pencil"></i> Редактировать
-                            </a>
-
-                            <form th:if="${canEdit}"
-                                  th:action="@{/supplies/{id}/complete(id=${supply.id})}"
-                                  method="post"
-                                  class="d-inline-block me-2">
-                                <button type="submit" class="btn btn-success">
-                                    <i class="bi bi-check-circle"></i> Завершить поставку
-                                </button>
-                            </form>
-
-                            <button type="button"
-                                    class="btn btn-danger"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#deleteModal">
-                                <i class="bi bi-trash"></i> Удалить
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Модальное окно удаления -->
-            <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Подтверждение удаления</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Вы уверены, что хотите удалить поставку #<span th:text="${supply.supplyNumber}"></span>?</p>
-                            <div class="alert alert-warning mt-3">
-                                <i class="bi bi-exclamation-triangle"></i>
-                                <span th:if="${supply.status == 'COMPLETED'}">
+                <div class="modal-body">
+                    <p>Вы уверены, что хотите удалить поставку #<span th:text="${supply.supplyNumber}"></span>?</p>
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <span th:if="${supply.status == 'COMPLETED'}">
                                     Все товары (<span th:text="${supply.totalItems}"></span> позиций) будут возвращены со склада!
                                 </span>
-                                Это действие нельзя отменить!
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-                            <form th:action="@{/supplies/{id}(id=${supply.id})}" method="post">
-                                <input type="hidden" name="_method" value="delete">
-                                <button type="submit" class="btn btn-danger">
-                                    <i class="bi bi-trash"></i> Удалить
-                                </button>
-                            </form>
-                        </div>
+                        Это действие нельзя отменить!
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                    <form th:action="@{/supplies/{id}(id=${supply.id})}" method="post">
+                        <input type="hidden" name="_method" value="delete">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash"></i> Удалить
+                        </button>
+                    </form>
+                </div>
             </div>
-        </main>
+        </div>
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

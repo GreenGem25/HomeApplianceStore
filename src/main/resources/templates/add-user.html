@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Товары</title>
+    <style layout:fragment="styles">
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Основной контент -->
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-person-plus"></i> Добавить пользователя
+        </h1>
+        <a th:href="@{/users}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-x-circle"></i> Отмена
+        </a>
+    </div>
+
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div class="card form-container">
+        <div class="card-body">
+            <form th:action="@{/users/add}" method="post" th:object="${user}">
+                <div class="mb-3">
+                    <label for="username" class="form-label">Логин *</label>
+                    <input type="text" class="form-control" id="username" th:field="*{username}" required
+                           th:classappend="${#fields.hasErrors('username')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Пароль *</label>
+                    <input type="password" class="form-control" id="password" th:field="*{password}" required
+                           th:classappend="${#fields.hasErrors('password')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                </div>
+                <div class="mb-3">
+                    <label for="fullName" class="form-label">Полное имя</label>
+                    <input type="text" class="form-control" id="fullName" th:field="*{fullName}"
+                           th:classappend="${#fields.hasErrors('fullName')} ? 'is-invalid'">
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('fullName')}" th:errors="*{fullName}"></div>
+                </div>
+                <div class="mb-4">
+                    <label for="role" class="form-label">Роль *</label>
+                    <select class="form-select" id="role" th:field="*{role}" required
+                            th:classappend="${#fields.hasErrors('role')} ? 'is-invalid'">
+                        <option value="">-- Выберите роль --</option>
+                        <option value="ADMIN">Администратор</option>
+                        <option value="MANAGER">Менеджер</option>
+                    </select>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('role')}" th:errors="*{role}"></div>
+                </div>
+                <div class="d-flex justify-content-end">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="bi bi-save"></i> Сохранить
+                    </button>
+                    <a th:href="@{/users}" class="btn btn-outline-secondary">Отмена</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Скрипты для страницы товаров (если нужны специфичные) -->
+<th:block layout:fragment="scripts">
+    <script>
+
+    </script>
+</th:block>
+</body>
+</html>

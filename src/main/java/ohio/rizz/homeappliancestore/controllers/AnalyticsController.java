@@ -3,6 +3,7 @@ package ohio.rizz.homeappliancestore.controllers;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.homeappliancestore.dto.DashboardDto;
 import ohio.rizz.homeappliancestore.services.AnalyticsService;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +17,7 @@ import java.time.LocalDate;
 @Controller
 @RequestMapping("/analytics")
 @RequiredArgsConstructor
+@Secured("ROLE_ADMIN")
 public class AnalyticsController {
     private final AnalyticsService analyticsService;
 

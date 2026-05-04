@@ -151,3 +151,12 @@ CREATE TABLE analytics_daily (
                                                order_count INT NOT NULL DEFAULT 0,
                                                new_customers INT NOT NULL DEFAULT 0
 );
+
+CREATE TABLE IF NOT EXISTS users (
+                                     user_id UUID PRIMARY KEY,
+                                     username VARCHAR(100) NOT NULL UNIQUE,
+                                     password VARCHAR(255) NOT NULL,
+                                     role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'MANAGER')),
+                                     full_name VARCHAR(150),
+                                     enabled BOOLEAN NOT NULL DEFAULT TRUE
+);

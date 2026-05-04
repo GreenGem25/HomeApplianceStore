@@ -1,37 +1,10 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Категории товаров</title>
-
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-
-    <style>
-        .sidebar {
-            position: fixed;
-            width: 250px;
-            min-height: 100vh;
-            background: #212529;
-            transition: all 0.3s;
-        }
-        .nav-link {
-            color: #adb5bd;
-            border-radius: 5px;
-            margin-bottom: 5px;
-        }
-        .nav-link:hover, .nav-link.active {
-            color: white;
-            background: #0d6efd;
-        }
-        .nav-link i {
-            width: 24px;
-            text-align: center;
-        }
+    <title>Товары</title>
+    <style layout:fragment="styles">
         .category-toggle {
             cursor: pointer;
             transition: all 0.2s;
@@ -67,99 +40,67 @@
     </style>
 </head>
 <body>
-<div class="container-fluid">
-    <div class="row">
-        <!-- Боковое меню -->
-        <div class="col-md-3 col-lg-2 d-none d-md-block sidebar p-0">
-            <div class="position-sticky pt-3">
-                <div class="text-center mb-4">
-                    <h4 class="text-white">Магазин техники</h4>
-                </div>
 
-                <ul class="nav flex-column px-3">
-                    <li class="nav-item" th:each="item : ${menuItems}">
-                        <a th:href="@{${item.url}}"
-                           class="nav-link d-flex align-items-center"
-                           th:classappend="${item.isActive} ? 'active'">
-                            <i th:class="'bi ' + ${item.icon}" class="me-2"></i>
-                            <span th:text="${item.name}"></span>
-                        </a>
-                    </li>
-                </ul>
-            </div>
+<!-- Основной контент -->
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-tags"></i> Категории товаров
+        </h1>
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a th:href="@{/categories/add}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Добавить категорию
+            </a>
         </div>
+    </div>
 
-        <!-- Основной контент -->
-        <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4">
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">
-                    <i class="bi bi-tags"></i> Категории товаров
-                </h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <a th:href="@{/categories/add}" class="btn btn-success">
-                        <i class="bi bi-plus-circle"></i> Добавить категорию
-                    </a>
-                </div>
-            </div>
+    <!-- Уведомления -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
 
-            <!-- Уведомления -->
-            <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
-                <span th:text="${successMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-            <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
-                <span th:text="${errorMessage}"></span>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
+    <!-- Дерево категорий (используем CategoryDto) -->
+    <div class="list-group">
+        <div th:each="category : ${categories}" th:if="${category.parentCategoryId == null}">
+            <!-- Рекурсивный вызов фрагмента для корневых категорий -->
+            <div th:replace="~{fragments/category-node :: category-node(category=${category}, level=0)}"></div>
+        </div>
+    </div>
 
-            <!-- Дерево категорий (используем CategoryDto) -->
-            <div class="list-group">
-                <div th:each="category : ${categories}" th:if="${category.parentCategoryId == null}">
-                    <!-- Рекурсивный вызов фрагмента для корневых категорий -->
-                    <div th:replace="~{fragments/category-node :: category-node(category=${category}, level=0)}"></div>
-                </div>
-            </div>
-
-            <!-- Сообщение, если нет категорий -->
-            <div th:if="${categories.empty}" class="text-center py-5">
-                <i class="bi bi-folder-x" style="font-size: 3rem; color: #6c757d;"></i>
-                <h5 class="card-title mt-3">Нет категорий</h5>
-                <p class="card-text">Добавьте первую категорию</p>
-                <a th:href="@{/categories/add}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Создать категорию
-                </a>
-            </div>
-        </main>
+    <!-- Сообщение, если нет категорий -->
+    <div th:if="${categories.empty}" class="text-center py-5">
+        <i class="bi bi-folder-x" style="font-size: 3rem; color: #6c757d;"></i>
+        <h5 class="card-title mt-3">Нет категорий</h5>
+        <p class="card-text">Добавьте первую категорию</p>
+        <a th:href="@{/categories/add}" class="btn btn-primary">
+            <i class="bi bi-plus-circle"></i> Создать категорию
+        </a>
     </div>
 </div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
-<script>
-    // Анимация бокового меню
-    document.addEventListener('DOMContentLoaded', function() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateX(5px)';
-            });
-            link.addEventListener('mouseleave', function() {
-                this.style.transform = '';
-            });
-        });
-
-        // Инициализация сворачивания/разворачивания категорий
-        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(toggle => {
-            toggle.addEventListener('click', function() {
-                const icon = this.querySelector('.bi-chevron-right');
-                if (icon) {
-                    icon.classList.toggle('bi-chevron-right');
-                    icon.classList.toggle('bi-chevron-down');
-                }
+<!-- Скрипты для страницы товаров (если нужны специфичные) -->
+<th:block layout:fragment="scripts">
+    <script>
+        // Анимация бокового меню
+        document.addEventListener('DOMContentLoaded', function() {
+            // Инициализация сворачивания/разворачивания категорий
+            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(toggle => {
+                toggle.addEventListener('click', function() {
+                    const icon = this.querySelector('.bi-chevron-right');
+                    if (icon) {
+                        icon.classList.toggle('bi-chevron-right');
+                        icon.classList.toggle('bi-chevron-down');
+                    }
+                });
             });
         });
-    });
-</script>
+    </script>
+</th:block>
+
 </body>
 </html>
