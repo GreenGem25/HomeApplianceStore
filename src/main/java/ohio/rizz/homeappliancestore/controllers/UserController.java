@@ -44,7 +44,7 @@ public class UserController {
             return "add-user";
         }
         try {
-            userService.createUser(dto.getUsername(), dto.getPassword(), dto.getRole(), dto.getFullName());
+            userService.createUser(dto);
             redirectAttributes.addFlashAttribute("successMessage", "Пользователь создан");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
@@ -73,7 +73,7 @@ public class UserController {
             return "edit-user";
         }
         try {
-            userService.updateUser(id, dto.getFullName(), dto.getRole(), dto.getPassword());
+            userService.updateUser(id, dto);
             redirectAttributes.addFlashAttribute("successMessage", "Данные пользователя обновлены");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());

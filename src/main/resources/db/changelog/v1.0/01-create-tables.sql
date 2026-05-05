@@ -168,3 +168,17 @@ CREATE TABLE settings (
                                phone VARCHAR(50),
                                email VARCHAR(255)
 );
+
+CREATE TABLE audit_log (
+                           id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+                           timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                           username VARCHAR(100) NOT NULL,
+                           action VARCHAR(50) NOT NULL,          -- CREATE, UPDATE, DELETE, BLOCK, UNBLOCK, etc.
+                           entity_type VARCHAR(100) NOT NULL,    -- Product, Order, User, Supply, ...
+                           entity_id VARCHAR(255),               -- UUID сущности (может быть null для массовых операций)
+                           details TEXT                           -- JSON с дополнительной информацией
+);
+
+CREATE INDEX idx_audit_log_timestamp ON audit_log(timestamp);
+CREATE INDEX idx_audit_log_username ON audit_log(username);
+CREATE INDEX idx_audit_log_entity_type ON audit_log(entity_type);

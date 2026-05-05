@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>Аудит действий</title>
+    <style layout:fragment="styles">
+        .filter-section {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .details-collapse {
+            max-width: 300px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+</head>
+<body>
+
+<div layout:fragment="content">
+    <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+        <h1 class="h2">
+            <i class="bi bi-journal-text"></i> Аудит действий
+        </h1>
+        <a th:href="@{/audit}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-counterclockwise"></i> Сбросить фильтры
+        </a>
+    </div>
+
+    <!-- Блок фильтров -->
+    <div class="filter-section">
+        <form th:action="@{/audit}" method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Дата с</label>
+                <input type="date" class="form-control" name="from" th:value="${from}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Дата по</label>
+                <input type="date" class="form-control" name="to" th:value="${to}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Пользователь</label>
+                <input type="text" class="form-control" name="username" placeholder="Логин" th:value="${username}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Тип сущности</label>
+                <input type="text" class="form-control" name="entityType" placeholder="User, Order..." th:value="${entityType}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Действие</label>
+                <select class="form-select" name="action">
+                    <option value="">Все</option>
+                    <option value="CREATE" th:selected="${action == 'CREATE'}">Создание</option>
+                    <option value="UPDATE" th:selected="${action == 'UPDATE'}">Обновление</option>
+                    <option value="DELETE" th:selected="${action == 'DELETE'}">Удаление</option>
+                    <option value="BLOCK" th:selected="${action == 'BLOCK'}">Блокировка</option>
+                    <option value="UNBLOCK" th:selected="${action == 'UNBLOCK'}">Разблокировка</option>
+                    <option value="COMPLETE" th:selected="${action == 'COMPLETE'}">Завершение</option>
+                    <option value="MANUAL_REFRESH" th:selected="${action == 'MANUAL_REFRESH'}">Пересчёт аналитики</option>
+                </select>
+            </div>
+            <div class="col-md-12 text-end">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-funnel"></i> Применить фильтр
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Таблица аудита -->
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead>
+            <tr>
+                <th>Время</th>
+                <th>Пользователь</th>
+                <th>Действие</th>
+                <th>Тип сущности</th>
+                <th>ID сущности</th>
+                <th>Детали</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="log : ${logs}">
+                <td th:text="${#temporals.format(log.timestamp, 'dd.MM.yyyy HH:mm:ss')}"></td>
+                <td th:text="${log.username}"></td>
+                <td>
+                    <span class="badge" th:classappend="${log.action == 'CREATE' ? 'bg-success' : (log.action == 'DELETE' ? 'bg-danger' : (log.action == 'BLOCK' ? 'bg-warning text-dark' : 'bg-secondary'))}">
+                        <span th:text="${log.action}"></span>
+                    </span>
+                </td>
+                <td th:text="${log.entityType}"></td>
+                <td th:text="${log.entityId ?: '—'}"></td>
+                <td class="details-collapse" th:text="${log.details ?: '—'}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div th:if="${logs != null && logs.empty}" class="text-center py-5">
+        <i class="bi bi-journal-x" style="font-size: 3rem; color: #6c757d;"></i>
+        <h5 class="mt-3">Записи аудита не найдены</h5>
+        <p class="text-muted">Измените параметры фильтрации</p>
+    </div>
+</div>
+
+<th:block layout:fragment="scripts">
+    <script>
+        // Автосабмит при выборе действия (опционально)
+        document.querySelector('select[name="action"]')?.addEventListener('change', function() {
+            this.form.submit();
+        });
+    </script>
+</th:block>
+</body>
+</html>
