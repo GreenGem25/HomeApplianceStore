@@ -1,7 +1,11 @@
 package ohio.rizz.homeappliancestore.services;
 
 import lombok.RequiredArgsConstructor;
+import ohio.rizz.homeappliancestore.dto.AuditLogDto;
 import ohio.rizz.homeappliancestore.entities.AuditLog;
+import ohio.rizz.homeappliancestore.enums.AuditAction;
+import ohio.rizz.homeappliancestore.enums.AuditEntityType;
+import ohio.rizz.homeappliancestore.mappers.AuditLogMapper;
 import ohio.rizz.homeappliancestore.repositories.AuditLogRepository;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,10 +25,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AuditService {
     private final AuditLogRepository auditLogRepository;
+    private final AuditLogMapper auditLogMapper;
 
     @Async
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void log(String action, String entityType, String entityId, String details) {
+    public void log(AuditAction action, AuditEntityType entityType, String entityId, String details) {
         String username = "system";
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
@@ -42,7 +47,7 @@ public class AuditService {
     }
 
     @Transactional(readOnly = true)
-    public List<AuditLog> getFilteredLogs(LocalDate from, LocalDate to, String username, String entityType, String action) {
+    public List<AuditLogDto> getFilteredLogs(LocalDate from, LocalDate to, String username, String entityType, String action) {
         Specification<AuditLog> spec = Specification.where(null);
 
         if (from != null) {
@@ -61,6 +66,6 @@ public class AuditService {
             spec = spec.and((root, query, cb) -> cb.equal(cb.lower(root.get("action")), action.toLowerCase()));
         }
 
-        return auditLogRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "timestamp"));
+        return auditLogMapper.toDto(auditLogRepository.findAll(spec, Sort.by(Sort.Direction.DESC, "timestamp")));
     }
 }

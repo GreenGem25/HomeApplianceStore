@@ -9,9 +9,13 @@ import ohio.rizz.homeappliancestore.entities.DailyAnalytics;
 import ohio.rizz.homeappliancestore.entities.Expense;
 import ohio.rizz.homeappliancestore.entities.Order;
 import ohio.rizz.homeappliancestore.entities.Product;
+import ohio.rizz.homeappliancestore.enums.AuditAction;
+import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 import ohio.rizz.homeappliancestore.enums.OrderStatus;
 import ohio.rizz.homeappliancestore.repositories.*;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,9 +38,18 @@ public class AnalyticsService {
     private final ProductRepository productRepository;
     private final ExpenseRepository expenseRepository;
     private final DailyAnalyticsRepository dailyAnalyticsRepository;
+    private final AuditService auditService;
+
+    @Scheduled(cron = "0 0 1 * * ?")
+    @Transactional
+    public void updateDailyAnalytics() {
+        LocalDate date = LocalDate.now().minusDays(1);
+        updateAnalytics(date);
+    }
 
     @Transactional
-    public void updateDailyAnalytics(LocalDate date) {
+    public void updateAnalytics(LocalDate date)
+    {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.plusDays(1).atStartOfDay();
 
@@ -68,11 +81,20 @@ public class AnalyticsService {
 
     @Transactional
     public void refreshAnalytics(LocalDate from, LocalDate to) {
+        auditService.log(AuditAction.MANUAL_REFRESH, AuditEntityType.ANALYTICS, from.toString(),
+                String.format("Initiated manual refresh from %s to %s", from, to));
         LocalDate date = from;
         while (!date.isAfter(to)) {
-            updateDailyAnalytics(date);
+            updateAnalytics(date);
             date = date.plusDays(1);
         }
+    }
+
+    @Transactional
+    public void refreshAnalytics(LocalDate date) {
+        auditService.log(AuditAction.MANUAL_REFRESH, AuditEntityType.ANALYTICS, date.toString(),
+                String.format("Initiated manual refresh at %s", date));
+        updateAnalytics(date);
     }
 
     @Transactional(readOnly = true)

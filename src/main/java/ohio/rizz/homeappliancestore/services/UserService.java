@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import ohio.rizz.homeappliancestore.dto.UserCreateDto;
 import ohio.rizz.homeappliancestore.dto.UserEditDto;
 import ohio.rizz.homeappliancestore.entities.User;
+import ohio.rizz.homeappliancestore.enums.AuditAction;
+import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 import ohio.rizz.homeappliancestore.enums.Role;
 import ohio.rizz.homeappliancestore.exceptions.UserNotFoundException;
 import ohio.rizz.homeappliancestore.mappers.UserMapper;
@@ -40,7 +42,7 @@ public class UserService {
         }
         User user = userMapper.toEntity(userCreateDto, passwordEncoder);
         User savedUser = userRepository.save(user);
-        auditService.log("CREATE", "User", savedUser.getId().toString(),
+        auditService.log(AuditAction.CREATE, AuditEntityType.USER, savedUser.getId().toString(),
                 String.format("Created user '%s' with role %s", savedUser.getUsername(), savedUser.getRole()));
         return savedUser;
     }
@@ -48,8 +50,10 @@ public class UserService {
     @Transactional
     public User updateUser(UUID id, UserEditDto userEditDto) {
         User user = getUserById(id);
+
         boolean passChanged = false;
         boolean roleChanged = false;
+
         if (userEditDto.getFullName() != null) {
             user.setFullName(userEditDto.getFullName());
         }
@@ -61,19 +65,19 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(userEditDto.getPassword()));
             passChanged = true;
         }
+
         User updatedUser = userRepository.save(user);
-        if (roleChanged && passChanged) {
-            auditService.log("UPDATE", "User", updatedUser.getId().toString(),
-                    String.format("Updated user '%s' with role '%s' and password '%s'", updatedUser.getUsername(), updatedUser.getRole(), userEditDto.getPassword()));
+
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(String.format("Updated user '%s'", updatedUser.getUsername()));
+        if (roleChanged) {
+            stringBuilder.append(String.format(", role changed to '%s'", updatedUser.getRole()));
         }
-        else if (roleChanged) {
-            auditService.log("UPDATE", "User", updatedUser.getId().toString(),
-                    String.format("Updated user '%s' with role '%s'", updatedUser.getUsername(), updatedUser.getRole()));
+        if (passChanged) {
+            stringBuilder.append(String.format(", password changed to '%s'", updatedUser.getPassword()));
         }
-        else if (passChanged) {
-            auditService.log("UPDATE", "User", updatedUser.getId().toString(),
-                    String.format("Updated user '%s' with password '%s'", updatedUser.getUsername(), userEditDto.getPassword()));
-        }
+        auditService.log(AuditAction.UPDATE, AuditEntityType.USER, id.toString(), stringBuilder.toString());
+
         return updatedUser;
     }
 
@@ -82,7 +86,7 @@ public class UserService {
         User user = getUserById(id);
         user.setEnabled(false);
         userRepository.save(user);
-        auditService.log("BLOCK", "User", id.toString(),
+        auditService.log(AuditAction.BLOCK, AuditEntityType.USER, id.toString(),
                 String.format("User '%s' blocked", user.getUsername()));
     }
 
@@ -91,7 +95,7 @@ public class UserService {
         User user = getUserById(id);
         user.setEnabled(true);
         userRepository.save(user);
-        auditService.log("UNBLOCK", "User", id.toString(),
+        auditService.log(AuditAction.UNBLOCK, AuditEntityType.USER, id.toString(),
                 String.format("User '%s' unblocked", user.getUsername()));
     }
 
@@ -99,7 +103,7 @@ public class UserService {
     public void deleteUser(UUID id) {
         User user = getUserById(id);
         userRepository.delete(user);
-        auditService.log("DELETE", "User", id.toString(),
+        auditService.log(AuditAction.DELETE, AuditEntityType.USER, id.toString(),
                 String.format("User '%s' deleted", user.getUsername()));
     }
 }

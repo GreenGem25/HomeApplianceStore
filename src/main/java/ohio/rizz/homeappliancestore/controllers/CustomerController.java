@@ -98,7 +98,7 @@ public class CustomerController {
         try {
             customerService.updateCustomer(id, createDto, imageFile, removeImage);
             redirectAttributes.addFlashAttribute("successMessage", "Данные клиента успешно обновлены!");
-            return "redirect:/customers";
+            return "redirect:/customers/" + id;
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/customers/" + id + "/edit";

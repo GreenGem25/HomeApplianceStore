@@ -3,6 +3,8 @@ package ohio.rizz.homeappliancestore.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import ohio.rizz.homeappliancestore.enums.AuditAction;
+import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,11 +24,13 @@ public class AuditLog {
     @Column(name = "username", nullable = false)
     private String username;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "action", nullable = false)
-    private String action;
+    private AuditAction action;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "entity_type", nullable = false)
-    private String entityType;
+    private AuditEntityType entityType;
 
     @Column(name = "entity_id")
     private String entityId;

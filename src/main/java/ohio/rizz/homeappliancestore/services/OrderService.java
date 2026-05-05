@@ -6,6 +6,8 @@ import ohio.rizz.homeappliancestore.dto.OrderCreateDto;
 import ohio.rizz.homeappliancestore.dto.OrderDto;
 import ohio.rizz.homeappliancestore.dto.OrderItemCreateDto;
 import ohio.rizz.homeappliancestore.entities.*;
+import ohio.rizz.homeappliancestore.enums.AuditAction;
+import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 import ohio.rizz.homeappliancestore.enums.OrderStatus;
 import ohio.rizz.homeappliancestore.exceptions.*;
 import ohio.rizz.homeappliancestore.mappers.OrderMapper;
@@ -25,6 +27,7 @@ public class OrderService {
     private final CustomerService customerService;
     private final ProductService productService;
     private final OrderMapper orderMapper;
+    private final AuditService auditService;
 
     public List<OrderDto> getAllOrders() {
         return orderMapper.toDto(orderRepository.findAll());
@@ -65,6 +68,10 @@ public class OrderService {
 
         // Сохраняем заказ
         Order savedOrder = orderRepository.save(order);
+
+        auditService.log(AuditAction.CREATE, AuditEntityType.ORDER, order.getId().toString(),
+                String.format("Created order with number '%s'", savedOrder.getOrderNumber()));
+
         return orderMapper.toDto(savedOrder);
     }
 
@@ -102,6 +109,10 @@ public class OrderService {
         order.recalculateTotalPrice();
 
         Order updatedOrder = orderRepository.save(order);
+
+        auditService.log(AuditAction.UPDATE, AuditEntityType.ORDER, updatedOrder.getId().toString(),
+                String.format("Updated order with number '%s'", updatedOrder.getOrderNumber()));
+
         return orderMapper.toDto(updatedOrder);
     }
 
@@ -127,6 +138,10 @@ public class OrderService {
         customerService.save(customer);
 
         Order completedOrder = orderRepository.save(order);
+
+        auditService.log(AuditAction.COMPLETE, AuditEntityType.ORDER, completedOrder.getId().toString(),
+                String.format("Order with number '%s' marked as completed", completedOrder.getOrderNumber()));
+
         return orderMapper.toDto(completedOrder);
     }
 
@@ -139,7 +154,12 @@ public class OrderService {
             returnItemsToStock(order);
         }
 
+        String orderNumber = order.getOrderNumber();
+
         orderRepository.delete(order);
+
+        auditService.log(AuditAction.DELETE, AuditEntityType.ORDER, orderId.toString(),
+                String.format("Order with number '%s' was deleted", orderNumber));
     }
 
     public List<OrderDto> searchOrders(String searchTerm) {

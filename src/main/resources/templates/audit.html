@@ -88,11 +88,11 @@
                 <td th:text="${#temporals.format(log.timestamp, 'dd.MM.yyyy HH:mm:ss')}"></td>
                 <td th:text="${log.username}"></td>
                 <td>
-                    <span class="badge" th:classappend="${log.action == 'CREATE' ? 'bg-success' : (log.action == 'DELETE' ? 'bg-danger' : (log.action == 'BLOCK' ? 'bg-warning text-dark' : 'bg-secondary'))}">
-                        <span th:text="${log.action}"></span>
+                    <span class="badge" th:classappend="${log.action.name() == 'CREATE' ? 'bg-success' : (log.action.name() == 'DELETE' ? 'bg-danger' : (log.action.name() == 'BLOCK' ? 'bg-warning text-dark' : 'bg-secondary'))}">
+                        <span th:text="${log.action.name()}"></span>
                     </span>
                 </td>
-                <td th:text="${log.entityType}"></td>
+                <td th:text="${log.entityType.name()}"></td>
                 <td th:text="${log.entityId ?: '—'}"></td>
                 <td class="details-collapse" th:text="${log.details ?: '—'}"></td>
             </tr>
@@ -109,7 +109,7 @@
 
 <th:block layout:fragment="scripts">
     <script>
-        // Автосабмит при выборе действия (опционально)
+        // Автосабмит при выборе действия
         document.querySelector('select[name="action"]')?.addEventListener('change', function() {
             this.form.submit();
         });

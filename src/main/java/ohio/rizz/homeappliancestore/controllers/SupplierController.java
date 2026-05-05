@@ -95,7 +95,7 @@ public class SupplierController {
         try {
             supplierService.updateSupplier(id, createDto);
             redirectAttributes.addFlashAttribute("successMessage", "Данные поставщика успешно обновлены!");
-            return "redirect:/suppliers";
+            return "redirect:/suppliers/" + id;
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/suppliers/" + id + "/edit";

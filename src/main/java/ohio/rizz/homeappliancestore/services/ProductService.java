@@ -10,6 +10,8 @@ import ohio.rizz.homeappliancestore.entities.Category;
 import ohio.rizz.homeappliancestore.entities.Order;
 import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.entities.Supplier;
+import ohio.rizz.homeappliancestore.enums.AuditAction;
+import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.OrderNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
@@ -27,6 +29,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -38,6 +41,7 @@ public class ProductService {
     private final SupplierService supplierService;
     private final CategoryService categoryService;
     private final ProductMapper productMapper;
+    private final AuditService auditService;
 
     public List<ProductDto> getAllProducts() {
         return productMapper.toDto(productRepository.findAll());
@@ -104,6 +108,10 @@ public class ProductService {
         }
 
         Product savedProduct = productRepository.save(product);
+
+        auditService.log(AuditAction.CREATE, AuditEntityType.PRODUCT, savedProduct.getId().toString(),
+                String.format("Created product '%s'", savedProduct.getName()));
+
         return productMapper.toDto(savedProduct);
     }
 
@@ -111,6 +119,10 @@ public class ProductService {
     public ProductDto updateProduct(UUID id, ProductCreateDto updateDto, MultipartFile imageFile) throws IOException {
         Product product = getProductEntityOrThrow(id);
 
+        boolean priceChanged = !Objects.equals(updateDto.getPrice(), product.getPrice());
+        boolean stockChanged = !Objects.equals(updateDto.getStockQuantity(), product.getStockQuantity());
+
+        // Обновление основных полей
         productMapper.updateEntity(product, updateDto);
 
         // Обновление категории
@@ -132,6 +144,19 @@ public class ProductService {
         }
 
         Product updatedProduct = productRepository.save(product);
+
+        // Логирование для аудита
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append(String.format("Updated product '%s'", updatedProduct.getName()));
+        if (priceChanged) {
+            stringBuilder.append(String.format(", price changed to '%s'", updatedProduct.getPrice()));
+        }
+        if (stockChanged) {
+            stringBuilder.append(String.format(", stock changed to '%s'", updatedProduct.getStockQuantity()));
+        }
+        auditService.log(AuditAction.UPDATE, AuditEntityType.PRODUCT, id.toString(),
+                stringBuilder.toString());
+
         return productMapper.toDto(updatedProduct);
     }
 
@@ -174,7 +199,12 @@ public class ProductService {
             }
         }
 
+        String productName = product.getName();
+
         productRepository.delete(product);
+
+        auditService.log(AuditAction.DELETE, AuditEntityType.PRODUCT, id.toString(),
+                String.format("Product '%s' was deleted", productName));
     }
 
     public List<ProductDto> searchProducts(String query) {

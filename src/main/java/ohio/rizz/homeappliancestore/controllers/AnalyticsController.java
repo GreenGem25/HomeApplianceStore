@@ -38,7 +38,7 @@ public class AnalyticsController {
                                    @RequestParam(required = false) LocalDate to,
                                    RedirectAttributes redirectAttributes) {
         try {
-            analyticsService.updateDailyAnalytics(date);
+            analyticsService.refreshAnalytics(date);
             redirectAttributes.addFlashAttribute("successMessage", "Аналитика за " + date + " обновлена");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Ошибка обновления: " + e.getMessage());

@@ -18,11 +18,14 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests(auth -> auth
+                        // Эти URL не требуют аутентификации
                         .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
                         .requestMatchers("/login", "/logout").permitAll()
-                        // Только ADMIN может заходить в аналитику и обновлять её
+                        // Только ADMIN может заходить на эти страницы
                         .requestMatchers("/analytics/**").hasRole("ADMIN")
                         .requestMatchers("/users/**").hasRole("ADMIN")
+                        .requestMatchers("/audit/**").hasRole("ADMIN")
+                        .requestMatchers("/settings/**").hasRole("ADMIN")
                         // Все остальные URL требуют аутентификации
                         .anyRequest().authenticated()
                 )

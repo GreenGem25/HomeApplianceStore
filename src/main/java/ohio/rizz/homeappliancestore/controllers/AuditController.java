@@ -1,6 +1,7 @@
 package ohio.rizz.homeappliancestore.controllers;
 
 import lombok.RequiredArgsConstructor;
+import ohio.rizz.homeappliancestore.dto.AuditLogDto;
 import ohio.rizz.homeappliancestore.entities.AuditLog;
 import ohio.rizz.homeappliancestore.services.AuditService;
 import org.springframework.security.access.annotation.Secured;
@@ -27,7 +28,7 @@ public class AuditController {
                             @RequestParam(required = false) String entityType,
                             @RequestParam(required = false) String action,
                             Model model) {
-        List<AuditLog> logs = auditService.getFilteredLogs(from, to, username, entityType, action);
+        List<AuditLogDto> logs = auditService.getFilteredLogs(from, to, username, entityType, action);
         model.addAttribute("logs", logs);
         model.addAttribute("from", from);
         model.addAttribute("to", to);

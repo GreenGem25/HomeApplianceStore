@@ -7,6 +7,8 @@ import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.entities.Supplier;
 import ohio.rizz.homeappliancestore.entities.Supply;
 import ohio.rizz.homeappliancestore.entities.SupplyItem;
+import ohio.rizz.homeappliancestore.enums.AuditAction;
+import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 import ohio.rizz.homeappliancestore.enums.SupplyStatus;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
@@ -33,6 +35,7 @@ public class SupplyService {
     private final ProductRepository productRepository;
     private final SupplyMapper supplyMapper;
     private final SupplyItemMapper supplyItemMapper;
+    private final AuditService auditService;
 
     public List<SupplyDto> getAllSupplies() {
         return supplyMapper.toDto(supplyRepository.findAll());
@@ -105,6 +108,10 @@ public class SupplyService {
 
         // Сохраняем поставку
         Supply savedSupply = supplyRepository.save(supply);
+
+        auditService.log(AuditAction.CREATE, AuditEntityType.SUPPLY, savedSupply.getId().toString(),
+                String.format("Created supply '%s'", savedSupply.getSupplyNumber()));
+
         return supplyMapper.toDto(savedSupply);
     }
 
@@ -137,6 +144,10 @@ public class SupplyService {
         }
 
         Supply updatedSupply = supplyRepository.save(supply);
+
+        auditService.log(AuditAction.UPDATE, AuditEntityType.SUPPLY, id.toString(),
+                String.format("Updated supply '%s'", updatedSupply.getSupplyNumber()));
+
         return supplyMapper.toDto(updatedSupply);
     }
 
@@ -156,6 +167,10 @@ public class SupplyService {
         addItemsToStock(supply);
 
         Supply completedSupply = supplyRepository.save(supply);
+
+        auditService.log(AuditAction.COMPLETE, AuditEntityType.SUPPLY, id.toString(),
+                String.format("Supply with number '%s' marked as completed", completedSupply.getSupplyNumber()));
+
         return supplyMapper.toDto(completedSupply);
     }
 
@@ -169,7 +184,12 @@ public class SupplyService {
             returnItemsToStock(supply);
         }
 
+        String supplyNumber = supply.getSupplyNumber();
+
         supplyRepository.delete(supply);
+
+        auditService.log(AuditAction.DELETE, AuditEntityType.SUPPLY, id.toString(),
+                String.format("Deleted supply '%s'", supplyNumber));
     }
 
     private void addSupplyItem(Supply supply, SupplyItemCreateDto itemDto) {
