@@ -1,8 +1,5 @@
 package ohio.rizz.homeappliancestore.dto;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.*;
 import ohio.rizz.homeappliancestore.enums.AuditAction;
 import ohio.rizz.homeappliancestore.enums.AuditEntityType;
@@ -10,9 +7,9 @@ import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 import java.time.LocalDateTime;
 
 @Data
+@Builder
 @Getter
 @Setter
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuditLogDto {

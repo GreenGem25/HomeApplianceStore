@@ -1,12 +1,9 @@
 package ohio.rizz.homeappliancestore.services;
 
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.homeappliancestore.dto.ProductDto;
 import ohio.rizz.homeappliancestore.dto.SupplierCreateDto;
 import ohio.rizz.homeappliancestore.dto.SupplierDto;
-import ohio.rizz.homeappliancestore.entities.Product;
 import ohio.rizz.homeappliancestore.entities.Supplier;
-import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
 import ohio.rizz.homeappliancestore.mappers.SupplierMapper;
 import ohio.rizz.homeappliancestore.repositories.ProductRepository;

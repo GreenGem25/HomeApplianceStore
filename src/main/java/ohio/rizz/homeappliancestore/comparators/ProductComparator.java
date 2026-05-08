@@ -1,7 +1,6 @@
 package ohio.rizz.homeappliancestore.comparators;
 
 import ohio.rizz.homeappliancestore.dto.ProductDto;
-import ohio.rizz.homeappliancestore.entities.Product;
 
 import java.math.BigDecimal;
 import java.util.Comparator;

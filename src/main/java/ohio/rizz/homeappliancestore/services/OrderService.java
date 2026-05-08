@@ -1,7 +1,6 @@
 package ohio.rizz.homeappliancestore.services;
 
 import lombok.RequiredArgsConstructor;
-import ohio.rizz.homeappliancestore.dto.CategoryDto;
 import ohio.rizz.homeappliancestore.dto.OrderCreateDto;
 import ohio.rizz.homeappliancestore.dto.OrderDto;
 import ohio.rizz.homeappliancestore.dto.OrderItemCreateDto;

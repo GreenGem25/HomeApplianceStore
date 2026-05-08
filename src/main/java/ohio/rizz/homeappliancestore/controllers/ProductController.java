@@ -4,8 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.homeappliancestore.dto.ProductCreateDto;
 import ohio.rizz.homeappliancestore.dto.ProductDto;
-import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
-import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
 import ohio.rizz.homeappliancestore.services.CategoryService;
 import ohio.rizz.homeappliancestore.services.ProductService;
 import ohio.rizz.homeappliancestore.services.SupplierService;

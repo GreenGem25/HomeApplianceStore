@@ -1,13 +1,16 @@
 package ohio.rizz.homeappliancestore.dto;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-@Getter
+@Data
 @Builder
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class DashboardDto {
     BigDecimal todayRevenue;
     BigDecimal todayProfit;

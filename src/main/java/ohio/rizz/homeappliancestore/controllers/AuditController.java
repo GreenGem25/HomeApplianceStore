@@ -2,7 +2,6 @@ package ohio.rizz.homeappliancestore.controllers;
 
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.homeappliancestore.dto.AuditLogDto;
-import ohio.rizz.homeappliancestore.entities.AuditLog;
 import ohio.rizz.homeappliancestore.services.AuditService;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.stereotype.Controller;

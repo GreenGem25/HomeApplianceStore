@@ -1,9 +1,6 @@
 package ohio.rizz.homeappliancestore.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ohio.rizz.homeappliancestore.entities.Supply;
 import ohio.rizz.homeappliancestore.enums.SupplyStatus;
 
@@ -13,6 +10,8 @@ import java.util.UUID;
 
 @Data
 @Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class SupplyDto {

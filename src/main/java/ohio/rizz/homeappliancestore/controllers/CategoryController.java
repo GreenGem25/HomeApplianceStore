@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.homeappliancestore.dto.CategoryCreateDto;
 import ohio.rizz.homeappliancestore.dto.CategoryDto;
-import ohio.rizz.homeappliancestore.exceptions.CategoryNotFoundException;
 import ohio.rizz.homeappliancestore.services.CategoryService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
