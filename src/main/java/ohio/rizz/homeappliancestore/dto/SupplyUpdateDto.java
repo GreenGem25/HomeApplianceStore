@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -15,6 +16,9 @@ import java.util.List;
 public class SupplyUpdateDto {
     private String notes;
     private String status;
+
+    @Builder.Default
+    private BigDecimal logisticCost = BigDecimal.ZERO;
 
     @NotEmpty(message = "Добавьте хотя бы один товар")
     @Valid

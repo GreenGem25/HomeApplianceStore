@@ -30,6 +30,9 @@ public class ProductCreateDto {
     @Min(value = 0, message = "Срок гарантии не может быть отрицательным")
     private int warrantyPeriod;
 
+    @Builder.Default
+    private Integer vatRate = 22;
+
     private UUID categoryId;
 
     private UUID supplierId;

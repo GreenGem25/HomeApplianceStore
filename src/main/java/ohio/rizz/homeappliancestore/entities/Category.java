@@ -33,6 +33,9 @@ public class Category {
     @OneToMany(mappedBy = "category")
     private List<Product> products = new ArrayList<>();
 
+    @Transient
+    private int totalProductCount;
+
     public void addChildCategory(Category child) {
         childCategories.add(child);
         child.setParentCategory(this);

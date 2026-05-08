@@ -21,6 +21,7 @@ public class ProductDto {
     private int stockQuantity;
     private String manufacturer;
     private int warrantyPeriod;
+    private Integer vatRate;
     private String imagePath;
     private LocalDateTime createdAt;
     private UUID categoryId;

@@ -97,7 +97,10 @@ public class CategoryService {
 
     public List<CategoryDto> getCategoryTree() {
         List<Category> rootCategories = categoryRepository.findByParentCategoryIsNull();
+        // Загружаем рекурсивно детей
         rootCategories.forEach(this::loadChildrenRecursively);
+        // Вычисляем productCount для каждого узла
+        rootCategories.forEach(this::populateProductCounts);
         return categoryMapper.toDto(rootCategories);
     }
 
@@ -166,6 +169,16 @@ public class CategoryService {
         CategoryDto category = getCategoryById(id);
         category.setProductCount(getTotalProductCount(id));
         return category;
+    }
+
+    private void populateProductCounts(Category category) {
+        int total = category.getProducts().size();
+        // Рекурсивно обходим дочерние категории
+        for (Category child : category.getChildCategories()) {
+            populateProductCounts(child);
+            total += child.getTotalProductCount();
+        }
+        category.setTotalProductCount(total);
     }
 
 }

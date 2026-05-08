@@ -7,29 +7,53 @@
     <style layout:fragment="styles">
         .category-toggle {
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s ease;
+            background: #e9ecef;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 1.2rem;
+            color: #495057;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
         }
         .category-toggle:hover {
-            background-color: rgba(0,0,0,0.05);
+            background: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+            box-shadow: 0 4px 8px rgba(13,110,253,0.25);
+            transform: scale(1.05);
         }
         .category-icon {
-            transition: transform 0.2s;
-            display: inline-block;
+            transition: transform 0.25s ease;
         }
-        [aria-expanded="true"] > .category-icon {
+        /* Автоматический поворот иконки при открытии collapse */
+        .category-clickable[aria-expanded="true"] .category-icon {
             transform: rotate(90deg);
         }
-        .category-item {
-            border-left: 3px solid transparent;
-            transition: all 0.2s;
+        /* Размер шрифта названия категории */
+        .category-item a.fw-semibold {
+            font-size: 1.15rem;
         }
-        .category-item:hover {
-            border-left-color: #0d6efd;
+        /* Увеличенные отступы внутри строки */
+        .category-item .d-flex {
+            padding-top: 0.75rem;
+            padding-bottom: 0.75rem;
         }
+        /* Дополнительно можно увеличить бейдж с количеством товаров */
+        .category-item .badge {
+            font-size: 0.85rem;
+        }
+        /* Отступы по уровням */
         .level-0 { padding-left: 15px; }
-        .level-1 { padding-left: 30px; background-color: #f8f9fa; }
-        .level-2 { padding-left: 45px; background-color: #f1f3f5; }
-        .level-3 { padding-left: 60px; background-color: #e9ecef; }
+        .level-1 { padding-left: 45px; background-color: #f8f9fa; }
+        .level-2 { padding-left: 75px; background-color: #f1f3f5; }
+        .level-3 { padding-left: 105px; background-color: #e9ecef; }
+        .level-4 { padding-left: 135px; background-color: #dee2e6; }
         .category-actions {
             opacity: 0;
             transition: opacity 0.2s;
@@ -37,11 +61,25 @@
         .category-item:hover .category-actions {
             opacity: 1;
         }
+        .category-clickable {
+            cursor: pointer;
+            transition: background-color 0.15s ease;
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin: -2px 0;
+        }
+        .category-clickable:hover {
+            background-color: rgba(0,0,0,0.04);
+        }
+        /* Убираем лишние границы, если list-group-item используется */
+        .list-group-item {
+            border: none;
+            padding: 0;
+        }
     </style>
 </head>
 <body>
 
-<!-- Основной контент -->
 <div layout:fragment="content">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">
@@ -64,38 +102,37 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- Дерево категорий (используем CategoryDto) -->
+    <!-- Дерево категорий -->
     <div class="list-group">
-        <div th:each="category : ${categories}" th:if="${category.parentCategoryId == null}">
-            <!-- Рекурсивный вызов фрагмента для корневых категорий -->
+        <th:block th:each="category : ${categories}" th:if="${category.parentCategoryId == null}">
             <div th:replace="~{fragments/category-node :: category-node(category=${category}, level=0)}"></div>
-        </div>
+        </th:block>
     </div>
 
-    <!-- Сообщение, если нет категорий -->
     <div th:if="${categories.empty}" class="text-center py-5">
         <i class="bi bi-folder-x" style="font-size: 3rem; color: #6c757d;"></i>
-        <h5 class="card-title mt-3">Нет категорий</h5>
-        <p class="card-text">Добавьте первую категорию</p>
+        <h5 class="mt-3">Нет категорий</h5>
+        <p>Добавьте первую категорию</p>
         <a th:href="@{/categories/add}" class="btn btn-primary">
             <i class="bi bi-plus-circle"></i> Создать категорию
         </a>
     </div>
 </div>
 
-<!-- Скрипты для страницы товаров (если нужны специфичные) -->
 <th:block layout:fragment="scripts">
     <script>
-        // Анимация бокового меню
         document.addEventListener('DOMContentLoaded', function() {
-            // Инициализация сворачивания/разворачивания категорий
-            document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(toggle => {
-                toggle.addEventListener('click', function() {
-                    const icon = this.querySelector('.bi-chevron-right');
-                    if (icon) {
-                        icon.classList.toggle('bi-chevron-right');
-                        icon.classList.toggle('bi-chevron-down');
-                    }
+            // Синхронизация aria-expanded для иконок сворачивания
+            document.querySelectorAll('.collapse').forEach(el => {
+                // Пропускаем коллапсы не из дерева категорий
+                const clickable = el.parentElement?.querySelector('.category-clickable');
+                if (!clickable) return;
+
+                el.addEventListener('show.bs.collapse', function() {
+                    clickable.setAttribute('aria-expanded', 'true');
+                });
+                el.addEventListener('hide.bs.collapse', function() {
+                    clickable.setAttribute('aria-expanded', 'false');
                 });
             });
         });

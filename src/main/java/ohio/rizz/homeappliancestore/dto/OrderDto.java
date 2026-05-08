@@ -25,6 +25,7 @@ public class OrderDto {
     private UUID customerId;
     private List<OrderItemDto> items;
     private int itemsCount;
+    private BigDecimal totalVatAmount;
     // Из CustomerDto, для страницы order-details.html
     private String customerName;
     private String customerEmail;

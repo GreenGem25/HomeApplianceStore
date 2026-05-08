@@ -26,6 +26,7 @@ public class SecurityConfig {
                         .requestMatchers("/users/**").hasRole("ADMIN")
                         .requestMatchers("/audit/**").hasRole("ADMIN")
                         .requestMatchers("/settings/**").hasRole("ADMIN")
+                        .requestMatchers("/expenses/**").hasRole("ADMIN")
                         // Все остальные URL требуют аутентификации
                         .anyRequest().authenticated()
                 )

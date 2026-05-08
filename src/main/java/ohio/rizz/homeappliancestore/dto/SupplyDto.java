@@ -4,6 +4,7 @@ import lombok.*;
 import ohio.rizz.homeappliancestore.entities.Supply;
 import ohio.rizz.homeappliancestore.enums.SupplyStatus;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -24,6 +25,7 @@ public class SupplyDto {
     private SupplyStatus status;
     private String statusDisplayName;
     private String notes;
+    private BigDecimal logisticCost;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private List<SupplyItemDto> items;

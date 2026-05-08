@@ -4,6 +4,7 @@
       layout:decorate="~{layout}">
 <head>
     <title>Аудит действий</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/light.css">
     <style layout:fragment="styles">
         .filter-section {
             background: #f8f9fa;
@@ -35,11 +36,11 @@
         <form th:action="@{/audit}" method="get" class="row g-3">
             <div class="col-md-3">
                 <label class="form-label">Дата с</label>
-                <input type="date" class="form-control" name="from" th:value="${from}">
+                <input type="text" class="form-control" name="from" id="auditFrom" th:value="${from}">
             </div>
             <div class="col-md-3">
                 <label class="form-label">Дата по</label>
-                <input type="date" class="form-control" name="to" th:value="${to}">
+                <input type="text" class="form-control" name="to" id="auditTo" th:value="${to}">
             </div>
             <div class="col-md-2">
                 <label class="form-label">Пользователь</label>
@@ -108,10 +109,24 @@
 </div>
 
 <th:block layout:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ru.js"></script>
+
     <script>
-        // Автосабмит при выборе действия
-        document.querySelector('select[name="action"]')?.addEventListener('change', function() {
-            this.form.submit();
+        document.addEventListener('DOMContentLoaded', function() {
+            flatpickr("#auditFrom", {
+                dateFormat: "Y-m-d",
+                locale: "ru"
+            });
+            flatpickr("#auditTo", {
+                dateFormat: "Y-m-d",
+                locale: "ru"
+            });
+
+            // Автосабмит при выборе действия
+            document.querySelector('select[name="action"]')?.addEventListener('change', function() {
+                this.form.submit();
+            });
         });
     </script>
 </th:block>

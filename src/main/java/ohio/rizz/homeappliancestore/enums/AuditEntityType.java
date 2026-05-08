@@ -5,5 +5,6 @@ public enum AuditEntityType {
     ORDER,
     USER,
     SUPPLY,
-    ANALYTICS
+    ANALYTICS,
+    EXPENSE
 }

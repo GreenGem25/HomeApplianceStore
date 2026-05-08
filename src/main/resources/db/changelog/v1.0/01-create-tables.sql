@@ -35,6 +35,7 @@ CREATE TABLE products (
                           price DECIMAL(10,2) NOT NULL DEFAULT 0,
                           cost_price DECIMAL(10,2) NOT NULL DEFAULT 0,
                           stock_quantity INTEGER NOT NULL DEFAULT 0,
+                          vat_rate INTEGER DEFAULT 22,
                           manufacturer VARCHAR(255),
                           warranty_period INTEGER DEFAULT 0,
                           image_path VARCHAR(500),
@@ -79,6 +80,8 @@ CREATE TABLE order_items (
                              quantity INTEGER NOT NULL DEFAULT 0,
                              price DECIMAL(10,2) NOT NULL DEFAULT 0,
                              cost_price DECIMAL(10,2) NOT NULL DEFAULT 0,
+                             vat_rate INTEGER,
+                             vat_amount DECIMAL(10,2) DEFAULT 0,
                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -107,6 +110,7 @@ CREATE TABLE supplies (
                           supply_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           status VARCHAR(50) DEFAULT 'PENDING',
                           notes TEXT,
+                          logistic_cost DECIMAL(10,2) NOT NULL DEFAULT 0,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -140,7 +144,7 @@ CREATE TABLE expenses (
                           expense_id UUID PRIMARY KEY,
                           amount NUMERIC(19,2) NOT NULL,
                           description VARCHAR(500),
-                          category VARCHAR(50) NOT NULL,
+                          type VARCHAR(50) NOT NULL,
                           expense_date DATE NOT NULL
 );
 

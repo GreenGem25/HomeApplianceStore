@@ -86,6 +86,10 @@
                         <span class="fw-bold">Примечания:</span>
                         <p th:text="${supply.notes ?: 'Нет примечаний'}" class="text-muted"></p>
                     </div>
+                    <div class="mb-3">
+                        <span class="fw-bold">Стоимость логистики (₽):</span>
+                        <p th:text="${supply.logisticCost}" class="text-muted"></p>
+                    </div>
                 </div>
 
                 <!-- Информация о поставщике -->

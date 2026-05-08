@@ -126,6 +126,7 @@ public class SupplyController {
         createDto.setSupplierId(supply.getSupplierId());
         createDto.setSupplyDate(supply.getSupplyDate());
         createDto.setNotes(supply.getNotes());
+        createDto.setLogisticCost(supply.getLogisticCost());
         createDto.setSupplyNumber(supply.getSupplyNumber());
         List<SupplyItemCreateDto> itemCreateDtos = supply.getItems().stream()
                 .map(supplyItemEditMapper::toCreateDto)

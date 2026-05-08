@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -210,6 +211,20 @@ public class OrderService {
         orderItem.setOrderQuantity(quantity);
         orderItem.setOrderPrice(product.getPrice());
         orderItem.setCostPrice(product.getCostPrice());
+
+        // НДС
+        Integer vatRate = product.getVatRate();
+        if (vatRate != null && vatRate > 0) {
+            orderItem.setVatRate(vatRate);
+            // НДС = цена * ставка / (100 + ставка) — если цена включает НДС (обычно да)
+            BigDecimal vatAmount = orderItem.getOrderPrice()
+                    .multiply(BigDecimal.valueOf(vatRate))
+                    .divide(BigDecimal.valueOf(100 + vatRate), 2, RoundingMode.HALF_UP);
+            orderItem.setVatAmount(vatAmount);
+        } else {
+            orderItem.setVatRate(null);
+            orderItem.setVatAmount(BigDecimal.ZERO);
+        }
 
         product.decreaseStock(quantity);
         productService.save(product);

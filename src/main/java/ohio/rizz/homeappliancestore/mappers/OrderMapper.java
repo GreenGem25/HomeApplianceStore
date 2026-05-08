@@ -4,11 +4,15 @@ import ohio.rizz.homeappliancestore.dto.OrderCreateDto;
 import ohio.rizz.homeappliancestore.dto.OrderDto;
 import ohio.rizz.homeappliancestore.entities.Customer;
 import ohio.rizz.homeappliancestore.entities.Order;
+import ohio.rizz.homeappliancestore.entities.OrderItem;
 import org.mapstruct.*;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 @Mapper(componentModel = "spring",
         uses = {OrderItemMapper.class, CustomerMapper.class},
+        imports = {OrderItem.class, BigDecimal.class},
         unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface OrderMapper {
 
@@ -20,6 +24,7 @@ public interface OrderMapper {
     @Mapping(target = "customerDiscount", source = "customer.discount")
     @Mapping(target = "items", source = "orderItems")
     @Mapping(target = "itemsCount", expression = "java(order.getOrderItems() != null ? order.getOrderItems().size() : 0)")
+    @Mapping(target = "totalVatAmount", expression = "java(order.getOrderItems().stream().map(OrderItem::getVatAmount).reduce(BigDecimal.ZERO, BigDecimal::add))")
     OrderDto toDto(Order order);
 
     List<OrderDto> toDto(List<Order> orders);

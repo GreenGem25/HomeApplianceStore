@@ -187,7 +187,9 @@
                     </small>
                 </div>
                 <div class="text-end">
-                    <h4 th:text="${'₽' + #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA')}"></h4>
+                    <h4 th:text="${'₽' + order.status.name() == 'IN_PROGRESS' ?
+                    #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA') :
+                    #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></h4>
 
                     <!-- 3. Кнопку редактирования тоже поднимаем по z-index -->
                     <a th:if="${order.status.name() == 'IN_PROGRESS'}"

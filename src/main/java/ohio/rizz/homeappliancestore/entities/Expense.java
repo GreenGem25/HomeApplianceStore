@@ -3,6 +3,7 @@ package ohio.rizz.homeappliancestore.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import ohio.rizz.homeappliancestore.enums.ExpenseType;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,20 +19,16 @@ public class Expense {
     @Column(name = "expense_id", columnDefinition = "UUID")
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(name = "amount", nullable = false)
     private BigDecimal amount;
 
-    @Column(length = 500)
+    @Column(name = "description", length = 500)
     private String description;
 
-    @Column(nullable = false)
+    @Column(name = "type", nullable = false)
     @Enumerated(EnumType.STRING)
-    private ExpenseCategory category;
+    private ExpenseType type;
 
     @Column(name = "expense_date", nullable = false)
     private LocalDate expenseDate;
-
-    public enum ExpenseCategory {
-        RENT, SALARY, MARKETING, LOGISTICS, OTHER
-    }
 }

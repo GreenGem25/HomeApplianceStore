@@ -43,6 +43,11 @@
                                     <label class="form-label">Заметки</label>
                                     <textarea th:field="*{notes}" class="form-control" rows="2"></textarea>
                                 </div>
+                                <div class="col-md-18">
+                                    <label for="logisticCost" class="form-label">Стоимость логистики (₽)</label>
+                                    <input type="number" step="0.01" class="form-control" id="logisticCost"
+                                           th:field="*{logisticCost}" placeholder="0.00">
+                                </div>
                             </div>
                         </div>
                     </div>

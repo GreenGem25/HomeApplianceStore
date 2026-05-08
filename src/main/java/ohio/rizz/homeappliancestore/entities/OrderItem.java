@@ -34,6 +34,12 @@ public class OrderItem {
     @JoinColumn(name = "product_id", nullable = true)
     private Product product;
 
+    @Column(name = "vat_rate")
+    private Integer vatRate;          // ставка в процентах на момент заказа
+
+    @Column(name = "vat_amount")
+    private BigDecimal vatAmount;     // рассчитанная сумма НДС
+
     @PrePersist
     @PreUpdate
     public void validateStock() {

@@ -217,3 +217,52 @@ VALUES
 
 INSERT INTO settings (id, shop_name, address, phone, email)
 VALUES ('00000000-0000-0000-0000-000000000001', 'Магазин техники', 'г. Ваш Город, ул. Примерная, 1', '+7 (000) 000-00-00', 'info@shop.ru');
+
+--changeset test-data:3
+--comment: Add VAT rates to products and calculate VAT for order_items
+
+-- ============================================================
+-- 1. Устанавливаем ставки НДС для товаров
+-- ============================================================
+-- Большинство товаров – стандартная ставка 20%
+UPDATE products SET vat_rate = 20
+WHERE product_id IN (
+                     '11111111-aaaa-1111-aaaa-111111111111', '22222222-bbbb-2222-bbbb-222222222222',
+                     '33333333-cccc-3333-cccc-333333333333', '44444444-dddd-4444-dddd-444444444444',
+                     '55555555-eeee-5555-eeee-555555555555', '66666666-ffff-6666-ffff-666666666666',
+                     '77777777-aaaa-7777-aaaa-777777777777', '88888888-bbbb-8888-bbbb-888888888888',
+                     '99999999-cccc-9999-cccc-999999999999', 'aaaaaaaa-dddd-aaaa-dddd-aaaaaaaaaaaa',
+                     'bbbbbbbb-eeee-bbbb-eeee-bbbbbbbbbbbb', 'cccccccc-ffff-cccc-ffff-cccccccccccc',
+                     'dddddddd-aaaa-dddd-aaaa-dddddddddddd', 'eeeeeeee-bbbb-eeee-bbbb-eeeeeeeeeeee',
+                     'ffffffff-cccc-ffff-cccc-ffffffffffff', '16161616-bbbb-1616-bbbb-161616161616',
+                     '17171717-cccc-1717-cccc-171717171717', '18181818-dddd-1818-dddd-181818181818',
+                     '19191919-eeee-1919-eeee-191919191919', '20202020-ffff-2020-ffff-202020202020'
+    );
+
+-- Аудиотехника и наушники – льготная ставка 10% (пример разнообразия)
+UPDATE products SET vat_rate = 10
+WHERE product_id IN (
+                     '12121212-dddd-1212-dddd-121212121212',  -- Sony WH-1000XM5
+                     '13131313-eeee-1313-eeee-131313131313'   -- AirPods Pro 2
+    );
+
+-- Умные колонки – без НДС (0%) как пример необлагаемых товаров
+UPDATE products SET vat_rate = 0
+WHERE product_id IN (
+                     '14141414-ffff-1414-ffff-141414141414',  -- Яндекс Станция 2
+                     '15151515-aaaa-1515-aaaa-151515151515'   -- SberBoom
+    );
+
+-- ============================================================
+-- 2. Рассчитываем НДС для всех позиций заказов
+-- ============================================================
+UPDATE order_items oi
+SET
+    vat_rate = p.vat_rate,
+    vat_amount = CASE
+                     WHEN p.vat_rate IS NOT NULL AND p.vat_rate > 0
+                         THEN ROUND(oi.price * p.vat_rate / (100 + p.vat_rate), 2)
+                     ELSE 0
+        END
+    FROM products p
+WHERE oi.product_id = p.product_id;

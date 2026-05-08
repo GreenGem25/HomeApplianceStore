@@ -72,6 +72,8 @@
             <th>Товар</th>
             <th>Цена</th>
             <th>Кол-во</th>
+            <th>Ставка НДС</th>
+            <th>Сумма НДС</th>
             <th>Сумма</th>
         </tr>
         </thead>
@@ -81,6 +83,8 @@
             <td th:text="${item.productName}"></td>
             <td th:text="'₽' + ${#numbers.formatDecimal(item.price, 1, 2, 'COMMA')}"></td>
             <td th:text="${item.quantity}"></td>
+            <td th:text="${item.vatRate != null ? item.vatRate + '%' : '—'}"></td>
+            <td th:text="${item.vatRate != null ? '₽' + #numbers.formatDecimal(item.vatAmount, 1, 2, 'COMMA') : '—'}"></td>
             <td th:text="'₽' + ${#numbers.formatDecimal(item.totalPrice, 1, 2, 'COMMA')}"></td>
         </tr>
         </tbody>
@@ -94,6 +98,10 @@
                 <tr>
                     <td><strong>Скидка клиента:</strong></td>
                     <td class="text-end" th:text="${order.customerDiscount} + '%'">0%</td>
+                </tr>
+                <tr>
+                    <td><strong>в том числе НДС:</strong></td>
+                    <td class="text-end" th:text="'₽' + ${#numbers.formatDecimal(order.totalVatAmount, 1, 2, 'COMMA')}">0.00</td>
                 </tr>
                 <tr>
                     <td><strong>Итоговая сумма:</strong></td>

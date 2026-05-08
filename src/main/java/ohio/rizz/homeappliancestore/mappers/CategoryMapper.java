@@ -13,7 +13,7 @@ public interface CategoryMapper {
 
     @Mapping(target = "parentCategoryId", source = "parentCategory.id")
     @Mapping(target = "parentCategoryName", source = "parentCategory.name")
-    @Mapping(target = "productCount", expression = "java(category.getProducts() != null ? category.getProducts().size() : 0)")
+    @Mapping(target = "productCount", source = "totalProductCount")
     CategoryDto toDto(Category category);
 
     List<CategoryDto> toDto(List<Category> categories);

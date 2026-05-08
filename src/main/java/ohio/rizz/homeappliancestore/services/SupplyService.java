@@ -3,12 +3,10 @@ package ohio.rizz.homeappliancestore.services;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.homeappliancestore.dto.*;
-import ohio.rizz.homeappliancestore.entities.Product;
-import ohio.rizz.homeappliancestore.entities.Supplier;
-import ohio.rizz.homeappliancestore.entities.Supply;
-import ohio.rizz.homeappliancestore.entities.SupplyItem;
+import ohio.rizz.homeappliancestore.entities.*;
 import ohio.rizz.homeappliancestore.enums.AuditAction;
 import ohio.rizz.homeappliancestore.enums.AuditEntityType;
+import ohio.rizz.homeappliancestore.enums.ExpenseType;
 import ohio.rizz.homeappliancestore.enums.SupplyStatus;
 import ohio.rizz.homeappliancestore.exceptions.ProductNotFoundException;
 import ohio.rizz.homeappliancestore.exceptions.SupplierNotFoundException;
@@ -21,6 +19,8 @@ import ohio.rizz.homeappliancestore.repositories.SupplyItemRepository;
 import ohio.rizz.homeappliancestore.repositories.SupplyRepository;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -36,6 +36,7 @@ public class SupplyService {
     private final SupplyMapper supplyMapper;
     private final SupplyItemMapper supplyItemMapper;
     private final AuditService auditService;
+    private final ExpenseService expenseService;
 
     public List<SupplyDto> getAllSupplies() {
         return supplyMapper.toDto(supplyRepository.findAll());
@@ -128,6 +129,8 @@ public class SupplyService {
         // Обновляем поля
         supply.setNotes(updateDto.getNotes());
 
+        supply.setLogisticCost(updateDto.getLogisticCost());
+
         if (updateDto.getStatus() != null) {
             supply.setStatus(SupplyStatus.valueOf(updateDto.getStatus()));
         }
@@ -165,6 +168,16 @@ public class SupplyService {
 
         // Увеличиваем количество товара на складе
         addItemsToStock(supply);
+
+        if (supply.getLogisticCost() != null && supply.getLogisticCost().compareTo(BigDecimal.ZERO) > 0)
+        {
+            Expense logisticExpense = new Expense();
+            logisticExpense.setAmount(supply.getLogisticCost());
+            logisticExpense.setType(ExpenseType.LOGISTICS);
+            logisticExpense.setExpenseDate(supply.getSupplyDate().toLocalDate());
+            logisticExpense.setDescription("Логистика по поставке " + supply.getSupplyNumber());
+            expenseService.createExpense(logisticExpense);
+        }
 
         Supply completedSupply = supplyRepository.save(supply);
 

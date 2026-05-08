@@ -44,6 +44,9 @@ public class Product {
     @Column(name = "warranty_period")
     private int warrantyPeriod = 0;
 
+    @Column(name = "vat_rate")
+    private Integer vatRate = 22;
+
     @Column(name = "image_path")
     private String imagePath;
 
