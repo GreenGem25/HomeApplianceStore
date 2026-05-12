@@ -32,8 +32,8 @@ CREATE TABLE products (
                           product_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                           name VARCHAR(255) NOT NULL,
                           description TEXT,
-                          price DECIMAL(10,2) NOT NULL DEFAULT 0,
-                          cost_price DECIMAL(10,2) NOT NULL DEFAULT 0,
+                          price DECIMAL(12,2) NOT NULL DEFAULT 0,
+                          cost_price DECIMAL(12,2) NOT NULL DEFAULT 0,
                           stock_quantity INTEGER NOT NULL DEFAULT 0,
                           vat_rate INTEGER DEFAULT 22,
                           manufacturer VARCHAR(255),
@@ -55,7 +55,7 @@ CREATE TABLE customers (
                            address TEXT,
                            image_path VARCHAR(500),
                            discount INTEGER DEFAULT 0,
-                           money_spent DECIMAL(10,2) DEFAULT 0,
+                           money_spent DECIMAL(15,2) DEFAULT 0,
                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -65,7 +65,7 @@ CREATE TABLE orders (
                         order_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
                         order_number VARCHAR(50) UNIQUE,
                         customer_id UUID NOT NULL REFERENCES customers(customer_id) ON DELETE CASCADE,
-                        total_price DECIMAL(10,2) NOT NULL DEFAULT 0,
+                        total_price DECIMAL(15,2) NOT NULL DEFAULT 0,
                         status VARCHAR(50) DEFAULT 'IN_PROGRESS',
                         shipping_address TEXT,
                         order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -78,10 +78,10 @@ CREATE TABLE order_items (
                              order_id UUID NOT NULL REFERENCES orders(order_id) ON DELETE CASCADE,
                              product_id UUID REFERENCES products(product_id) ON DELETE SET NULL,
                              quantity INTEGER NOT NULL DEFAULT 0,
-                             price DECIMAL(10,2) NOT NULL DEFAULT 0,
-                             cost_price DECIMAL(10,2) NOT NULL DEFAULT 0,
+                             price DECIMAL(12,2) NOT NULL DEFAULT 0,
+                             cost_price DECIMAL(12,2) NOT NULL DEFAULT 0,
                              vat_rate INTEGER,
-                             vat_amount DECIMAL(10,2) DEFAULT 0,
+                             vat_amount DECIMAL(12,2) DEFAULT 0,
                              created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -110,7 +110,7 @@ CREATE TABLE supplies (
                           supply_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           status VARCHAR(50) DEFAULT 'PENDING',
                           notes TEXT,
-                          logistic_cost DECIMAL(10,2) NOT NULL DEFAULT 0,
+                          logistic_cost DECIMAL(12,2) NOT NULL DEFAULT 0,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -122,8 +122,8 @@ CREATE TABLE supply_items (
                               supply_id UUID NOT NULL REFERENCES supplies(supply_id) ON DELETE CASCADE,
                               product_id UUID NOT NULL REFERENCES products(product_id) ON DELETE CASCADE,
                               quantity INTEGER NOT NULL CHECK (quantity > 0),
-                              price_per_unit DECIMAL(10,2) NOT NULL CHECK (price_per_unit >= 0),
-                              total_price DECIMAL(10,2) GENERATED ALWAYS AS (quantity * price_per_unit) STORED,
+                              price_per_unit DECIMAL(12,2) NOT NULL CHECK (price_per_unit >= 0),
+                              total_price DECIMAL(15,2) GENERATED ALWAYS AS (quantity * price_per_unit) STORED,
                               created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -142,7 +142,7 @@ ALTER TABLE supplies ADD CONSTRAINT check_supply_date_not_future
 
 CREATE TABLE expenses (
                           expense_id UUID PRIMARY KEY,
-                          amount NUMERIC(19,2) NOT NULL,
+                          amount DECIMAL(12,2) NOT NULL,
                           description VARCHAR(500),
                           type VARCHAR(50) NOT NULL,
                           expense_date DATE NOT NULL
@@ -150,8 +150,8 @@ CREATE TABLE expenses (
 
 CREATE TABLE analytics_daily (
                                                date DATE NOT NULL PRIMARY KEY,
-                                               total_revenue NUMERIC(19,2) NOT NULL DEFAULT 0,
-                                               total_cost NUMERIC(19,2) NOT NULL DEFAULT 0,
+                                               total_revenue DECIMAL(15,2) NOT NULL DEFAULT 0,
+                                               total_cost DECIMAL(15,2) NOT NULL DEFAULT 0,
                                                order_count INT NOT NULL DEFAULT 0,
                                                new_customers INT NOT NULL DEFAULT 0
 );
