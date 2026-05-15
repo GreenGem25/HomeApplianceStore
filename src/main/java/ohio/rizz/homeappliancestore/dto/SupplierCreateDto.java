@@ -17,11 +17,17 @@ public class SupplierCreateDto {
 
     private String contactName;
 
-    @Pattern(regexp = "^\\+?[0-9\\-\\s]{10,15}$", message = "Некорректный формат телефона")
+    @Pattern(regexp = "^\\+7 \\(\\d{3}\\) \\d{3}-\\d{2}-\\d{2}$", message = "Телефон должен быть в формате +7 (XXX) XXX-XX-XX")
     private String phone;
 
     @Email(message = "Некорректный формат email")
     private String email;
 
     private String address;
+
+    @Pattern(
+            regexp = "^(\\d{10}|\\d{12})?$",
+            message = "ИНН должен состоять из 10 или 12 цифр"
+    )
+    private String inn;
 }

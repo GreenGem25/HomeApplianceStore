@@ -87,6 +87,14 @@
                             <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}"
                                  th:errors="*{address}"></div>
                         </div>
+
+                        <div class="mb-3">
+                            <label for="inn" class="form-label">ИНН</label>
+                            <textarea class="form-control" id="inn" th:field="*{inn}" rows="2"
+                                      th:classappend="${#fields.hasErrors('inn')} ? 'is-invalid'"></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('inn')}"
+                                 th:errors="*{inn}"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -102,6 +110,21 @@
         </div>
     </form>
 </div>
+
+<th:block layout:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Применяем маску только к полю телефона
+            Inputmask({
+                mask: '+7 (999) 999-99-99',
+                placeholder: '_',
+                showMaskOnHover: false,
+                clearIncomplete: true
+            }).mask(document.getElementById('phone'));
+        });
+    </script>
+</th:block>
 
 </body>
 </html>

@@ -18,7 +18,18 @@
         </a>
     </div>
 
-    <form th:action="@{/customers/add}" method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <!-- Уведомления -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+
+    <!-- Форма с привязкой к объекту customer -->
+    <form th:action="@{/customers/add}" th:object="${customer}" method="post" enctype="multipart/form-data" novalidate>
         <div class="row g-3">
             <!-- Основная информация -->
             <div class="col-md-6">
@@ -30,22 +41,23 @@
                         <div class="mb-3">
                             <label for="firstName" class="form-label">Имя*</label>
                             <input type="text" class="form-control" id="firstName"
-                                   name="firstName" required>
-                            <div class="invalid-feedback">Пожалуйста, укажите имя</div>
+                                   th:field="*{firstName}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('firstName')}"
+                                 th:errors="*{firstName}"></div>
                         </div>
 
                         <div class="mb-3">
                             <label for="lastName" class="form-label">Фамилия*</label>
                             <input type="text" class="form-control" id="lastName"
-                                   name="lastName" required>
-                            <div class="invalid-feedback">Пожалуйста, укажите фамилию</div>
+                                   th:field="*{lastName}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('lastName')}"
+                                 th:errors="*{lastName}"></div>
                         </div>
 
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email*</label>
-                            <input type="email" class="form-control" id="email"
-                                   name="email" required>
-                            <div class="invalid-feedback">Пожалуйста, укажите корректный email</div>
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" th:field="*{email}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
                         </div>
                     </div>
                 </div>
@@ -60,15 +72,20 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="phone" class="form-label">Телефон</label>
-                            <input type="tel" class="form-control" id="phone" name="phone"
-                                   pattern="[\+]\d{1}\s[\(]\d{3}[\)]\s\d{3}[\-]\d{2}[\-]\d{2}"
+                            <input type="tel" class="form-control" id="phone"
+                                   th:field="*{phone}" th:errorclass="is-invalid"
                                    placeholder="+7 (XXX) XXX-XX-XX">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}"
+                                 th:errors="*{phone}"></div>
                         </div>
 
                         <div class="mb-3">
                             <label for="address" class="form-label">Адрес</label>
                             <textarea class="form-control" id="address"
-                                      name="address" rows="3"></textarea>
+                                      th:field="*{address}" rows="3"
+                                      th:errorclass="is-invalid"></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}"
+                                 th:errors="*{address}"></div>
                         </div>
 
                         <div class="mb-3">
@@ -88,23 +105,19 @@
     </form>
 </div>
 
-<!-- Скрипты для страницы товаров (если нужны специфичные) -->
 <th:block layout:fragment="scripts">
+    <!-- Inputmask для автоматического форматирования телефона -->
+    <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
     <script>
-        // Валидация формы
-        (() => {
-            'use strict'
-            const forms = document.querySelectorAll('.needs-validation')
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
+        document.addEventListener('DOMContentLoaded', function() {
+            // Маска для телефона в формате +7 (XXX) XXX-XX-XX
+            Inputmask({
+                mask: '+7 (999) 999-99-99',
+                placeholder: '_',
+                showMaskOnHover: false,
+                clearIncomplete: true
+            }).mask(document.getElementById('phone'));
+        });
     </script>
 </th:block>
 </body>

@@ -18,6 +18,7 @@ public class SupplierDto {
     private String phone;
     private String email;
     private String address;
+    private String inn;
     private List<ProductDto> products;
     private int productsCount;
 }

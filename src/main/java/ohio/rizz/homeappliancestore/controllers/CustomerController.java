@@ -1,11 +1,13 @@
 package ohio.rizz.homeappliancestore.controllers;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import ohio.rizz.homeappliancestore.dto.CustomerCreateDto;
 import ohio.rizz.homeappliancestore.dto.CustomerDto;
 import ohio.rizz.homeappliancestore.services.CustomerService;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -47,9 +49,15 @@ public class CustomerController {
 
     @PostMapping("/add")
     public String addCustomer(
-            @ModelAttribute("customer") CustomerCreateDto createDto,
+            @Valid @ModelAttribute("customer") CustomerCreateDto createDto,
+            BindingResult bindingResult,
             @RequestParam("imageFile") MultipartFile imageFile,
             RedirectAttributes redirectAttributes) {
+
+        if (bindingResult.hasErrors()) {
+            return "add-customer";  // возвращаем форму с ошибками
+        }
+
 
         try {
             CustomerDto savedCustomer = customerService.createCustomer(createDto);

@@ -86,9 +86,11 @@ public class SupplierController {
             @PathVariable UUID id,
             @Valid @ModelAttribute("supplierDto") SupplierCreateDto createDto,
             BindingResult bindingResult,
-            RedirectAttributes redirectAttributes) {
+            RedirectAttributes redirectAttributes,
+            Model model) {
 
         if (bindingResult.hasErrors()) {
+            model.addAttribute("supplierId", id);
             return "edit-supplier";
         }
 

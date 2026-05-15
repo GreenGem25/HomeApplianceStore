@@ -28,7 +28,6 @@ public interface SupplyMapper {
     @Mapping(target = "supplyNumber", ignore = true)
     @Mapping(target = "status", constant = "PENDING")
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "supplier", ignore = true)
     @Mapping(target = "supplyItems", ignore = true)
     Supply toEntity(SupplyCreateDto createDto);
@@ -38,7 +37,6 @@ public interface SupplyMapper {
     @Mapping(target = "supplyNumber", ignore = true)
     @Mapping(target = "supplier", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
-    @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "supplyItems", ignore = true)
     void updateEntity(@MappingTarget Supply supply, SupplyUpdateDto updateDto);
 

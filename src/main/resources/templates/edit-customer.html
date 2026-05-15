@@ -141,6 +141,18 @@
       }
     });
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Применяем маску только к полю телефона
+      Inputmask({
+        mask: '+7 (999) 999-99-99',
+        placeholder: '_',
+        showMaskOnHover: false,
+        clearIncomplete: true
+      }).mask(document.getElementById('phone'));
+    });
+  </script>
 </th:block>
 </body>
 </html>

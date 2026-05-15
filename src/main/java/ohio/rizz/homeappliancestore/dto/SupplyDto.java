@@ -27,7 +27,6 @@ public class SupplyDto {
     private String notes;
     private BigDecimal logisticCost;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private List<SupplyItemDto> items;
     private int totalItems;
     private int totalQuantity;

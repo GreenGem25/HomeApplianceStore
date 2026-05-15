@@ -18,7 +18,7 @@ public class AuditLog {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "timestamp", nullable = false)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime timestamp;
 
     @Column(name = "username", nullable = false)

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import ohio.rizz.homeappliancestore.enums.OrderStatus;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -36,7 +38,10 @@ public class Order {
     private String shippingAddress = "No shipping address";
 
     @CreationTimestamp
-    @Column(name = "order_date", nullable = false, updatable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime orderCreateDate;
+
+    @Column(name = "order_date", nullable = false)
     private LocalDateTime orderDate;
 
     @ManyToOne(fetch = FetchType.LAZY)

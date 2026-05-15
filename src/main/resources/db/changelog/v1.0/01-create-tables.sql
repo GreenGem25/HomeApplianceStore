@@ -23,6 +23,7 @@ CREATE TABLE suppliers (
                            phone VARCHAR(50),
                            email VARCHAR(255),
                            address TEXT,
+                           inn VARCHAR(12),
                            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -68,7 +69,8 @@ CREATE TABLE orders (
                         total_price DECIMAL(15,2) NOT NULL DEFAULT 0,
                         status VARCHAR(50) DEFAULT 'IN_PROGRESS',
                         shipping_address TEXT,
-                        order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                        order_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 --changeset author:7
@@ -111,8 +113,7 @@ CREATE TABLE supplies (
                           status VARCHAR(50) DEFAULT 'PENDING',
                           notes TEXT,
                           logistic_cost DECIMAL(12,2) NOT NULL DEFAULT 0,
-                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 --changeset author:11
@@ -145,7 +146,8 @@ CREATE TABLE expenses (
                           amount DECIMAL(12,2) NOT NULL,
                           description VARCHAR(500),
                           type VARCHAR(50) NOT NULL,
-                          expense_date DATE NOT NULL
+                          expense_date DATE NOT NULL,
+                          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE analytics_daily (
@@ -162,7 +164,8 @@ CREATE TABLE users (
                                      password VARCHAR(255) NOT NULL,
                                      role VARCHAR(20) NOT NULL CHECK (role IN ('ADMIN', 'MANAGER')),
                                      full_name VARCHAR(150),
-                                     enabled BOOLEAN NOT NULL DEFAULT TRUE
+                                     enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                                     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE settings (
@@ -175,7 +178,7 @@ CREATE TABLE settings (
 
 CREATE TABLE audit_log (
                            id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-                           timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                           created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                            username VARCHAR(100) NOT NULL,
                            action VARCHAR(50) NOT NULL,          -- CREATE, UPDATE, DELETE, BLOCK, UNBLOCK, etc.
                            entity_type VARCHAR(100) NOT NULL,    -- Product, Order, User, Supply, ...
@@ -183,6 +186,6 @@ CREATE TABLE audit_log (
                            details TEXT                           -- JSON с дополнительной информацией
 );
 
-CREATE INDEX idx_audit_log_timestamp ON audit_log(timestamp);
+CREATE INDEX idx_audit_log_timestamp ON audit_log(created_at);
 CREATE INDEX idx_audit_log_username ON audit_log(username);
 CREATE INDEX idx_audit_log_entity_type ON audit_log(entity_type);

@@ -21,7 +21,6 @@
 </head>
 <body>
 
-<!-- Основной контент -->
 <div layout:fragment="content">
     <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
         <h1 class="h2">
@@ -42,63 +41,52 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <form th:action="@{/suppliers/add}" method="post" class="needs-validation" novalidate>
+    <form th:action="@{/suppliers/add}" th:object="${supplier}" method="post" novalidate>
         <div class="row g-3">
-            <!-- Основная информация -->
             <div class="col-md-6">
                 <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        Основная информация
-                    </div>
+                    <div class="card-header bg-primary text-white">Основная информация</div>
                     <div class="card-body">
                         <div class="text-center mb-4">
-                            <div class="supplier-icon">
-                                <i class="bi bi-building"></i>
-                            </div>
+                            <div class="supplier-icon"><i class="bi bi-building"></i></div>
                         </div>
-
                         <div class="mb-3">
                             <label for="name" class="form-label">Название компании*</label>
-                            <input type="text" class="form-control" id="name"
-                                   name="name" required>
-                            <div class="invalid-feedback">Пожалуйста, укажите название компании</div>
+                            <input type="text" class="form-control" id="name" th:field="*{name}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
                         </div>
-
                         <div class="mb-3">
                             <label for="contactName" class="form-label">Контактное лицо</label>
-                            <input type="text" class="form-control" id="contactName"
-                                   name="contactName">
+                            <input type="text" class="form-control" id="contactName" th:field="*{contactName}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('contactName')}" th:errors="*{contactName}"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Контактная информация -->
             <div class="col-md-6">
                 <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        Контактная информация
-                    </div>
+                    <div class="card-header bg-primary text-white">Контактная информация</div>
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="phone" class="form-label">Телефон</label>
-                            <input type="tel" class="form-control" id="phone" name="phone"
-                                   pattern="[\+]\d{1}\s[\(]\d{3}[\)]\s\d{3}[\-]\d{2}[\-]\d{2}"
-                                   placeholder="+7 (XXX) XXX-XX-XX">
-                            <div class="invalid-feedback">Пожалуйста, укажите телефон в формате +7 (XXX) XXX-XX-XX</div>
+                            <input type="tel" class="form-control" id="phone" th:field="*{phone}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></div>
                         </div>
-
                         <div class="mb-3">
                             <label for="email" class="form-label">Email</label>
-                            <input type="email" class="form-control" id="email"
-                                   name="email">
-                            <div class="invalid-feedback">Пожалуйста, укажите корректный email</div>
+                            <input type="email" class="form-control" id="email" th:field="*{email}" th:errorclass="is-invalid">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
                         </div>
-
                         <div class="mb-3">
                             <label for="address" class="form-label">Адрес</label>
-                            <textarea class="form-control" id="address"
-                                      name="address" rows="3"></textarea>
+                            <textarea class="form-control" id="address" th:field="*{address}" rows="3" th:errorclass="is-invalid"></textarea>
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('address')}" th:errors="*{address}"></div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="inn" class="form-label">ИНН</label>
+                            <input type="text" class="form-control" id="inn" th:field="*{inn}" th:errorclass="is-invalid" placeholder="10 или 12 цифр">
+                            <div class="invalid-feedback" th:if="${#fields.hasErrors('inn')}" th:errors="*{inn}"></div>
                         </div>
                     </div>
                 </div>
@@ -112,23 +100,18 @@
     </form>
 </div>
 
-<!-- Скрипты для страницы товаров (если нужны специфичные) -->
 <th:block layout:fragment="scripts">
+    <script src="https://cdn.jsdelivr.net/npm/inputmask@5.0.8/dist/inputmask.min.js"></script>
     <script>
-        // Валидация формы
-        (() => {
-            'use strict'
-            const forms = document.querySelectorAll('.needs-validation')
-            Array.from(forms).forEach(form => {
-                form.addEventListener('submit', event => {
-                    if (!form.checkValidity()) {
-                        event.preventDefault()
-                        event.stopPropagation()
-                    }
-                    form.classList.add('was-validated')
-                }, false)
-            })
-        })()
+        document.addEventListener('DOMContentLoaded', function() {
+            // Применяем маску только к полю телефона
+            Inputmask({
+                mask: '+7 (999) 999-99-99',
+                placeholder: '_',
+                showMaskOnHover: false,
+                clearIncomplete: true
+            }).mask(document.getElementById('phone'));
+        });
     </script>
 </th:block>
 </body>

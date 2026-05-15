@@ -96,6 +96,10 @@
                                 <p th:text="${supplier.address} ?: 'Не указан'"></p>
                             </div>
                             <div class="mb-3">
+                                <span class="property-label">ИНН:</span>
+                                <p th:text="${supplier.inn} ?: 'Не указан'"></p>
+                            </div>
+                            <div class="mb-3">
                                 <span class="property-label">Количество товаров:</span>
                                 <p th:text="${supplier.products.size()}"></p>
                             </div>

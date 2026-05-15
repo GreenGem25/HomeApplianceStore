@@ -32,6 +32,9 @@ public class Supplier {
     @Column(name = "address")
     private String address = "No address";
 
+    @Column(name = "inn")
+    private String inn = "No inn";
+
     @OneToMany(mappedBy = "supplier")
     private List<Product> products = new ArrayList<>();
 }

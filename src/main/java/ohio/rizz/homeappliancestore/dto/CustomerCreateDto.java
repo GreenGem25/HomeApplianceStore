@@ -3,7 +3,9 @@ package ohio.rizz.homeappliancestore.dto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Data
 @Builder
@@ -22,7 +24,7 @@ public class CustomerCreateDto {
     @Email(message = "Некорректный формат email")
     private String email;
 
-    @Pattern(regexp = "^\\+?[0-9\\-\\s]{10,15}$", message = "Некорректный формат телефона")
+    @Pattern(regexp = "^\\+7 \\(\\d{3}\\) \\d{3}-\\d{2}-\\d{2}$", message = "Телефон должен быть в формате +7 (XXX) XXX-XX-XX")
     private String phone;
 
     private String address;
