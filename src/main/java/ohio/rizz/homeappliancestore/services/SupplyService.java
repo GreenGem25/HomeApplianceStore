@@ -171,7 +171,7 @@ public class SupplyService {
 
         if (supply.getLogisticCost() != null && supply.getLogisticCost().compareTo(BigDecimal.ZERO) > 0)
         {
-            Expense logisticExpense = new Expense();
+            ExpenseCreateDto logisticExpense = new ExpenseCreateDto();
             logisticExpense.setAmount(supply.getLogisticCost());
             logisticExpense.setType(ExpenseType.LOGISTICS);
             logisticExpense.setExpenseDate(supply.getSupplyDate().toLocalDate());

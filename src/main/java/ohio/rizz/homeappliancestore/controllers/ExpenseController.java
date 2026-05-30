@@ -2,6 +2,8 @@ package ohio.rizz.homeappliancestore.controllers;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import ohio.rizz.homeappliancestore.dto.ExpenseCreateDto;
+import ohio.rizz.homeappliancestore.dto.ExpenseDto;
 import ohio.rizz.homeappliancestore.entities.Expense;
 import ohio.rizz.homeappliancestore.enums.ExpenseType;
 import ohio.rizz.homeappliancestore.services.ExpenseService;
@@ -29,7 +31,7 @@ public class ExpenseController {
                                @RequestParam(required = false) LocalDate to,
                                @RequestParam(required = false) ExpenseType type,
                                Model model) {
-        List<Expense> expenses = expenseService.getFilteredExpenses(from, to, type);
+        List<ExpenseDto> expenses = expenseService.getFilteredExpenses(from, to, type);
         model.addAttribute("expenses", expenses);
         model.addAttribute("from", from);
         model.addAttribute("to", to);
@@ -46,7 +48,7 @@ public class ExpenseController {
     }
 
     @PostMapping("/add")
-    public String addExpense(@Valid @ModelAttribute("expense") Expense expense,
+    public String addExpense(@Valid @ModelAttribute("expense") ExpenseCreateDto expense,
                              BindingResult result,
                              RedirectAttributes redirectAttributes,
                              Model model) {
@@ -61,7 +63,7 @@ public class ExpenseController {
 
     @GetMapping("/{id}/edit")
     public String showEditForm(@PathVariable UUID id, Model model) {
-        Expense expense = expenseService.getExpenseById(id);
+        ExpenseDto expense = expenseService.getExpenseById(id);
         model.addAttribute("expense", expense);
         model.addAttribute("types", ExpenseType.values());
         return "edit-expense";
@@ -69,7 +71,7 @@ public class ExpenseController {
 
     @PostMapping("/{id}/edit")
     public String updateExpense(@PathVariable UUID id,
-                                @Valid @ModelAttribute("expense") Expense expense,
+                                @Valid @ModelAttribute("expense") ExpenseCreateDto expense,
                                 BindingResult result,
                                 RedirectAttributes redirectAttributes,
                                 Model model) {
