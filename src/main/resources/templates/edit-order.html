@@ -48,7 +48,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- Сводка по заказу (read-only) -->
+    <!-- Сводка по заказу -->
     <div class="order-summary">
         <div class="row">
             <div class="col-md-4">
@@ -149,11 +149,9 @@
     </form>
 </div>
 
-<!-- Скрипты для страницы товаров (если нужны специфичные) -->
 <th:block layout:fragment="scripts">
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Используем глобальную переменную productsData
             console.log('Products in DOMContentLoaded:', productsData.length);
 
             let itemCount = document.querySelectorAll('.product-item').length;
@@ -282,17 +280,14 @@
             document.querySelectorAll('.product-item').forEach(item => {
                 const select = item.querySelector('.product-select');
 
-                // Устанавливаем начальное значение остатка для выбранного товара
                 if (select.value) {
                     updateStockInfo(select);
                 }
 
-                // Добавляем обработчик изменения
                 select.addEventListener('change', function() {
                     updateStockInfo(this);
                 });
 
-                // Добавляем обработчик для проверки количества
                 const quantityInput = item.querySelector('.quantity-input');
                 quantityInput.addEventListener('change', function() {
                     const select = item.querySelector('.product-select');
@@ -312,7 +307,6 @@
             document.getElementById('orderForm').addEventListener('submit', function(e) {
                 let isValid = true;
 
-                // Проверка адреса
                 const shippingAddress = document.getElementById('shippingAddress').value;
                 if (!shippingAddress.trim()) {
                     alert('Укажите адрес доставки');
@@ -321,7 +315,6 @@
                     return;
                 }
 
-                // Проверка товаров
                 const items = document.querySelectorAll('.product-item');
                 if (items.length === 0) {
                     alert('Добавьте хотя бы один товар');

@@ -47,7 +47,7 @@
         </h1>
 
         <div class="d-flex align-items-center gap-2">
-            <!-- Фрагмент формы фильтра (GET) -->
+            <!-- Фильтр -->
             <form th:action="@{/analytics}" method="get" class="d-flex align-items-center gap-2" id="filterForm">
                 <div class="input-group input-group-sm">
                     <span class="input-group-text">с</span>
@@ -65,7 +65,7 @@
                 </a>
             </form>
 
-            <!-- Форма "Обновить" (POST) -->
+            <!-- Кнопки обновления -->
             <form th:action="@{/analytics/refresh}" method="post" class="d-inline" id="refreshForm">
                 <input type="hidden" name="date" id="refreshDate" value="">
                 <input type="hidden" name="from" id="refreshFrom" value="">
@@ -75,7 +75,6 @@
                 </button>
             </form>
 
-            <!-- Форма "Обновить период" (POST) -->
             <form th:action="@{/analytics/refresh-range}" method="post" class="d-inline" id="refreshRangeForm">
                 <input type="hidden" name="from" id="rangeFrom" value="">
                 <input type="hidden" name="to" id="rangeTo" value="">
@@ -86,7 +85,6 @@
         </div>
     </div>
 
-    <!-- Сообщения об успехе / ошибке (если будут) -->
     <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
         <span th:text="${successMessage}"></span>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -96,7 +94,6 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- ==================== Карточки KPI ==================== -->
     <div class="row g-3 mb-4">
         <!-- Выручка -->
         <div class="col-xl-4 col-md-6">
@@ -204,7 +201,6 @@
         </div>
     </div>
 
-    <!-- ==================== Графики ==================== -->
     <div class="row g-3 mb-4">
         <!-- Линейный график выручки по дням -->
         <div class="col-lg-8">
@@ -235,7 +231,6 @@
         </div>
     </div>
 
-    <!-- ==================== Топ-5 товаров ==================== -->
     <div class="card">
         <div class="card-header">
             <i class="bi bi-trophy"></i> Топ-5 продаваемых товаров
@@ -268,14 +263,13 @@
     </div>
 </div>
 
-<!-- Скрипты для страницы товаров (если нужны специфичные) -->
 <th:block layout:fragment="scripts">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- Инициализация графиков данными из модели -->
     <script th:inline="javascript">
         (function() {
-            // ========== Линейный график выручки ==========
+            // Линейный график
             const revenueLabels = /*[[${dashboard.revenueByDay != null ? dashboard.revenueByDay.![label] : {}}]]*/ [];
             const revenueValues = /*[[${dashboard.revenueByDay != null ? dashboard.revenueByDay.![value] : {}}]]*/ [];
 
@@ -320,7 +314,7 @@
                 });
             }
 
-            // ========== Круговой график по категориям ==========
+            // Круговой график по категориям
             const categoryLabels = /*[[${dashboard.revenueByCategory != null ? dashboard.revenueByCategory.![label] : {}}]]*/ [];
             const categoryValues = /*[[${dashboard.revenueByCategory != null ? dashboard.revenueByCategory.![value] : {}}]]*/ [];
 
@@ -359,20 +353,18 @@
         })();
     </script>
 
-    <!-- Скрипт синхронизации дат -->
     <script>
+        // Синхронизация дат
         (function() {
             const fromInput = document.getElementById('fromDate');
             const toInput = document.getElementById('toDate');
 
-            // Перед отправкой "Обновить" – копируем текущие даты
             document.getElementById('refreshForm').addEventListener('submit', function() {
                 document.getElementById('refreshDate').value = toInput.value;
                 document.getElementById('refreshFrom').value = fromInput.value;
                 document.getElementById('refreshTo').value = toInput.value;
             });
 
-            // Перед отправкой "Обновить (период)"
             document.getElementById('refreshRangeForm').addEventListener('submit', function() {
                 document.getElementById('rangeFrom').value = fromInput.value;
                 document.getElementById('rangeTo').value = toInput.value;

@@ -1,7 +1,6 @@
 package ohio.rizz.homeappliancestore.dto;
 
 import lombok.*;
-import ohio.rizz.homeappliancestore.entities.Supply;
 import ohio.rizz.homeappliancestore.enums.SupplyStatus;
 
 import java.math.BigDecimal;

@@ -44,7 +44,6 @@ public class SupplyController {
             }
         }
 
-        // Получаем отфильтрованные поставки одним методом
         List<SupplyDto> supplies = supplyService.getFilteredSupplies(search, supplyStatus);
 
         // Подсчет статистики
@@ -65,7 +64,6 @@ public class SupplyController {
         model.addAttribute("completedCount", completedCount);
         model.addAttribute("cancelledCount", cancelledCount);
 
-        // Сохраняем параметры для формы
         model.addAttribute("searchParam", search);
         model.addAttribute("statusParam", status);
 

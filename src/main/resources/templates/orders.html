@@ -109,7 +109,7 @@
             </div>
         </form>
 
-        <!-- Активные фильтры - ИСПРАВЛЕНО -->
+        <!-- Активные фильтры -->
         <div class="mt-3" th:if="${(param.search != null and !param.search.empty) or (param.status != null and !param.status.empty)}">
             <small class="text-muted me-2">Активные фильтры:</small>
             <span class="badge bg-info me-1" th:if="${param.search != null and !param.search.empty}">
@@ -160,7 +160,6 @@
 
     <!-- Список заказов -->
     <div class="list-group">
-        <!-- 1. Добавляем position-relative, чтобы растянутая ссылка не выходила за границы карточки -->
         <div th:each="order : ${orders}" class="list-group-item list-group-item-action order-card mb-2 position-relative">
             <div class="d-flex w-100 justify-content-between">
                 <div>
@@ -172,7 +171,6 @@
                     </h5>
                     <p class="mb-1">
                         <i class="bi bi-person"></i>
-                        <!-- 2. Ссылку на клиента нужно поднять по z-index, чтобы она осталась кликабельной отдельно -->
                         <a th:href="@{/customers/{id}(id=${order.customerId})}"
                            th:text="${order.customerName}"
                            class="position-relative" style="z-index: 2;"></a>
@@ -191,7 +189,6 @@
                     #numbers.formatDecimal(order.finalPrice, 1, 2, 'COMMA') :
                     #numbers.formatDecimal(order.totalPrice, 1, 2, 'COMMA')}"></h4>
 
-                    <!-- 3. Кнопку редактирования тоже поднимаем по z-index -->
                     <a th:if="${order.status.name() == 'IN_PROGRESS'}"
                        th:href="@{/orders/{id}/edit(id=${order.id})}"
                        class="btn btn-sm btn-outline-success position-relative"
@@ -200,7 +197,6 @@
                         <i class="bi bi-pencil"></i>
                     </a>
 
-                    <!-- 4. Добавляем класс stretched-link. Теперь эта ссылка "заполнит" собой всю карточку -->
                     <a th:href="@{/orders/{id}(id=${order.id})}"
                        class="btn btn-sm btn-outline-primary stretched-link"
                        title="Просмотреть детали">
@@ -211,7 +207,7 @@
         </div>
     </div>
 
-    <!-- Сообщение, если нет заказов - ИСПРАВЛЕНО -->
+    <!-- Сообщение, если нет заказов -->
     <div th:if="${orders.empty}" class="text-center py-5">
         <i class="bi bi-cart" style="font-size: 3rem; color: #6c757d;"></i>
         <h5 class="card-title mt-3">Заказы не найдены</h5>
@@ -225,29 +221,8 @@
         </a>
     </div>
 
-    <!-- Пагинация (если понадобится) -->
-    <nav aria-label="Page navigation" class="mt-4" th:if="${totalPages != null and totalPages > 1}">
-        <ul class="pagination justify-content-center">
-            <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
-                <a class="page-link" th:href="@{/orders(page=${currentPage - 1}, size=${pageSize}, search=${param.search}, status=${param.status})}">
-                    <i class="bi bi-chevron-left"></i>
-                </a>
-            </li>
-            <li class="page-item" th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-                th:classappend="${i == currentPage} ? 'active'">
-                <a class="page-link" th:href="@{/orders(page=${i}, size=${pageSize}, search=${param.search}, status=${param.status})}"
-                   th:text="${i + 1}"></a>
-            </li>
-            <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled'">
-                <a class="page-link" th:href="@{/orders(page=${currentPage + 1}, size=${pageSize}, search=${param.search}, status=${param.status})}">
-                    <i class="bi bi-chevron-right"></i>
-                </a>
-            </li>
-        </ul>
-    </nav>
 </div>
 
-<!-- Скрипты для страницы товаров (если нужны специфичные) -->
 <th:block layout:fragment="scripts">
     <script>
         // Подсветка активного фильтра

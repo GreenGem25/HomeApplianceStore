@@ -104,13 +104,13 @@
   </form>
 </div>
 
-<!-- Скрипты для страницы товаров (если нужны специфичные) -->
+<!-- Скрипты для страницы товаров -->
 <th:block layout:fragment="scripts">
   <script th:inline="javascript">
     /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function() {
 
-      // Получаем массив товаров напрямую, Thymeleaf сам превратит его в корректный JSON
+      // Получаем массив товаров напрямую
       const productsData = /*[[${products}]]*/ [];
       const container = document.getElementById('itemsContainer');
 
@@ -121,12 +121,12 @@
       </option>`
       ).join('');
 
-      // --- 1. ДОБАВЛЕНИЕ НОВОГО ТОВАРА ---
+      // Добавление товара
       document.getElementById('addItemBtn').addEventListener('click', function() {
         const newItem = document.createElement('div');
         newItem.className = 'product-item';
 
-        // Используем шаблонную строку. Индексы name обновятся функцией reindexItems
+        // Используем шаблонную строку
         newItem.innerHTML = `
         <div class="row">
           <div class="col-md-6">
@@ -153,7 +153,6 @@
         reindexItems();
       });
 
-      // --- 2. ДЕЛЕГИРОВАНИЕ СОБЫТИЙ (Один обработчик для всех строк) ---
       // Обработка изменений в селектах и инпутах
       container.addEventListener('change', function(e) {
 
@@ -206,8 +205,6 @@
           }
         }
       });
-
-      // --- 3. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ---
 
       // Пересчет индексов для Spring (items[0], items[1]...)
       function reindexItems() {

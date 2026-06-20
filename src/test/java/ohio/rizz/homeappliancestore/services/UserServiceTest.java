@@ -7,6 +7,7 @@ import ohio.rizz.homeappliancestore.enums.AuditAction;
 import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 import ohio.rizz.homeappliancestore.enums.Role;
 import ohio.rizz.homeappliancestore.exceptions.UserNotFoundException;
+import ohio.rizz.homeappliancestore.exceptions.UsernameIsTakenException;
 import ohio.rizz.homeappliancestore.mappers.UserMapper;
 import ohio.rizz.homeappliancestore.repositories.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,7 +102,7 @@ class UserServiceTest {
         when(userRepository.findByUsername(USERNAME)).thenReturn(Optional.of(sampleUser));
 
         // when & then
-        assertThrows(UserNotFoundException.class, () -> userService.createUser(userCreateDto));
+        assertThrows(UsernameIsTakenException.class, () -> userService.createUser(userCreateDto));
 
         // Проверяем, что save() ни разу не вызван
         verify(userRepository, never()).save(any());

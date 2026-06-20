@@ -106,28 +106,33 @@ public class AnalyticsService {
         int completedToday;
 
         if (todayDA != null) {
+            // Данные из предрасчитанной таблицы
             todayRevenue = todayDA.getTotalRevenue();
             todayCost = todayDA.getTotalCost();
             completedToday = todayDA.getOrderCount();
         } else {
             List<Order> todayOrders = orderRepository
                     .findByStatusAndOrderDateBetween(OrderStatus.COMPLETED, dayStart, dayEnd);
+            // Выручка за день
             todayRevenue = todayOrders.stream()
                     .map(Order::getTotalPrice)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
+            // Затраты на товары
             todayCost = todayOrders.stream()
                     .flatMap(o -> o.getOrderItems().stream())
-                    .map(oi -> oi.getProduct().getCostPrice()
+                    .map(oi -> oi.getCostPrice()
                             .multiply(BigDecimal.valueOf(oi.getOrderQuantity())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             completedToday = todayOrders.size();
         }
 
+        // Расходы
         List<Expense> todayExpenses = expenseRepository.findByExpenseDateBetween(today, today);
         BigDecimal expensesToday = todayExpenses.stream()
                 .map(Expense::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        // Прибыль
         BigDecimal todayProfit = todayRevenue.subtract(todayCost).subtract(expensesToday);
         BigDecimal avgCheck = completedToday > 0
                 ? todayRevenue.divide(BigDecimal.valueOf(completedToday), 2, RoundingMode.HALF_UP)
@@ -135,14 +140,14 @@ public class AnalyticsService {
 
         long inProgress = orderRepository.countByStatus(OrderStatus.IN_PROGRESS);
 
-        // Склад
+        // Количество товаров на складе
         List<Product> allProducts = productRepository.findAll();
         int totalStockQty = allProducts.stream().mapToInt(Product::getStockQuantity).sum();
         BigDecimal stockValue = allProducts.stream()
                 .map(p -> p.getPrice().multiply(BigDecimal.valueOf(p.getStockQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // --- График выручки по дням (из предрассчитанной таблицы) ---
+        // График выручки по дням
         List<DailyAnalytics> dailyData = dailyAnalyticsRepository
                 .findByDateBetweenOrderByDate(from, to);
         List<ChartDataPoint> revenueByDay = dailyData.stream()
@@ -152,7 +157,7 @@ public class AnalyticsService {
                         .build())
                 .collect(Collectors.toList());
 
-        // --- Выручка по категориям (считаем на лету за весь период) ---
+        // Выручка по категориям
         LocalDateTime periodStart = from.atStartOfDay();
         LocalDateTime periodEnd = to.plusDays(1).atStartOfDay();
         List<Order> periodOrders = orderRepository
@@ -172,7 +177,7 @@ public class AnalyticsService {
                 .map(e -> ChartDataPoint.builder().label(e.getKey()).value(e.getValue()).build())
                 .collect(Collectors.toList());
 
-        // --- Топ-5 товаров по количеству продаж за период ---
+        // Топ товаров по количеству продаж
         Map<String, TopProductTemp> productStats = periodOrders.stream()
                 .flatMap(o -> o.getOrderItems().stream())
                 .collect(Collectors.groupingBy(
@@ -200,7 +205,6 @@ public class AnalyticsService {
                 .limit(5)
                 .collect(Collectors.toList());
 
-        // Собираем итоговый DTO
         return DashboardDto.builder()
                 .todayRevenue(todayRevenue)
                 .todayProfit(todayProfit)

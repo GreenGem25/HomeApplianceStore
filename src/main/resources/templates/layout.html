@@ -21,12 +21,11 @@
 <body>
 <div class="container-fluid">
     <div class="row">
-        <!-- Боковая панель (подключаем фрагмент) -->
+        <!-- Боковая панель -->
         <div th:replace="~{fragments/sidebar :: sidebar}"></div>
 
         <!-- Основной контент страницы -->
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 py-4" layout:fragment="content">
-            <!-- Здесь будет уникальное содержимое -->
         </main>
     </div>
 </div>
@@ -34,7 +33,7 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Скрипты страницы (будут добавлены сюда) -->
+<!-- Скрипты страницы -->
 <th:block layout:fragment="scripts"></th:block>
 
 <!-- Общая анимация бокового меню -->

@@ -31,36 +31,39 @@
         .category-icon {
             transition: transform 0.25s ease;
         }
-        /* Автоматический поворот иконки при открытии collapse */
+
         .category-clickable[aria-expanded="true"] .category-icon {
             transform: rotate(90deg);
         }
-        /* Размер шрифта названия категории */
+
         .category-item a.fw-semibold {
             font-size: 1.15rem;
         }
-        /* Увеличенные отступы внутри строки */
+
         .category-item .d-flex {
             padding-top: 0.75rem;
             padding-bottom: 0.75rem;
         }
-        /* Дополнительно можно увеличить бейдж с количеством товаров */
+
         .category-item .badge {
             font-size: 0.85rem;
         }
-        /* Отступы по уровням */
+
         .level-0 { padding-left: 15px; }
         .level-1 { padding-left: 45px; background-color: #f8f9fa; }
         .level-2 { padding-left: 75px; background-color: #f1f3f5; }
         .level-3 { padding-left: 105px; background-color: #e9ecef; }
         .level-4 { padding-left: 135px; background-color: #dee2e6; }
+
         .category-actions {
             opacity: 0;
             transition: opacity 0.2s;
         }
+
         .category-item:hover .category-actions {
             opacity: 1;
         }
+
         .category-clickable {
             cursor: pointer;
             transition: background-color 0.15s ease;
@@ -68,10 +71,11 @@
             padding: 2px 8px;
             margin: -2px 0;
         }
+
         .category-clickable:hover {
             background-color: rgba(0,0,0,0.04);
         }
-        /* Убираем лишние границы, если list-group-item используется */
+
         .list-group-item {
             border: none;
             padding: 0;
@@ -121,10 +125,9 @@
 
 <th:block layout:fragment="scripts">
     <script>
+        // Список категорий
         document.addEventListener('DOMContentLoaded', function() {
-            // Синхронизация aria-expanded для иконок сворачивания
             document.querySelectorAll('.collapse').forEach(el => {
-                // Пропускаем коллапсы не из дерева категорий
                 const clickable = el.parentElement?.querySelector('.category-clickable');
                 if (!clickable) return;
 

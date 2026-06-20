@@ -7,6 +7,7 @@ import ohio.rizz.homeappliancestore.entities.User;
 import ohio.rizz.homeappliancestore.enums.AuditAction;
 import ohio.rizz.homeappliancestore.enums.AuditEntityType;
 import ohio.rizz.homeappliancestore.exceptions.UserNotFoundException;
+import ohio.rizz.homeappliancestore.exceptions.UsernameIsTakenException;
 import ohio.rizz.homeappliancestore.mappers.UserMapper;
 import ohio.rizz.homeappliancestore.repositories.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -36,7 +37,7 @@ public class UserService {
     @Transactional
     public User createUser(UserCreateDto userCreateDto) {
         if (userRepository.findByUsername(userCreateDto.getUsername()).isPresent()) {
-            throw new UserNotFoundException("Пользователь с таким логином уже существует");
+            throw new UsernameIsTakenException();
         }
         User user = userMapper.toEntity(userCreateDto, passwordEncoder);
         User savedUser = userRepository.save(user);

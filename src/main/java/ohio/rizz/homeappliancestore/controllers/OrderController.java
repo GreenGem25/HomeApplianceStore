@@ -45,10 +45,8 @@ public class OrderController {
             }
         }
 
-        // Получаем отфильтрованные заказы одним методом
         List<OrderDto> orders = orderService.getFilteredOrders(search, orderStatus, customerId);
 
-        // Если есть фильтр по клиенту, добавляем информацию о клиенте в модель
         if (customerId != null) {
             CustomerDto customer = customerService.getCustomerById(customerId);
             model.addAttribute("customer", customer);
@@ -68,7 +66,6 @@ public class OrderController {
         model.addAttribute("inProgressCount", inProgressCount);
         model.addAttribute("completedCount", completedCount);
 
-        // Сохраняем параметры для формы
         model.addAttribute("searchParam", search);
         model.addAttribute("statusParam", status);
 

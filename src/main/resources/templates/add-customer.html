@@ -28,7 +28,7 @@
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
 
-    <!-- Форма с привязкой к объекту customer -->
+    <!-- Форма -->
     <form th:action="@{/customers/add}" th:object="${customer}" method="post" enctype="multipart/form-data" novalidate>
         <div class="row g-3">
             <!-- Основная информация -->
